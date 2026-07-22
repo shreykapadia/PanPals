@@ -7,19 +7,19 @@
 appId: host.exp.Exponent
 ---
 - launchApp
-- assertVisible: "PanPals"
-- tapOn: "Sign in"
-- tapOn: "Email address"
-- inputText: "maya@panpals.app"
-- tapOn: "Password"
-- inputText: "password123"
-- tapOn: "Sign in"
-- assertVisible: "Home Dashboard"
+- assertVisible: 'PanPals'
+- tapOn: 'Sign in'
+- tapOn: 'Email address'
+- inputText: 'maya@panpals.app'
+- tapOn: 'Password'
+- inputText: 'password123'
+- tapOn: 'Sign in'
+- assertVisible: 'Home Dashboard'
 # TODO once Joon/Matt's screen exists, navigate to it here, e.g.:
 # - tapOn: "Wishlist"
 # - tapOn: "Add to wishlist"
-- assertVisible: "Search the product catalog"
-- tapOn: "Search the product catalog"
-- inputText: "rare"
-- assertVisible: "Rare Beauty"
-- tapOn: "Rare Beauty"
+- assertVisible: 'Search the product catalog'
+- tapOn: 'Search the product catalog'
+- inputText: 'rare'
+- assertVisible: 'Rare Beauty'
+- tapOn: 'Rare Beauty'
