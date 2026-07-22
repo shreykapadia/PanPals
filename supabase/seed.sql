@@ -1,0 +1,6 @@
+-- PanPals local seed data.
+--
+-- Placeholder (Phase B1). The real catalog_products seed — sourced from a
+-- license-clean Kaggle cosmetics dataset (MIT/CC), with provenance recorded
+-- in docs/CATALOG-PROVENANCE.md — lands in Phase B4 via
+-- scripts/build-catalog-seed.ts. Core tables land in Phase B2.
