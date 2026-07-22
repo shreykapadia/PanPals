@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import YouTab from '../you';
+import { mockFrom, resetSupabaseMock, chainableResult } from '../../../lib/testUtils/supabaseMock';
 
 const mockReplace = jest.fn();
 jest.mock('expo-router', () => ({
@@ -19,6 +20,8 @@ jest.mock('../../../lib/auth/useAuth', () => ({
     deleteAccount: mockDeleteAccount,
   }),
 }));
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+jest.mock('../../../lib/supabase', () => require('../../../lib/testUtils/supabaseMock'));
 
 const renderWithClient = () => {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -34,6 +37,19 @@ describe('YouTab', () => {
     mockReplace.mockClear();
     mockSignOut.mockClear();
     mockDeleteAccount.mockClear();
+    resetSupabaseMock();
+    mockFrom.mockReturnValue(
+      chainableResult({
+        data: {
+          id: 'mock-user-123',
+          username: 'maya_panpals',
+          selected_goals: ['Finish what I own'],
+          current_streak: 5,
+          longest_streak: 12,
+        },
+        error: null,
+      }),
+    );
   });
 
   it('signs out and routes to welcome', async () => {

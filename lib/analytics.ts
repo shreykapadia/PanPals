@@ -1,6 +1,5 @@
-import { AnalyticsEvent } from '../mocks/types';
-
-const mockAnalyticsLog: AnalyticsEvent[] = [];
+import { supabase } from './supabase';
+import { Json } from '../types/database';
 
 export type EventName =
   | 'account_completed'
@@ -29,16 +28,21 @@ const EVENT_DICTIONARY: readonly EventName[] = [
 
 /**
  * Tracks pseudonymous product analytics events (matrix row 24, DATA-MODEL.md
- * §analytics_events). Never store raw review text in event properties —
- * a `review_text` key throws rather than being silently dropped, since a
- * caller passing it is a bug, not a valid event shape.
+ * §analytics_events) by inserting into analytics_events. Never store raw
+ * review text — a `review_text` key throws rather than being silently
+ * dropped, since a caller passing it is a bug, not a valid event shape.
+ *
+ * Deliberately NOT declared `async`: the dictionary/review_text checks throw
+ * synchronously so callers (and tests) can rely on `track()` failing fast,
+ * before any network call happens. The actual insert runs in the background;
+ * callers may await the returned promise but aren't required to.
  */
 export function track(
   eventName: EventName,
   properties?: Record<string, unknown>,
   entityId?: string,
   sourceView?: string,
-): AnalyticsEvent {
+): Promise<void> {
   if (!EVENT_DICTIONARY.includes(eventName)) {
     throw new Error(`track(): "${eventName}" is not in the analytics event dictionary.`);
   }
@@ -46,26 +50,29 @@ export function track(
     throw new Error('track(): review_text may never be sent to analytics_events.');
   }
 
-  const event: AnalyticsEvent = {
-    id: `evt-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-    user_id: 'mock-user-123',
-    event_name: eventName,
-    entity_id: entityId || null,
-    source_view: sourceView || null,
-    properties: properties || null,
-    created_at: new Date().toISOString(),
-  };
-
-  mockAnalyticsLog.push(event);
-
-  if (__DEV__) {
-    // eslint-disable-next-line no-console
-    console.log(`[Analytics Track]: ${eventName}`, properties || '');
-  }
-
-  return event;
+  return insertEvent(eventName, properties, entityId, sourceView);
 }
 
-export function getTrackedEvents() {
-  return [...mockAnalyticsLog];
+async function insertEvent(
+  eventName: EventName,
+  properties?: Record<string, unknown>,
+  entityId?: string,
+  sourceView?: string,
+): Promise<void> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { error } = await supabase.from('analytics_events').insert({
+    user_id: user?.id ?? null,
+    event_name: eventName,
+    entity_id: entityId ?? null,
+    source_view: sourceView ?? null,
+    properties: (properties ?? null) as unknown as Json,
+  });
+
+  if (error && __DEV__) {
+    // eslint-disable-next-line no-console
+    console.warn(`[Analytics] Failed to record "${eventName}":`, error.message);
+  }
 }

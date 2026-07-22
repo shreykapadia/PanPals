@@ -1,36 +1,27 @@
-/**
- * MOCK-FIRST: returns fixtures until types/database.ts lands (AI-CONTEXT §2).
- * Swap internals only; keep this signature stable so feature screens never change.
- */
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { WishlistItem, WishlistStatus } from '../../mocks/types';
-import { mockWishlistItems } from '../../mocks/fixtures';
+import { WishlistItem, WishlistStatus, WishlistPriority } from '../../mocks/types';
+import { Database } from '../../types/database';
 import { queryKeys } from '../queryKeys';
 import { track } from '../analytics';
+import { supabase } from '../supabase';
 
-let wishlistStore: WishlistItem[] = [...mockWishlistItems];
+type WishlistItemUpdate = Database['public']['Tables']['wishlist_items']['Update'];
 
 export function useWishlist(filters?: { status?: WishlistStatus }) {
   return useQuery({
     queryKey: queryKeys.wishlist.list(filters),
-    queryFn: async () => {
-      const now = new Date();
-
-      // Refresh cooling off ready states
-      wishlistStore = wishlistStore.map((item) => {
-        if (item.status === 'cooling' && new Date(item.cooling_off_ends_at) <= now) {
-          return { ...item, status: 'ready' as const };
-        }
-        return item;
-      });
-
-      let result = [...wishlistStore];
+    queryFn: async (): Promise<WishlistItem[]> => {
+      let query = supabase
+        .from('wishlist_items')
+        .select('*')
+        .order('created_at', { ascending: false });
       if (filters?.status) {
-        result = result.filter((w) => w.status === filters.status);
+        query = query.eq('status', filters.status);
       }
 
-      return result;
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as WishlistItem[];
     },
   });
 }
@@ -45,22 +36,23 @@ export function useAddWishlistItem() {
         'id' | 'user_id' | 'created_at' | 'cooling_off_ends_at' | 'status'
       >,
     ) => {
-      const now = new Date();
-      const fourteenDaysLater = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not signed in.');
 
-      const newItem: WishlistItem = {
-        ...newItemData,
-        id: `wish-${Date.now()}`,
-        user_id: 'mock-user-123',
-        status: 'cooling',
-        cooling_off_ends_at: fourteenDaysLater.toISOString(),
-        created_at: now.toISOString(),
-      };
+      // cooling_off_ends_at relies on the DB default (now() + 14 days) —
+      // never set it from the client.
+      const { data, error } = await supabase
+        .from('wishlist_items')
+        .insert({ ...newItemData, user_id: user.id })
+        .select()
+        .single();
+      if (error) throw error;
 
-      wishlistStore.unshift(newItem);
-      track('wishlist_item_added', { category: newItem.category }, newItem.id);
+      track('wishlist_item_added', { category: data.category }, data.id);
 
-      return newItem;
+      return data as WishlistItem;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.wishlist.all });
@@ -82,22 +74,21 @@ export function useUpdateWishlistItem() {
       id: string;
       reflectionResponse?: string;
       status?: WishlistStatus;
-      priority?: 'high' | 'medium' | 'low';
+      priority?: WishlistPriority;
     }) => {
-      const itemIndex = wishlistStore.findIndex((w) => w.id === id);
-      if (itemIndex === -1) throw new Error('Wishlist item not found');
+      const updates: WishlistItemUpdate = { last_reviewed_at: new Date().toISOString() };
+      if (reflectionResponse !== undefined) updates.reflection_response = reflectionResponse;
+      if (status !== undefined) updates.status = status;
+      if (priority !== undefined) updates.priority = priority;
 
-      const updated = {
-        ...wishlistStore[itemIndex],
-        ...(reflectionResponse !== undefined && { reflection_response: reflectionResponse }),
-        ...(status !== undefined && { status }),
-        ...(priority !== undefined && { priority }),
-        last_reviewed_at: new Date().toISOString(),
-      };
-
-      wishlistStore[itemIndex] = updated;
-
-      return updated;
+      const { data, error } = await supabase
+        .from('wishlist_items')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data as WishlistItem;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.wishlist.all });
@@ -111,17 +102,17 @@ export function useRemoveWishlistItem() {
 
   return useMutation({
     mutationFn: async ({ id }: { id: string }) => {
-      const itemIndex = wishlistStore.findIndex((w) => w.id === id);
-      if (itemIndex === -1) throw new Error('Wishlist item not found');
-
-      wishlistStore[itemIndex] = {
-        ...wishlistStore[itemIndex],
-        status: 'removed',
-      };
+      const { data, error } = await supabase
+        .from('wishlist_items')
+        .update({ status: 'removed' })
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
 
       track('wishlist_item_removed', {}, id);
 
-      return wishlistStore[itemIndex];
+      return data as WishlistItem;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.wishlist.all });
