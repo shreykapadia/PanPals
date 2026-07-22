@@ -4,6 +4,8 @@
 .env.*.local
 *.key
 *.pem
+.mcp.json
+.zshrc
 
 # === Node ===
 node_modules/
@@ -31,7 +33,6 @@ expo-env.d.ts
 # === Supabase (local stack) ===
 supabase/.branches/
 supabase/.temp/
-.mcp.json
 
 # === Testing / coverage ===
 coverage/
