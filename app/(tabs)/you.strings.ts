@@ -1,0 +1,26 @@
+export const youStrings = {
+  header: 'Your Profile',
+  goalsTitle: 'Your goals',
+  editGoals: 'Edit goals',
+  saveGoals: 'Save',
+  cancelGoals: 'Cancel',
+  noGoals: 'No goals selected yet.',
+  streakTitle: 'Streak Statistics',
+  activeStreak: 'Active Streak',
+  totalFinished: 'Total finished',
+  remindersTitle: 'In-app reminders',
+  remindersDescription:
+    'Gentle nudges inside the app about products you’re low on. Off by default — you’re always in control.',
+  signOut: 'Sign out',
+  deleteAccount: 'Delete account',
+  deleteTitle: 'Delete your account?',
+  deleteDescription:
+    'This permanently removes your profile, inventory, wishlist, and empties archive. This can’t be undone.',
+  deleteConfirmLabel: 'Type DELETE to confirm',
+  deleteConfirmPlaceholder: 'DELETE',
+  deleteConfirmWord: 'DELETE',
+  deleteCancel: 'Cancel',
+  deleteConfirmAction: 'Delete my account',
+  loadingProfile: 'Loading your profile...',
+  errorProfile: "We couldn't load your profile.",
+};

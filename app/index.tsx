@@ -6,7 +6,7 @@ export default function Index() {
   const { session } = useAuth();
 
   if (!session) {
-    return <Redirect href="/(auth)/login" />;
+    return <Redirect href="/(auth)/welcome" />;
   }
 
   return <Redirect href="/(tabs)" />;
