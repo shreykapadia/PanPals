@@ -2,11 +2,14 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import GoalCaptureScreen from '../goal-capture';
+import { mockFrom, resetSupabaseMock, chainableResult } from '../../../lib/testUtils/supabaseMock';
 
 const mockReplace = jest.fn();
 jest.mock('expo-router', () => ({
   useRouter: () => ({ replace: mockReplace, push: jest.fn() }),
 }));
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+jest.mock('../../../lib/supabase', () => require('../../../lib/testUtils/supabaseMock'));
 
 const renderWithClient = () => {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -20,6 +23,8 @@ const renderWithClient = () => {
 describe('GoalCaptureScreen', () => {
   beforeEach(() => {
     mockReplace.mockClear();
+    resetSupabaseMock();
+    mockFrom.mockReturnValue(chainableResult({ data: { id: 'mock-user-123' }, error: null }));
   });
 
   it('keeps Continue disabled until a name and at least one goal are chosen', () => {

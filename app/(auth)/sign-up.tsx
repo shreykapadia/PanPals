@@ -32,7 +32,11 @@ export default function SignUpScreen() {
 
     setIsSubmitting(true);
     try {
-      await signUp(email.trim(), password);
+      const { needsEmailConfirmation } = await signUp(email.trim(), password);
+      if (needsEmailConfirmation) {
+        setFormError(s.errorConfirmEmail);
+        return;
+      }
       router.replace('/(auth)/goal-capture');
     } catch {
       setFormError(s.errorGeneric);

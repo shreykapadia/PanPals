@@ -1,21 +1,22 @@
-/**
- * MOCK-FIRST: returns fixtures until types/database.ts lands (AI-CONTEXT §2).
- * Swap internals only; keep this signature stable so feature screens never change.
- */
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Empty, RepurchaseVerdict } from '../../mocks/types';
-import { mockEmpties, mockProducts } from '../../mocks/fixtures';
+import { Database } from '../../types/database';
 import { queryKeys } from '../queryKeys';
 import { track } from '../analytics';
+import { supabase } from '../supabase';
 
-let emptiesStore: Empty[] = [...mockEmpties];
+type FinishProductArgs = Database['public']['Functions']['finish_product']['Args'];
 
 export function useEmpties() {
   return useQuery({
     queryKey: queryKeys.empties.all,
-    queryFn: async () => {
-      return [...emptiesStore];
+    queryFn: async (): Promise<Empty[]> => {
+      const { data, error } = await supabase
+        .from('empties')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data as Empty[];
     },
   });
 }
@@ -35,45 +36,21 @@ export function useFinishProduct() {
       repurchase: RepurchaseVerdict;
       photoUrl?: string;
     }) => {
-      const productIndex = mockProducts.findIndex((p) => p.id === productId);
-      if (productIndex === -1) throw new Error('Product not found');
-
-      const product = mockProducts[productIndex];
-
-      // Compute months in use if opened_at exists
-      let monthsInUse: number | null = null;
-      if (product.opened_at) {
-        const opened = new Date(product.opened_at);
-        const now = new Date();
-        const diffMonths =
-          (now.getFullYear() - opened.getFullYear()) * 12 + (now.getMonth() - opened.getMonth());
-        monthsInUse = Math.max(1, diffMonths);
-      }
-
-      // Update product status
-      mockProducts[productIndex] = {
-        ...product,
-        status: 'finished',
-        percent_remaining: 0,
-        is_priority: false,
-      };
-
-      // Create new private Empty row
-      const newEmpty: Empty = {
-        id: `empty-${Date.now()}`,
-        user_id: 'mock-user-123',
+      // See useProducts.ts's log_usage cast: the generated Args type marks
+      // review/photo_url as required plain strings since the SQL signature
+      // has no DEFAULT, but Postgres params are always nullable and the
+      // columns are nullable too. This cast passes the correct null through.
+      const { data, error } = await supabase.rpc('finish_product', {
         product_id: productId,
-        review_text: reviewText || null,
+        review: reviewText ?? null,
         repurchase,
-        months_in_use: monthsInUse,
-        photo_url: photoUrl || null,
-        created_at: new Date().toISOString(),
-      };
+        photo_url: photoUrl ?? null,
+      } as FinishProductArgs);
+      if (error) throw error;
 
-      emptiesStore.unshift(newEmpty);
       track('product_finished', { repurchase }, productId);
 
-      return newEmpty;
+      return data as unknown as Empty;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.empties.all });

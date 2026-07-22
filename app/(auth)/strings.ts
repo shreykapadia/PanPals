@@ -26,6 +26,7 @@ export const authStrings = {
     errorEmail: 'Enter a valid email address.',
     errorPassword: 'Your password needs at least 6 characters.',
     errorGeneric: "We couldn't create your account. Please try again.",
+    errorConfirmEmail: "We've sent a confirmation link to your email. Confirm it, then sign in.",
   },
   signIn: {
     title: 'Welcome back',
