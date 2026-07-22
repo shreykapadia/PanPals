@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, Text, ActivityIndicator } from 'react-native';
+import { colors } from '../../theme/tokens';
 
 interface ButtonProps {
   label: string;
@@ -42,7 +43,7 @@ export const Button: React.FC<ButtonProps> = ({
       className={`${baseStyles} ${variantStyles} ${disabled ? 'opacity-50' : ''} ${className}`}
     >
       {loading ? (
-        <ActivityIndicator color="#333333" size="small" />
+        <ActivityIndicator color={colors['dark-neutral']} size="small" />
       ) : (
         <Text className={textStyles}>{label}</Text>
       )}

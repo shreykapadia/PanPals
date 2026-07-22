@@ -7,7 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { WishlistItem, WishlistStatus } from '../../mocks/types';
 import { mockWishlistItems } from '../../mocks/fixtures';
 import { queryKeys } from '../queryKeys';
-import { track } from './track';
+import { track } from '../analytics';
 
 let wishlistStore: WishlistItem[] = [...mockWishlistItems];
 

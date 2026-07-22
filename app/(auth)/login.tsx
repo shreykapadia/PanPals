@@ -4,12 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
-import { useAuthStore } from '../../lib/auth';
+import { useAuth } from '../../lib/auth/useAuth';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('maya@panpals.app');
   const [password, setPassword] = useState('password');
-  const { signIn } = useAuthStore();
+  const { signIn } = useAuth();
 
   return (
     <SafeAreaView className="flex-1 bg-surface">
@@ -50,7 +50,7 @@ export default function LoginScreen() {
               autoCapitalize="none"
             />
 
-            <Button label="Sign In" onPress={signIn} className="mt-4" />
+            <Button label="Sign In" onPress={() => signIn(email, password)} className="mt-4" />
           </Card>
         </ScrollView>
       </KeyboardAvoidingView>
