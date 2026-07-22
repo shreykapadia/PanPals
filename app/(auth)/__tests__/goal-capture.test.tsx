@@ -50,4 +50,16 @@ describe('GoalCaptureScreen', () => {
 
     await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/(tabs)'));
   });
+
+  it('shows an inline error and does not navigate when saving goals fails', async () => {
+    mockFrom.mockReturnValue(chainableResult({ data: null, error: new Error('upsert failed') }));
+    const { getByLabelText, findByText } = renderWithClient();
+
+    fireEvent.changeText(getByLabelText('First name'), 'Maya');
+    fireEvent.press(getByLabelText('Finish what I own'));
+    fireEvent.press(getByLabelText('Continue'));
+
+    await findByText("We couldn't save your goals. Please try again.");
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
 });

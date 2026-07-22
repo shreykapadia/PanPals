@@ -27,16 +27,28 @@ export default function YouTab() {
   const [draftGoals, setDraftGoals] = useState<string[]>([]);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [signOutError, setSignOutError] = useState<string | undefined>();
+  const [deleteError, setDeleteError] = useState<string | undefined>();
 
   const handleSignOut = async () => {
-    await signOut();
-    router.replace('/(auth)/welcome');
+    setSignOutError(undefined);
+    try {
+      await signOut();
+      router.replace('/(auth)/welcome');
+    } catch {
+      setSignOutError(s.errorSignOut);
+    }
   };
 
   const handleDeleteAccount = async () => {
-    await deleteAccount();
-    setIsDeleteModalOpen(false);
-    router.replace('/(auth)/welcome');
+    setDeleteError(undefined);
+    try {
+      await deleteAccount();
+      setIsDeleteModalOpen(false);
+      router.replace('/(auth)/welcome');
+    } catch {
+      setDeleteError(s.errorDelete);
+    }
   };
 
   const openEditGoals = () => {
@@ -173,7 +185,7 @@ export default function YouTab() {
                 {profile.longest_streak}
               </Text>
               <Text className="text-[10px] font-semibold font-satoshi text-muted-text uppercase tracking-wider mt-1">
-                {s.totalFinished}
+                {s.longestStreak}
               </Text>
             </View>
           </View>
@@ -191,7 +203,7 @@ export default function YouTab() {
               value={remindersEnabled}
               onValueChange={setRemindersEnabled}
               trackColor={{ false: colors['border-warm'], true: colors['primary-container'] }}
-              thumbColor="#FFFFFF"
+              thumbColor={colors['card-surface']}
               accessibilityLabel={s.remindersTitle}
               accessibilityRole="switch"
             />
@@ -199,6 +211,14 @@ export default function YouTab() {
         </Card>
 
         <View className="gap-3">
+          {signOutError && (
+            <Text
+              accessibilityRole="alert"
+              className="text-xs text-error font-satoshi text-center px-2"
+            >
+              {signOutError}
+            </Text>
+          )}
           <Button
             label={s.signOut}
             onPress={handleSignOut}
@@ -238,6 +258,11 @@ export default function YouTab() {
               autoCapitalize="characters"
               accessibilityLabel={s.deleteConfirmLabel}
             />
+            {deleteError && (
+              <Text accessibilityRole="alert" className="text-xs text-error font-satoshi mt-2 px-2">
+                {deleteError}
+              </Text>
+            )}
             <View className="flex-row gap-3 mt-2">
               <View className="flex-1">
                 <Button
@@ -246,6 +271,7 @@ export default function YouTab() {
                   onPress={() => {
                     setIsDeleteModalOpen(false);
                     setDeleteConfirmText('');
+                    setDeleteError(undefined);
                   }}
                   accessibilityLabel={s.deleteCancel}
                 />

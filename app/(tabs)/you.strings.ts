@@ -7,7 +7,7 @@ export const youStrings = {
   noGoals: 'No goals selected yet.',
   streakTitle: 'Streak Statistics',
   activeStreak: 'Active Streak',
-  totalFinished: 'Total finished',
+  longestStreak: 'Longest streak',
   remindersTitle: 'In-app reminders',
   remindersDescription:
     'Gentle nudges inside the app about products you’re low on. Off by default — you’re always in control.',
@@ -23,4 +23,6 @@ export const youStrings = {
   deleteConfirmAction: 'Delete my account',
   loadingProfile: 'Loading your profile...',
   errorProfile: "We couldn't load your profile.",
+  errorSignOut: "We couldn't sign you out. Please try again.",
+  errorDelete: "We couldn't delete your account. Please try again.",
 };
