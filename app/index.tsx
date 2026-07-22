@@ -1,9 +1,9 @@
 import React from 'react';
 import { Redirect } from 'expo-router';
-import { useAuthStore } from '../lib/auth';
+import { useAuth } from '../lib/auth/useAuth';
 
 export default function Index() {
-  const { session } = useAuthStore();
+  const { session } = useAuth();
 
   if (!session) {
     return <Redirect href="/(auth)/login" />;

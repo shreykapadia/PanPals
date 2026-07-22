@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
+import { colors } from '../../theme/tokens';
 
 interface CardProps {
   children: React.ReactNode;
@@ -19,7 +20,7 @@ export const Card: React.FC<CardProps> = ({ children, className = '' }) => {
 
 const styles = StyleSheet.create({
   shadow: {
-    shadowColor: '#333333',
+    shadowColor: colors['dark-neutral'],
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 12,

@@ -12,6 +12,7 @@ import {
   ChevronRight,
   X,
 } from 'lucide-react-native';
+import { colors } from '../../theme/tokens';
 
 export type IconName =
   | 'home'
@@ -48,7 +49,7 @@ interface IconProps {
 export const Icon: React.FC<IconProps> = ({
   name,
   size = 24,
-  color = '#8C857B', // Default to inactive gray
+  color = colors['inactive-gray'],
   className = '',
 }) => {
   const LucideIconComponent = icons[name];

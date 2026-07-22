@@ -4,16 +4,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Icon } from '../../components/ui/Icon';
-import { useAuthStore } from '../../lib/auth';
+import { useAuth } from '../../lib/auth/useAuth';
+import { colors } from '../../theme/tokens';
 
 export default function YouTab() {
-  const { session, signOut } = useAuthStore();
+  const { session, signOut } = useAuth();
 
   return (
     <SafeAreaView className="flex-1 bg-surface">
       <View className="h-14 border-b border-border-warm flex-row items-center justify-between px-4 bg-surface">
         <Text className="text-xl font-bold font-caslon text-dark-neutral">PanPal Profile</Text>
-        <Icon name="you" color="#333333" size={24} />
+        <Icon name="you" color={colors['dark-neutral']} size={24} />
       </View>
       <ScrollView className="flex-1 px-4 py-6" contentContainerStyle={{ paddingBottom: 100 }}>
         <Card className="mb-6 items-center">

@@ -7,7 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Empty, RepurchaseVerdict } from '../../mocks/types';
 import { mockEmpties, mockProducts } from '../../mocks/fixtures';
 import { queryKeys } from '../queryKeys';
-import { track } from './track';
+import { track } from '../analytics';
 
 let emptiesStore: Empty[] = [...mockEmpties];
 

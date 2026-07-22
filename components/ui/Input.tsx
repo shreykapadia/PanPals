@@ -1,5 +1,6 @@
 import React from 'react';
 import { TextInput, View, Text, TextInputProps } from 'react-native';
+import { colors } from '../../theme/tokens';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -16,7 +17,7 @@ export const Input: React.FC<InputProps> = ({ label, error, className = '', ...p
         </Text>
       )}
       <TextInput
-        placeholderTextColor="#8C857B"
+        placeholderTextColor={colors['inactive-gray']}
         className={`h-12 w-full rounded-full border border-border-warm bg-card-surface px-6 text-sm text-dark-neutral font-satoshi ${
           error ? 'border-error' : ''
         } ${className}`}

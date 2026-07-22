@@ -7,7 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Product, Category, UsageLog } from '../../mocks/types';
 import { mockProducts, mockUsageLogs, mockWishlistItems, mockProfile } from '../../mocks/fixtures';
 import { queryKeys } from '../queryKeys';
-import { track } from './track';
+import { track } from '../analytics';
 
 // In-memory store for dev mock session
 let productsStore: Product[] = [...mockProducts];
