@@ -34,15 +34,15 @@ Shrey wires this into `package.json` during scaffold (Phase 0):
 Maestro CLI is free and runs on a local simulator/emulator.
 Flows live in `.maestro/`, one per feature:
 
-| Flow file | Asserts |
-|---|---|
-| `log-product.yaml` | open modal → fill fields → save → item in inventory |
-| `focus-and-ring.yaml` | pin product → Home shows ring → slider updates % |
-| `wishlist-intercept.yaml` | add 4th same-category item → banner shows owned items → cooling-off CTA |
-| `catalog-search.yaml` | type a brand → type-ahead result → select → fields pre-fill |
+| Flow file                 | Asserts                                                                                       |
+| ------------------------- | --------------------------------------------------------------------------------------------- |
+| `log-product.yaml`        | open modal → fill fields → save → item in inventory                                           |
+| `focus-and-ring.yaml`     | pin product → Home shows ring → slider updates %                                              |
+| `wishlist-intercept.yaml` | add 4th same-category item → banner shows owned items → cooling-off CTA                       |
+| `catalog-search.yaml`     | type a brand → type-ahead result → select → fields pre-fill                                   |
 | `finish-and-archive.yaml` | finish product → celebration → item in **private** empties archive + repurchase verdict saved |
 
-*(The old `finish-and-feed` flow is retired — the Community feed is deferred, D13.)*
+_(The old `finish-and-feed` flow is retired — the Community feed is deferred, D13.)_
 
 Run your module's flow before every PR; Shrey runs the full set before merging
 to `main` each evening (this replaces nightly CI).

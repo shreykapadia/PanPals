@@ -14,6 +14,7 @@ Read your own plan in full; skim the others' lanes so you know what you can impo
 ## What changed after the 7/21 sync (read once)
 
 The **Maya Feature Matrix** is now the scope authority. Versus the earlier kit:
+
 - **Shrey owns the entire backend and setup (D20)** — scaffold, auth, navigation, Supabase schema/RLS/RPCs/seed, generated types, shared UI, and the `lib/api` data hooks. The other four build **front-end features only** and never touch `supabase/*` or `types/database.ts`.
 - **Supabase is provisioned now** (was deferred) — it's our shared data contract and our main merge-conflict defense.
 - **Community feed, likes, badges, and points are deferred.** Finishing a product writes a **private** empties archive + repurchase verdict. Streak is display-only.
@@ -24,13 +25,13 @@ Full rationale: `docs/DECISIONS.md` (D12–D19). The contract everyone obeys: `A
 
 ## Who owns what (nobody edits anyone else's files)
 
-| Person | Plan | Lane (owns & edits) |
-|---|---|---|
-| **Shrey** (lead) | `SHREY-PLAN.md` | **Entire backend + platform:** scaffold, auth, navigation, `supabase/*` (schema/RLS/RPCs/Kaggle seed), `types/database.ts`, shared UI kit (`components/ui/*`), `lib/api` hooks, `theme`, `mocks`, catalog search, analytics, onboarding + You tab, docs, `.github`. Reviews & merges every PR. |
-| **Aaron** | `AARON-PLAN.md` | `app/(tabs)/index.tsx`, `features/home/*`, `components/ProgressRing.tsx` — Home, Focus Pot, rings. |
-| **Joon** | `JOON-PLAN.md` | `app/(tabs)/wishlist.tsx`, `features/wishlist/*` — wishlist, impulse intercept, cooling-off, conversion. |
-| **Matt** | `MATT-PLAN.md` | `app/(tabs)/inventory.tsx`, `features/inventory/*` — inventory entry, browse/filter/edit, usage logging. |
-| **Talbia** | `TALBIA-PLAN.md` | `app/(tabs)/progress.tsx`, `features/empties/*` — finish/celebration, repurchase review, private empties archive, Progress tab. |
+| Person           | Plan             | Lane (owns & edits)                                                                                                                                                                                                                                                                            |
+| ---------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Shrey** (lead) | `SHREY-PLAN.md`  | **Entire backend + platform:** scaffold, auth, navigation, `supabase/*` (schema/RLS/RPCs/Kaggle seed), `types/database.ts`, shared UI kit (`components/ui/*`), `lib/api` hooks, `theme`, `mocks`, catalog search, analytics, onboarding + You tab, docs, `.github`. Reviews & merges every PR. |
+| **Aaron**        | `AARON-PLAN.md`  | `app/(tabs)/index.tsx`, `features/home/*`, `components/ProgressRing.tsx` — Home, Focus Pot, rings.                                                                                                                                                                                             |
+| **Joon**         | `JOON-PLAN.md`   | `app/(tabs)/wishlist.tsx`, `features/wishlist/*` — wishlist, impulse intercept, cooling-off, conversion.                                                                                                                                                                                       |
+| **Matt**         | `MATT-PLAN.md`   | `app/(tabs)/inventory.tsx`, `features/inventory/*` — inventory entry, browse/filter/edit, usage logging.                                                                                                                                                                                       |
+| **Talbia**       | `TALBIA-PLAN.md` | `app/(tabs)/progress.tsx`, `features/empties/*` — finish/celebration, repurchase review, private empties archive, Progress tab.                                                                                                                                                                |
 
 Enforced by `.github/CODEOWNERS` and `AI-CONTEXT.md §3`. If you need a change outside
 your lane, **stop and post a `CROSS-LANE REQUEST`** — each plan has pre-written ones.

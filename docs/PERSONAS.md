@@ -10,7 +10,7 @@ at the end.
 > **7/21 scope update (D13, D16, D18):** the go-forward build follows the Maya
 > Feature Matrix. **Maya is the P1 build target.** Claire's impulse intercept is
 > in scope (highest test priority). **Sam is now a design lens, not a build
-> target** — her finish moment ships as a *private* empties archive, but the
+> target** — her finish moment ships as a _private_ empties archive, but the
 > Community Empties feed, likes, and badges that completed her loop are
 > **deferred**. Read Sam's section for the emotional "why" behind the finish
 > moment; ignore its feed/likes/badge mechanics for this build.
@@ -19,13 +19,13 @@ at the end.
 
 ## MVP priority order
 
-| Priority | Persona | Why this rank | Owning module |
-|---|---|---|---|
-| **P1 — build & retain** | Maya, the Low-Tech Migrator | Only persona validated by primary evidence (subreddit screenshots of paper/spreadsheet/notes-app trackers). Powers the daily retention loop. Lowest build risk | Home & rings (Aaron), fast-log (Matt) |
-| **P2 — test hardest** | Claire, the Dopamine-Chasing Hauler | The impulse intercept is our differentiator AND our riskiest assumption — the feature most likely to cause churn if the tone is wrong. Test it, don't just build it | Wishlist & intercept (Joon) |
-| **P3 — delight** | Sam, the Zero-Waste Eco-Purist | The finish/share moment is the emotional payoff of the whole loop, but it depends on P1's tracking existing first | Empties & feed (Matt) |
-| **Design lens, not build target** | Priya, the Visual Curator | Her needs (visual-first, minimal taps, gentle alerts) are design principles we apply everywhere now; her dedicated features (color grids, widgets) are post-class |
-| **Deferred** | Subscription Box Overloader, Project Pan Purist | Power-user extensions of P1 (batch logging, weight tracking). Post-class |
+| Priority                          | Persona                                         | Why this rank                                                                                                                                                       | Owning module                         |
+| --------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| **P1 — build & retain**           | Maya, the Low-Tech Migrator                     | Only persona validated by primary evidence (subreddit screenshots of paper/spreadsheet/notes-app trackers). Powers the daily retention loop. Lowest build risk      | Home & rings (Aaron), fast-log (Matt) |
+| **P2 — test hardest**             | Claire, the Dopamine-Chasing Hauler             | The impulse intercept is our differentiator AND our riskiest assumption — the feature most likely to cause churn if the tone is wrong. Test it, don't just build it | Wishlist & intercept (Joon)           |
+| **P3 — delight**                  | Sam, the Zero-Waste Eco-Purist                  | The finish/share moment is the emotional payoff of the whole loop, but it depends on P1's tracking existing first                                                   | Empties & feed (Matt)                 |
+| **Design lens, not build target** | Priya, the Visual Curator                       | Her needs (visual-first, minimal taps, gentle alerts) are design principles we apply everywhere now; her dedicated features (color grids, widgets) are post-class   |
+| **Deferred**                      | Subscription Box Overloader, Project Pan Purist | Power-user extensions of P1 (batch logging, weight tracking). Post-class                                                                                            |
 
 ---
 
@@ -55,6 +55,7 @@ products takes an hour, she's back to her spreadsheet. This is why F1's 15s
 spec is the single most important number in the PRD.
 
 **Journey (MVP-true):**
+
 1. Sees a PanPals empties post linked in r/ProjectPan → downloads.
 2. Logs 8 products she's actively panning — photo, brand, name, category,
    format, status. Under 2 minutes total.
@@ -76,7 +77,7 @@ something she'd do unprompted every morning? Target: log ≤15s median.
 unboxing — then guilt and a cluttered vanity. "Last Supper" hauls before
 every attempted no-buy. Saves products to folders she never reopens.
 
-**Core motivation:** Wants to *feel in control* of her buying without being
+**Core motivation:** Wants to _feel in control_ of her buying without being
 policed. She's not quitting beauty — this "isn't like someone looking to quit
 smoking" (persona-iteration doc, decision on soft alerts).
 
@@ -86,7 +87,7 @@ punishment and get deleted.
 
 **What PanPals gives her (MVP):** F5 impulse intercept — adding a blush to
 her wishlist when she owns 4 similar ones triggers the calm "Hold on"
-banner showing *her own inventory*, with a 14-day cooling-off CTA (D3).
+banner showing _her own inventory_, with a 14-day cooling-off CTA (D3).
 Confrontation with her own data, not a lecture. F6 finish moments retrain
 the dopamine hit from buying → finishing (rewards never come from purchases).
 
@@ -94,6 +95,7 @@ the dopamine hit from buying → finishing (rewards never come from purchases).
 and she uninstalls. Copy rules in AI-CONTEXT.md §5 exist because of her.
 
 **Journey (MVP-true):**
+
 1. Late-night TikTok → new Rare Beauty blush → opens PanPals to add it to
    her wishlist (habit we're building: wishlist first, checkout never-first).
 2. Intercept: "You already have 4 very similar blushes in active rotation" +
@@ -109,7 +111,7 @@ and she uninstalls. Copy rules in AI-CONTEXT.md §5 exist because of her.
 judgmental? Target: ≥1 of 5–8 testers says it would change a real purchase
 decision; zero testers use the word "judged."
 
-**Lifecycle note:** Claire is designed to *evolve into Maya*. The reward
+**Lifecycle note:** Claire is designed to _evolve into Maya_. The reward
 system (finishing earns, buying never earns) is the transition mechanism —
 confirmed in the persona-iteration session.
 
@@ -127,7 +129,7 @@ in all our research.
 
 **Pain points:** Finishing a product is invisible in every existing tool;
 decluttered items vanish into "the void" in competitor apps; no community
-celebrates *using up* rather than *buying*.
+celebrates _using up_ rather than _buying_.
 
 **What PanPals gives her (MVP):** F6 finish celebration with months-in-use +
 repurchase verdict, F7 Community Empties feed with likes, eco-styled badges
@@ -138,6 +140,7 @@ out-of-scope; the honor system makes it low-stakes to defer).
 (@claire_pans, @minimal_maya demo content per R8) before any tester opens it.
 
 **Journey (MVP-true):**
+
 1. Finishes a serum → taps "Log an Empty" → celebration animation, "3 months"
    chip, Repurchase: Yes, photo of the scraped-out jar.
 2. Post appears in Community Empties; collects likes; earns First Empty badge.
@@ -164,6 +167,7 @@ auto color-family grids, home-screen widgets, shade-similarity matching —
 depend on color AI and native widget work that are out of scope.
 
 **Why she still matters now (adopt as design principles):**
+
 - Visual-first: photos and rings over text lists, everywhere.
 - Minimal taps: her 1-tap tolerance is why F2 is specced at ≤3 taps.
 - Gentle, non-alarming alerts: soft amber, never red — she's the reason.
@@ -190,7 +194,7 @@ decision).
    they own, with no consumption goal. That's Beautistics's user; serving
    them turns PanPals into a collection app and reintroduces the
    overconsumption tension.
-2. **The Hard-Stop Seeker** — wants the app to *forbid* purchases
+2. **The Hard-Stop Seeker** — wants the app to _forbid_ purchases
    (quit-smoking model). We decided honor system + soft alerts (D2); this
    user will be disappointed by design.
 
@@ -198,11 +202,11 @@ decision).
 
 ## Persona → screen → metric traceability
 
-| Persona | Mockup/flow | Maestro flow | Fair metric |
-|---|---|---|---|
-| Maya | home-dashboard.png, log-modal.png | log-product, focus-and-ring | ≤15s median log |
-| Claire | wishlist-intercept.png | wishlist-intercept | ≥1 changed purchase decision; 0 "judged" |
-| Sam | empties-feed.png | finish-and-feed | finish = "motivating"; North Star: empties/user/month |
+| Persona | Mockup/flow                       | Maestro flow                | Fair metric                                           |
+| ------- | --------------------------------- | --------------------------- | ----------------------------------------------------- |
+| Maya    | home-dashboard.png, log-modal.png | log-product, focus-and-ring | ≤15s median log                                       |
+| Claire  | wishlist-intercept.png            | wishlist-intercept          | ≥1 changed purchase decision; 0 "judged"              |
+| Sam     | empties-feed.png                  | finish-and-feed             | finish = "motivating"; North Star: empties/user/month |
 
 ## Screener questions (recruiting 5–8 MBA-cohort testers)
 
@@ -214,7 +218,7 @@ decision).
    products? (→ Sam)
 4. Do you currently track products in a spreadsheet, notes app, or notebook?
    (→ Maya, strongest signal)
-Recruit at least 2 Mayas, 2 Claires, 1 Sam. Screen out pure Shelf Cataloguers.
+   Recruit at least 2 Mayas, 2 Claires, 1 Sam. Screen out pure Shelf Cataloguers.
 
 ---
 
@@ -226,20 +230,21 @@ correctly stress-tested friction vs. churn, killed the item cap, and chose
 the four highest-risk flows to wireframe.
 
 **What was broken, now fixed:**
-1. *Two unreconciled taxonomies (9 personas for a 5-person class project).*
+
+1. _Two unreconciled taxonomies (9 personas for a 5-person class project)._
    Dopamine Collector ≈ Dopamine-Chasing Hauler (merged → Claire); Practical
    Panner ≈ Project Pan Purist (merged → deferred power user; her
    "structured tracker" core absorbed into Maya); Mindful Minimalist ≈
    Zero-Waste Eco-Purist (merged → Sam).
-2. *Journeys were feature tours, not decision journeys.* The deep-research
+2. _Journeys were feature tours, not decision journeys._ The deep-research
    journeys exist to justify features (AI scanner, CSV import, Stash
    Roulette, PanScore tiers, 30-day sandbox, locked purchase links) — five of
    which the team later cut or reversed. Rewritten journeys only use MVP
    features and match D1–D8.
-3. *No failure paths.* Every original journey ends happily. Each persona now
+3. _No failure paths._ Every original journey ends happily. Each persona now
    carries an explicit churn moment, which is what user testing must probe.
-4. *The best-evidenced persona was the least developed.* The subreddit
+4. _The best-evidenced persona was the least developed._ The subreddit
    screenshots (paper/tape/spreadsheet trackers) validate Maya — yet she had
    the thinnest write-up. She is now P1.
-5. *No anti-personas.* Added two, both of which directly protect standing
+5. _No anti-personas._ Added two, both of which directly protect standing
    decisions (D2, D6).
