@@ -64,6 +64,17 @@ cd PanPals
 npm install
 ```
 
+Use `npm` (not `yarn`/`pnpm`) — the repo commits `package-lock.json`, so
+`npm install` resolves everyone to the exact same dependency versions. If
+something looks off after installing (a native module warning, a version
+mismatch after pulling someone else's PR), run:
+
+```bash
+npx expo-doctor
+```
+
+It flags dependencies that drifted out of sync with the installed Expo SDK.
+
 Copy `.env.example` to `.env` and fill in the two public values (ask Shrey for
 the project URL/anon key — the anon key is safe to share, RLS protects the
 data):
