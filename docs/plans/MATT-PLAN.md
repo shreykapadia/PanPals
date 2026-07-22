@@ -2,19 +2,19 @@
 
 > Your mission: build the **log → track** half of the core loop — fast-log entry, inventory browse/filter/edit, and one-tap usage logging — so Maya can log a product in ≤15s and check her stash in-store in <1s. You own PRD functions **F1** (log a product), **F2** (update usage / % remaining), and **F9** (check stash in-store), plus matrix rows **4, 9, 16**.
 >
-> **Scope narrowed 7/21 (DECISIONS.md D20):** you NO LONGER own the finish/celebration flow, the private empties archive, or the **Progress tab** — those moved to **Talbia** (`features/empties/*`, `app/(tabs)/progress.tsx`). You keep only the **finish seam**: a "Mark as Finished" button on your item detail that *navigates* (expo-router) to Talbia's finish route. You do NOT implement finishing.
+> **Scope narrowed 7/21 (DECISIONS.md D20):** you NO LONGER own the finish/celebration flow, the private empties archive, or the **Progress tab** — those moved to **Talbia** (`features/empties/*`, `app/(tabs)/progress.tsx`). You keep only the **finish seam**: a "Mark as Finished" button on your item detail that _navigates_ (expo-router) to Talbia's finish route. You do NOT implement finishing.
 
 ---
 
 ## 1. Your lane
 
-| ✅ OWN & edit freely | 📥 Import but NEVER edit | ⛔ Forbidden (not yours) |
-|---|---|---|
-| `app/(tabs)/inventory.tsx` | `components/ui/*` (Shrey — Button, Input, Card, Modal, EmptyState, ErrorState, Chip, etc.) **incl. `ProductSearch`** | `app/(tabs)/progress.tsx` — **Talbia now (was yours; moved 7/21)** |
-| `features/inventory/*` (components, hooks, `strings.ts`, `__tests__`) | `lib/api/*` hooks — `useProducts`, `useCatalogSearch`, `log_usage`, `track` (Shrey) | `features/empties/*` — **Talbia now (finish flow, celebration, review, private archive)** |
-| `.maestro/log-product.yaml` | `mocks/types.ts` and `mocks/*` fixtures (Shrey) | `app/(tabs)/index.tsx`, `features/home/*` (Aaron); `components/ProgressRing.tsx` (Aaron) |
-| | `theme/*` NativeWind tokens (Shrey) | `app/(tabs)/wishlist.tsx`, `features/wishlist/*` (Joon) |
-| | | `app/_layout.tsx`, `app/(auth)/*`, `app/(tabs)/you.tsx`, `supabase/*`, `types/database.ts`, `lib/*`, `theme/*`, `docs/*`, `scripts/*` (Shrey) |
+| ✅ OWN & edit freely                                                  | 📥 Import but NEVER edit                                                                                             | ⛔ Forbidden (not yours)                                                                                                                      |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `app/(tabs)/inventory.tsx`                                            | `components/ui/*` (Shrey — Button, Input, Card, Modal, EmptyState, ErrorState, Chip, etc.) **incl. `ProductSearch`** | `app/(tabs)/progress.tsx` — **Talbia now (was yours; moved 7/21)**                                                                            |
+| `features/inventory/*` (components, hooks, `strings.ts`, `__tests__`) | `lib/api/*` hooks — `useProducts`, `useCatalogSearch`, `log_usage`, `track` (Shrey)                                  | `features/empties/*` — **Talbia now (finish flow, celebration, review, private archive)**                                                     |
+| `.maestro/log-product.yaml`                                           | `mocks/types.ts` and `mocks/*` fixtures (Shrey)                                                                      | `app/(tabs)/index.tsx`, `features/home/*` (Aaron); `components/ProgressRing.tsx` (Aaron)                                                      |
+|                                                                       | `theme/*` NativeWind tokens (Shrey)                                                                                  | `app/(tabs)/wishlist.tsx`, `features/wishlist/*` (Joon)                                                                                       |
+|                                                                       |                                                                                                                      | `app/_layout.tsx`, `app/(auth)/*`, `app/(tabs)/you.tsx`, `supabase/*`, `types/database.ts`, `lib/*`, `theme/*`, `docs/*`, `scripts/*` (Shrey) |
 
 **Golden rule:** if a task needs a change to anything in the middle or right columns, STOP and file a CROSS-LANE REQUEST (see §7). Do not edit it yourself, even "just a little." In particular: **you never edit `progress.tsx` or `features/empties/*` anymore** — your only touchpoint with the finish flow is a navigation call.
 
@@ -62,24 +62,25 @@ You never write SQL or call supabase-js. You read/write these shapes **only** th
 
 **`products` columns you touch:**
 
-| Field | Type | Notes |
-|---|---|---|
-| `brand` | text | required |
-| `name` | text | required |
-| `shade` | text? | optional; may override catalog |
-| `category` | enum | `lip \| face \| eye \| skincare \| fragrance \| hair \| other` — required |
-| `format` | enum | `full \| mini \| sample` (toggle in log modal) |
-| `status` | enum | `unopened \| in_rotation \| finished` |
-| `percent_remaining` | int | 0–100, honor-system, **5% steps** |
-| `photo_url` | text? | from "Tap to scan" photo attach or a progress photo |
-| `pao_months` | int? | `6` or `12` (PAO; optional by design) |
-| `opened_at` | date? | optional |
-| `is_priority` | bool | Focus Pot flag (max 5 per user, enforced backend-side) |
-| `catalog_product_id` | uuid? | set when chosen from catalog; null if manual |
+| Field                | Type  | Notes                                                                     |
+| -------------------- | ----- | ------------------------------------------------------------------------- |
+| `brand`              | text  | required                                                                  |
+| `name`               | text  | required                                                                  |
+| `shade`              | text? | optional; may override catalog                                            |
+| `category`           | enum  | `lip \| face \| eye \| skincare \| fragrance \| hair \| other` — required |
+| `format`             | enum  | `full \| mini \| sample` (toggle in log modal)                            |
+| `status`             | enum  | `unopened \| in_rotation \| finished`                                     |
+| `percent_remaining`  | int   | 0–100, honor-system, **5% steps**                                         |
+| `photo_url`          | text? | from "Tap to scan" photo attach or a progress photo                       |
+| `pao_months`         | int?  | `6` or `12` (PAO; optional by design)                                     |
+| `opened_at`          | date? | optional                                                                  |
+| `is_priority`        | bool  | Focus Pot flag (max 5 per user, enforced backend-side)                    |
+| `catalog_product_id` | uuid? | set when chosen from catalog; null if manual                              |
 
 **`usage_logs` columns (created by the log hook — each log is its own row, never overwrite):** `percent_after` (int 0–100), `note` (text?), `photo_url` (text?), `logged_at` (timestamptz).
 
 **Hooks (import, never edit):**
+
 - `useProducts()` → `.create(...)`, `.update(...)`, `.remove(...)`, `.logUsage(...)` (the last wraps the shared `log_usage` RPC; deleting a product must NOT wipe `usage_logs`).
 - `useCatalogSearch(q, category)` → type-ahead results for catalog pre-fill (wraps `search_catalog`); `ProductSearch` in `components/ui` already consumes this.
 - `track(event, props)` → analytics; you fire `inventory_item_added` and `usage_logged` (see Phase 3). **Never log raw review text or notes.**
@@ -95,6 +96,7 @@ You never write SQL or call supabase-js. You read/write these shapes **only** th
 **Goal:** Maya can open the fast-log, add an owned product (catalog pre-fill or manual) in ≤15s, and see it in a searchable, filterable inventory list. Everything reads/writes through mock hooks.
 
 **Paste this to your agent:**
+
 ```
 You are building the PanPals inventory feature (Matt's lane). Read AI-CONTEXT.md
 and docs/DESIGN-TOKENS.md first. Stack: Expo SDK 53+, React Native, TypeScript
@@ -140,6 +142,7 @@ track), mocks/types.ts, and theme/* but NEVER edit them.
 **Files created:** `app/(tabs)/inventory.tsx`, `features/inventory/components/LogModal.tsx`, `features/inventory/components/ProductSearchField.tsx`, `features/inventory/components/InventoryList.tsx`, `features/inventory/components/ProductListItem.tsx`, `features/inventory/hooks/useInventoryFilters.ts`, `features/inventory/strings.ts`, `features/inventory/__tests__/useInventoryFilters.test.ts`.
 
 **Verify:**
+
 - Run `npm run verify` — must be all green (tsc, eslint, prettier, jest).
 - Run `npm run start`, open the app, go to the **Inventory** tab.
 - Click: "Log Item" → modal matches `log-modal.png` → type a brand in the search field → pick a catalog result → confirm brand/name/shade/category pre-fill → toggle format to "mini" → leave shade blank → Save → the item appears in the list.
@@ -147,6 +150,7 @@ track), mocks/types.ts, and theme/* but NEVER edit them.
 - Confirm the "Tap to scan" zone only attaches a photo and never claims to identify the product.
 
 **Done when:**
+
 - [ ] `npm run verify` passes.
 - [ ] Fast-log adds a product in ≤15s with only brand+name+category filled.
 - [ ] Catalog search pre-fills fields; manual entry still works with no match.
@@ -163,6 +167,7 @@ track), mocks/types.ts, and theme/* but NEVER edit them.
 **Goal:** Tap a product → see its detail, edit fields, correct % remaining, log usage in one tap (or a 5% slider + optional photo) via the shared `log_usage` hook, view usage history, delete safely — and a "Mark as Finished" button that **navigates** to Talbia's finish flow (you do NOT implement finishing).
 
 **Paste this to your agent:**
+
 ```
 Continue the PanPals inventory feature (Matt's lane). Same rules as before:
 NativeWind tokens only, no hardcoded hex/font/radius, no supabase-js, no SQL,
@@ -206,6 +211,7 @@ edit them.
 **Files created:** `features/inventory/components/ProductDetail.tsx`, `features/inventory/components/EditProductForm.tsx`, `features/inventory/components/UsageLogger.tsx`, `features/inventory/hooks/useProductDetail.ts`, `features/inventory/__tests__/useProductDetail.test.ts`. (Add detail + finish-button strings to the existing `features/inventory/strings.ts`.)
 
 **Verify:**
+
 - `npm run verify` green.
 - `npm run start` → Inventory → tap a product → detail opens.
 - Click: "Log a use" once → % drops one step and a new row appears in usage history; drag the slider to a specific % and log with a photo → history shows both entries (old one preserved).
@@ -214,6 +220,7 @@ edit them.
 - Click: "Mark as Finished" → the app **navigates** to Talbia's finish route (`/empties/finish?productId=...`). Confirm your screen did NOT try to finish, celebrate, or archive anything itself. (If Talbia's screen isn't merged yet, you'll land on a not-found/placeholder — that's expected; the navigation call is what you're verifying.)
 
 **Done when:**
+
 - [ ] `npm run verify` passes.
 - [ ] Usage logging works one-tap AND via 5% slider with optional photo, through the shared `log_usage` hook (no duplicate hook created).
 - [ ] Each log is a new row; history is never overwritten.
@@ -230,6 +237,7 @@ edit them.
 **Goal:** When Shrey's `types/database.ts` lands and he flips `lib/api/*` from fixtures to real Supabase, your screens keep working with zero UI rewrites.
 
 **Paste this to your agent:**
+
 ```
 Continue Matt's lane. Shrey has flipped lib/api hooks (useProducts,
 useCatalogSearch, log_usage) from mocks to real Supabase, and types/database.ts
@@ -250,6 +258,7 @@ if anything else is needed output a CROSS-LANE REQUEST and stop.
 **Verify:** `npm run verify` green; `npm run start` and repeat the Phase 1a/1b click-throughs against real data (log, filter, log usage, edit, delete, finish-button navigates). Confirm data persists across app reload.
 
 **Done when:**
+
 - [ ] `npm run verify` passes with `types/database.ts` present.
 - [ ] All Phase 1 flows work against real hooks; data persists on reload.
 - [ ] "Mark as Finished" still only navigates to Talbia's route.
@@ -262,6 +271,7 @@ if anything else is needed output a CROSS-LANE REQUEST and stop.
 **Goal:** Every screen has clean loading/empty/error states, full accessibility, the two analytics events fire, and the Maestro flow passes.
 
 **Paste this to your agent:**
+
 ```
 Polish Matt's lane. Fire analytics via the shared lib/api track() helper (never
 log raw review text or notes) on exactly these events: inventory_item_added (on
@@ -287,11 +297,13 @@ REQUEST and stop.
 **Files created:** `.maestro/log-product.yaml`, expanded `__tests__` in `features/inventory/`.
 
 **Verify:**
+
 - `npm run verify` green.
 - `maestro test .maestro/log-product.yaml` passes.
 - Manually turn on the OS screen reader briefly and tab through Inventory/detail — every control is announced.
 
 **Done when:**
+
 - [ ] `npm run verify` passes; `.maestro/log-product.yaml` passes locally.
 - [ ] `inventory_item_added` and `usage_logged` fire via `track()`; `product_finished` is NOT fired from my lane; no raw review text/notes logged.
 - [ ] Every screen has loading/empty/error; status never conveyed by color alone.
@@ -304,6 +316,7 @@ REQUEST and stop.
 **Goal:** Your flows are ready for the moderated sessions (5–8 MBA testers). No new code unless testing surfaces a bug.
 
 **Paste this to your agent (only if a bug is found):**
+
 ```
 A user test surfaced this bug in Matt's lane: <paste exact steps + what happened
 vs expected>. Fix it in my lane only (app/(tabs)/inventory.tsx,
@@ -315,6 +328,7 @@ needed output a CROSS-LANE REQUEST and stop.
 **Verify:** `npm run verify` green; re-run `.maestro/log-product.yaml`; re-time the fast-log against the ≤15s median target.
 
 **Done when:**
+
 - [ ] Fast-log median ≤15s in testing; no regressions; `npm run verify` green.
 
 ---
@@ -324,6 +338,7 @@ needed output a CROSS-LANE REQUEST and stop.
 Copy the relevant block into Slack and tag the named owner. Do NOT implement these yourself.
 
 **A. ProductSearch reuse (Shrey — `components/ui/*`)**
+
 ```
 CROSS-LANE REQUEST — to Shrey (components/ui)
 Need: confirm the reusable ProductSearch primitive (type-ahead over
@@ -333,6 +348,7 @@ Why: F1 catalog pre-fill; avoids duplicating catalog-search UI in my lane.
 ```
 
 **B. Finish route contract (Talbia — `features/empties/*`, `app/(tabs)/progress.tsx`; cc Shrey — routing)**
+
 ```
 CROSS-LANE REQUEST — to Talbia (finish flow) + Shrey (routing)
 Need: confirm the exact expo-router path and param for your finish screen so my
@@ -344,6 +360,7 @@ finish/celebration/review/archive screen. Neither of us edits the other's files.
 ```
 
 **C. `log_usage` hook shape (Shrey — `lib/api/*`)**
+
 ```
 CROSS-LANE REQUEST — to Shrey (lib/api)
 Need: confirm the exact signature/return of the shared log_usage hook exposed via
@@ -353,6 +370,7 @@ history. I import it (same hook Aaron uses from Home); I will not write it.
 ```
 
 **D. products / catalog fields (Shrey — `lib/api/*`, `mocks/types.ts`)**
+
 ```
 CROSS-LANE REQUEST — to Shrey (lib/api, mocks/types)
 Need: confirm useProducts exposes create/update/remove/logUsage and returns the
@@ -364,6 +382,7 @@ import only.
 ```
 
 **E. Navigation registration (Shrey — `app/_layout.tsx` / `app/(tabs)/_layout.tsx`)**
+
 ```
 CROSS-LANE REQUEST — to Shrey (app/_layout.tsx)
 Need: ensure the Inventory tab is registered in the bottom-tab layout with the

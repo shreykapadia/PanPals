@@ -16,15 +16,15 @@ set and the retired `panpal_design.md`.
 
 The seven you'll use most (from the design spec §2):
 
-| Role | Hex | Notes |
-|---|---|---|
-| Surface / app background | `#FFF8F4` | creamy off-white |
-| Card surface | `#FFFFFF` | pure white |
-| Primary accent / CTA | `#F2A2A2` | Soft Dusty Pink ("PanPal Rose") — CTAs + progress fill |
-| Primary text / dark neutral | `#333333` | deep charcoal |
-| Subtle border | `#E0D9D4` | warm grey (`border-[#E0D9D4]`) — also the ring background track |
-| Success / eco badge | `#A8C69F` | sage green |
-| Warning / friction / intercept | `#F8D7DA` | soft amber/peach — never red |
+| Role                           | Hex       | Notes                                                           |
+| ------------------------------ | --------- | --------------------------------------------------------------- |
+| Surface / app background       | `#FFF8F4` | creamy off-white                                                |
+| Card surface                   | `#FFFFFF` | pure white                                                      |
+| Primary accent / CTA           | `#F2A2A2` | Soft Dusty Pink ("PanPal Rose") — CTAs + progress fill          |
+| Primary text / dark neutral    | `#333333` | deep charcoal                                                   |
+| Subtle border                  | `#E0D9D4` | warm grey (`border-[#E0D9D4]`) — also the ring background track |
+| Success / eco badge            | `#A8C69F` | sage green                                                      |
+| Warning / friction / intercept | `#F8D7DA` | soft amber/peach — never red                                    |
 
 Full token set (from the design system frontmatter — use these in `theme/`):
 
@@ -38,16 +38,16 @@ colors:
   surface-container: '#f8ebea'
   surface-container-high: '#f2e5e4'
   surface-container-highest: '#ede0df'
-  on-surface: '#201a1a'          # deepest text; practical primary text = #333333 (§2)
-  on-surface-variant: '#534343'  # secondary text
+  on-surface: '#201a1a' # deepest text; practical primary text = #333333 (§2)
+  on-surface-variant: '#534343' # secondary text
   inverse-surface: '#362f2e'
   inverse-on-surface: '#fbeeed'
   outline: '#857372'
   outline-variant: '#d7c1c1'
   surface-tint: '#8c4c4d'
-  primary: '#8c4c4d'             # deep rose — pressed/emphasis
+  primary: '#8c4c4d' # deep rose — pressed/emphasis
   on-primary: '#ffffff'
-  primary-container: '#f2a2a2'   # "PanPal Rose" — CTAs, progress fill
+  primary-container: '#f2a2a2' # "PanPal Rose" — CTAs, progress fill
   on-primary-container: '#713638'
   inverse-primary: '#ffb3b3'
   secondary: '#4a6545'
@@ -66,12 +66,12 @@ colors:
   on-background: '#201a1a'
   surface-variant: '#ede0df'
   card-surface: '#FFFFFF'
-  dark-neutral: '#333333'        # primary text
-  border-warm: '#E0D9D4'         # subtle border + ring track
-  warning-peach: '#F8D7DA'       # warning / intercept
-  eco-sage: '#A8C69F'            # success / eco badge
-  inactive-gray: '#8C857B'       # inactive nav icon
-  muted-text: '#666666'          # body-secondary text
+  dark-neutral: '#333333' # primary text
+  border-warm: '#E0D9D4' # subtle border + ring track
+  warning-peach: '#F8D7DA' # warning / intercept
+  eco-sage: '#A8C69F' # success / eco badge
+  inactive-gray: '#8C857B' # inactive nav icon
+  muted-text: '#666666' # body-secondary text
 ```
 
 ## 2. Typography hierarchy (STRICT)
@@ -85,15 +85,15 @@ Libre Caslon Text (serif) for headlines only; **Satoshi** (sans) for everything 
 > Google Fonts (`@expo-google-fonts/libre-caslon-text`). Weights used: Satoshi
 > 400/500/600/700; Caslon 600/700.
 
-| Style | Font | Size | Weight | Line height | Notes |
-|---|---|---|---|---|---|
-| H1 / hero title | Libre Caslon Text | 24px (`text-2xl`) | 700 | 32px (`leading-8`) | |
-| H2 / section header | Libre Caslon Text | 18px (`text-lg`) | 600 | 24px (`leading-6`) | |
-| H3 / card title | Satoshi | 16px (`text-base`) | 600 | 20px (`leading-5`) | |
-| Body primary | Satoshi | 14px (`text-sm`) | 400 | 20px | |
-| Body secondary / muted | Satoshi | 12px (`text-xs`) | 400 | 16px | color `#666666` |
-| Button label | Satoshi | 14px (`text-sm`) | 600 | — | `tracking-wide` (0.25px) |
-| Badge / micro-copy | Satoshi | 11px | 500 | — | uppercase / badge style |
+| Style                  | Font              | Size               | Weight | Line height        | Notes                    |
+| ---------------------- | ----------------- | ------------------ | ------ | ------------------ | ------------------------ |
+| H1 / hero title        | Libre Caslon Text | 24px (`text-2xl`)  | 700    | 32px (`leading-8`) |                          |
+| H2 / section header    | Libre Caslon Text | 18px (`text-lg`)   | 600    | 24px (`leading-6`) |                          |
+| H3 / card title        | Satoshi           | 16px (`text-base`) | 600    | 20px (`leading-5`) |                          |
+| Body primary           | Satoshi           | 14px (`text-sm`)   | 400    | 20px               |                          |
+| Body secondary / muted | Satoshi           | 12px (`text-xs`)   | 400    | 16px               | color `#666666`          |
+| Button label           | Satoshi           | 14px (`text-sm`)   | 600    | —                  | `tracking-wide` (0.25px) |
+| Badge / micro-copy     | Satoshi           | 11px               | 500    | —                  | uppercase / badge style  |
 
 ## 3. Radius & spacing
 
@@ -104,13 +104,13 @@ rounded:
   md: 0.75rem
   lg: 1rem
   xl: 1.5rem
-  full: 9999px      # buttons, inputs, chips (pills)
+  full: 9999px # buttons, inputs, chips (pills)
 spacing:
-  page-padding-x: 1rem   # px-4 (16px)
-  page-padding-y: 1rem   # py-4 (16px)
+  page-padding-x: 1rem # px-4 (16px)
+  page-padding-y: 1rem # py-4 (16px)
   gutter: 1rem
-  header-height: 3.5rem  # h-14 (56px)
-  footer-height: 5rem    # h-20 (80px)
+  header-height: 3.5rem # h-14 (56px)
+  footer-height: 5rem # h-20 (80px)
 ```
 
 Target viewport: mobile app frame **393 × 852**.
@@ -155,10 +155,10 @@ Target viewport: mobile app frame **393 × 852**.
 `docs/mockups/` — when a mockup and this file disagree on a value, this file
 wins; when this file is silent on a layout question, match the mockup.
 
-| File | Screen |
-|---|---|
-| home-dashboard.png | Home (canonical phone revision — no budget/wishlist carousel) |
-| home-dashboard-wide.png | Home, tablet reference |
-| log-modal.png | F1 fast-log modal |
-| wishlist-intercept.png | F5 intercept banner + cooling-off CTA |
-| empties-feed.png | **Reference only — community feed deferred (D13).** Reuse its card layout for the *private* empties archive (Progress tab → My Progress); drop the like button and author/feed framing. |
+| File                    | Screen                                                                                                                                                                                  |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| home-dashboard.png      | Home (canonical phone revision — no budget/wishlist carousel)                                                                                                                           |
+| home-dashboard-wide.png | Home, tablet reference                                                                                                                                                                  |
+| log-modal.png           | F1 fast-log modal                                                                                                                                                                       |
+| wishlist-intercept.png  | F5 intercept banner + cooling-off CTA                                                                                                                                                   |
+| empties-feed.png        | **Reference only — community feed deferred (D13).** Reuse its card layout for the _private_ empties archive (Progress tab → My Progress); drop the like button and author/feed framing. |

@@ -6,12 +6,12 @@
 
 ## 1. Your lane
 
-| ✅ OWN & edit | 📥 Import but NEVER edit | 🚫 Forbidden (other lanes / not in scope) |
-|---|---|---|
-| `app/(tabs)/index.tsx` (Home screen) | `components/ui/*` (Shrey — shared primitives: Card, Button, Chip, etc.) | `app/(tabs)/inventory.tsx`, `features/inventory/*` (Matt); `app/(tabs)/progress.tsx`, `features/empties/*` (Talbia) |
-| `features/home/*` (components, hooks, `strings.ts`, `__tests__/`) | `lib/api/*` hooks — esp. `useDashboard`, `useProducts`, `track()` (Shrey) | `app/(tabs)/wishlist.tsx`, `features/wishlist/*` (Joon) |
-| `components/ProgressRing.tsx` (reusable ring — YOU own it; Matt imports it) | `mocks/types.ts` + `mocks/*` fixtures (Shrey) | `app/_layout.tsx`, `app/(auth)/*`, `lib/*`, `theme/*`, `mocks/*`, `components/ui/*`, `docs/*`, `scripts/*` (Shrey) |
-| `.maestro/focus-and-ring.yaml` (your flow) | `theme/*` NativeWind token config (Shrey) | `supabase/*`, `types/database.ts` (Shrey) |
+| ✅ OWN & edit                                                               | 📥 Import but NEVER edit                                                  | 🚫 Forbidden (other lanes / not in scope)                                                                           |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `app/(tabs)/index.tsx` (Home screen)                                        | `components/ui/*` (Shrey — shared primitives: Card, Button, Chip, etc.)   | `app/(tabs)/inventory.tsx`, `features/inventory/*` (Matt); `app/(tabs)/progress.tsx`, `features/empties/*` (Talbia) |
+| `features/home/*` (components, hooks, `strings.ts`, `__tests__/`)           | `lib/api/*` hooks — esp. `useDashboard`, `useProducts`, `track()` (Shrey) | `app/(tabs)/wishlist.tsx`, `features/wishlist/*` (Joon)                                                             |
+| `components/ProgressRing.tsx` (reusable ring — YOU own it; Matt imports it) | `mocks/types.ts` + `mocks/*` fixtures (Shrey)                             | `app/_layout.tsx`, `app/(auth)/*`, `lib/*`, `theme/*`, `mocks/*`, `components/ui/*`, `docs/*`, `scripts/*` (Shrey)  |
+| `.maestro/focus-and-ring.yaml` (your flow)                                  | `theme/*` NativeWind token config (Shrey)                                 | `supabase/*`, `types/database.ts` (Shrey)                                                                           |
 
 **The #1 rule of this project is: never edit a file outside your lane.** If a task seems to need it, you stop and file a CROSS-LANE REQUEST (see §6). Merge conflicts are the enemy; staying in your lane is how five people ship in parallel.
 
@@ -46,6 +46,7 @@ npx expo start
 ```
 
 After `npx expo start` you'll see a QR code and a menu:
+
 - **Phone:** install **Expo Go** from the App Store / Play Store, then scan the QR code.
 - **Web (easiest to click around):** press `w` in the terminal to open it in your browser.
 - **iOS simulator:** press `i` (needs Xcode). **Android emulator:** press `a` (needs Android Studio).
@@ -53,9 +54,11 @@ After `npx expo start` you'll see a QR code and a menu:
 To stop the app: click the terminal and press `Ctrl + C`.
 
 **The one command you'll run constantly** (this is the quality gate — no CI server exists, so this IS the check):
+
 ```bash
 npm run verify
 ```
+
 It runs TypeScript, lint, formatting, and tests. It must show **zero errors** before every PR.
 
 ---
@@ -63,7 +66,7 @@ It runs TypeScript, lint, formatting, and tests. It must show **zero errors** be
 ## 4. Dependencies & sequencing
 
 - **Wait for Shrey's Phase 0 to merge into `main` before you write any code.** Phase 0 gives you: the NativeWind theme/tokens, the `components/ui/*` primitives, `mocks/types.ts`, and the `lib/api/*` hooks (`useDashboard`, `useProducts`, `track`) returning **mock data**. Confirm with Shrey that Phase 0 is merged, then `git pull` on `main`.
-- **You build against mocks, not the database.** `useDashboard()` and `useProducts()` return fixture data until Shrey's `types/database.ts` lands. Your UI **never** imports supabase-js and **never** writes SQL. Logging a usage goes through the shared `useProducts` / `log_usage` hook — same hook Matt calls from inventory. You build the *interaction*; the hook does the *write*.
+- **You build against mocks, not the database.** `useDashboard()` and `useProducts()` return fixture data until Shrey's `types/database.ts` lands. Your UI **never** imports supabase-js and **never** writes SQL. Logging a usage goes through the shared `useProducts` / `log_usage` hook — same hook Matt calls from inventory. You build the _interaction_; the hook does the _write_.
 - **`components/ProgressRing.tsx` is YOURS, but Matt imports it** in the Progress tab. So its props API must be clean and stable — decide it in Phase 1 and don't change it casually later. If you must change its props after Matt starts using it, that's a CROSS-LANE coordination (§6), because it affects his screen.
 - **Suggested build order:** Phase 1 (ProgressRing → static Home against mocks) → Phase 2 (wire the real hooks + logging interaction) → Phase 3 (states, a11y, analytics, Maestro) → Phase 4 (user testing support).
 - **Every session starts clean:**
@@ -79,10 +82,12 @@ It runs TypeScript, lint, formatting, and tests. It must show **zero errors** be
 You read/write these only through Shrey's `lib/api` hooks — never SQL, never supabase-js.
 
 **Hooks**
+
 - `useDashboard()` → `{ focusProducts: Product[], statusCounts: { unopened, in_rotation, finished }, streak: { current, longest, lastLogDate }, categoryCount, wishlistReady }` (wraps `get_dashboard`).
 - `useProducts()` → `{ data: Product[], update(id, patch), logUsage(product_id, percent_after, note?, photo_url?) }`. Pin/unpin a focus product via `update(id, { is_priority })`; log a use via `logUsage` (wraps `log_usage`).
 
 **Columns you touch**
+
 - `products`: `id, brand, name, shade?, category (lip|face|eye|skincare|fragrance|hair|other), status (unopened|in_rotation|finished), percent_remaining (0–100, 5% steps), photo_url?, opened_at?, is_priority (max 5 true per user — DB trigger also enforces)`.
 - `usage_logs`: `percent_after, logged_at` (progress history + days-since-last-use).
 - `profiles`: `current_streak, longest_streak, last_log_date` (display only — no rewards).
@@ -94,6 +99,7 @@ You read/write these only through Shrey's `lib/api` hooks — never SQL, never s
 **Goal:** Ship the reusable `ProgressRing` (with a stable props API), then a Home screen that lays out focus cards, quick-action pills, a status donut, recent progress, the streak/weekly-checkmark row, and the "wishlist ready to reconsider" nudge — all reading mock data from `useDashboard` / `useProducts`. No real writes yet.
 
 > **Paste this to your agent:**
+>
 > ```
 > You are working in the PanPals repo (Expo SDK 53+, React Native, TypeScript strict, expo-router, NativeWind, Zustand, TanStack Query). Read AI-CONTEXT.md, docs/DESIGN-TOKENS.md, docs/DATA-MODEL.md, and docs/PRD.md first.
 >
@@ -129,6 +135,7 @@ You read/write these only through Shrey's `lib/api` hooks — never SQL, never s
 > ```
 
 **Files created:**
+
 - `components/ProgressRing.tsx`
 - `app/(tabs)/index.tsx` (Home screen — thin)
 - `features/home/FocusCard.tsx`, `features/home/StatusDonut.tsx`, `features/home/QuickActions.tsx`, `features/home/StreakRow.tsx`, `features/home/ReconsiderNudge.tsx` (or similar component split)
@@ -137,13 +144,16 @@ You read/write these only through Shrey's `lib/api` hooks — never SQL, never s
 - `features/home/__tests__/ProgressRing.test.tsx`, `features/home/__tests__/Home.test.tsx`
 
 **Verify:**
+
 ```bash
 npm run verify        # must be zero errors
 npx expo start        # then press w for web
 ```
+
 Click through: Home shows the PanPal wordmark; up to (not more than) 5 focus rings each with a "days since last use" label; a status donut; three quick-action pills (Scan/Search/Log Item); a streak number + 7-day checkmark row; a "ready to reconsider" card. Tapping that card navigates to the Wishlist tab. Rings are rose-filled with rounded ends and a lighter track. Nothing is pure red; no shaming words.
 
 **Done when:**
+
 - [ ] `npm run verify` passes with zero errors.
 - [ ] ProgressRing has the exact props above and rounded caps, rose fill, 50%-opacity track, stroke >= 8px.
 - [ ] Home matches `home-dashboard.png` layout and uses only tokens (no hardcoded hex/font/radius).
@@ -157,9 +167,10 @@ Click through: Home shows the PanPal wordmark; up to (not more than) 5 focus rin
 
 ### Phase 2 — Wire real interactions: pin/unpin Focus Pot + tap-ring usage logging
 
-**Goal:** Make the Home dashboard *interactive* against the shared hooks: pin/unpin products to the Focus Pot (guard max 5 in the UI), and tap a focus ring → 5%-step slider → write via the shared `useProducts` / `log_usage` hook, in ≤3 taps.
+**Goal:** Make the Home dashboard _interactive_ against the shared hooks: pin/unpin products to the Focus Pot (guard max 5 in the UI), and tap a focus ring → 5%-step slider → write via the shared `useProducts` / `log_usage` hook, in ≤3 taps.
 
 > **Paste this to your agent:**
+>
 > ```
 > Continue in the PanPals repo, my lane only. Re-read AI-CONTEXT.md and docs/DATA-MODEL.md (RPCs section) first.
 >
@@ -185,19 +196,23 @@ Click through: Home shows the PanPal wordmark; up to (not more than) 5 focus rin
 > ```
 
 **Files created / changed:**
+
 - `features/home/useFocusPot.ts` (pin/unpin + max-5 guard)
 - `features/home/useLogUsage.ts` (wraps shared `useProducts`/`log_usage` mutation)
 - `features/home/RingSlider.tsx` (5%-step slider modal/sheet)
 - Updates to `FocusCard.tsx`, `app/(tabs)/index.tsx`, `strings.ts`, and `__tests__/`
 
 **Verify:**
+
 ```bash
 npm run verify
 npx expo start        # press w for web (or i / a for simulators)
 ```
+
 Click: pin products until 5 are pinned — the pin control then blocks a 6th with a calm message. Tap a focus ring — a slider appears; drag it and confirm you can only land on 5% marks; confirm; the ring visibly moves. Count your taps from Home to a logged update: it should be ≤3.
 
 **Done when:**
+
 - [ ] `npm run verify` passes with zero errors.
 - [ ] Pinning is capped at 5 in the UI with non-judgmental copy.
 - [ ] Ring tap → 5%-step slider → write via the shared `useProducts`/`log_usage` hook (no supabase-js, no SQL).
@@ -213,6 +228,7 @@ Click: pin products until 5 are pinned — the pin control then blocks a 6th wit
 **Goal:** Production-ready polish: loading / empty / error states for Home (including the brand-new-user "no products yet" empty state), full accessibility pass, fire the two analytics events via the shared `track()`, and write the `focus-and-ring.yaml` Maestro flow.
 
 > **Paste this to your agent:**
+>
 > ```
 > Continue in the PanPals repo, my lane only. Re-read AI-CONTEXT.md §5–§7 and docs/TESTING.md first.
 >
@@ -241,19 +257,23 @@ Click: pin products until 5 are pinned — the pin control then blocks a 6th wit
 > ```
 
 **Files created / changed:**
+
 - `features/home/HomeEmptyState.tsx`, `features/home/HomeErrorState.tsx`, `features/home/HomeSkeleton.tsx`
 - `.maestro/focus-and-ring.yaml`
 - Updates to `useHomeData.ts`, `useFocusPot.ts`, `useLogUsage.ts` (fire `track()`), `strings.ts`, `__tests__/`
 
 **Verify:**
+
 ```bash
 npm run verify
 maestro test .maestro/focus-and-ring.yaml     # needs a running simulator/emulator
 npx expo start
 ```
+
 Click: with mock data set to "no products," Home shows the warm empty state pointing to Log Item. Force an error (ask the agent how to toggle the mock) and confirm the gentle retry state. Turn on a screen reader briefly and confirm rings/donut announce their values. Run the Maestro flow — it should go green.
 
 **Done when:**
+
 - [ ] `npm run verify` passes with zero errors.
 - [ ] Loading, empty (new user, no products), and error states all exist and are calm/non-judgmental.
 - [ ] Every touchable has an accessibilityLabel; status never conveyed by color alone.
@@ -269,6 +289,7 @@ Click: with mock data set to "no products," Home shows the warm empty state poin
 **Goal:** Help the moderated sessions (5–8 MBA testers) hit the PRD metrics: the daily check-in feels like something Maya would do unprompted, and logging is fast. No new features — just fixes surfaced by testing.
 
 > **Paste this to your agent:**
+>
 > ```
 > Continue in the PanPals repo, my lane only. We are in user testing. Do NOT add features.
 >
@@ -284,6 +305,7 @@ Click: with mock data set to "no products," Home shows the warm empty state poin
 **Verify:** `npm run verify`; re-run `focus-and-ring.yaml`; click through the specific flow the tester struggled with and time the log (target ≤15s median, ≤3 taps).
 
 **Done when:**
+
 - [ ] The reported issue is fixed with the smallest change.
 - [ ] Log-from-Home is still ≤3 taps / feels fast.
 - [ ] `npm run verify` passes; Maestro flow still green.
@@ -296,36 +318,42 @@ Click: with mock data set to "no products," Home shows the warm empty state poin
 Copy the relevant block, fill the brackets, and post it in the team channel for Shrey to route. **Do not let your agent edit the file itself.**
 
 **A. Shared hook fields for the dashboard.** If `useDashboard()` doesn't return everything Home needs:
+
 ```
 CROSS-LANE REQUEST — to Shrey (lib/api)
 Home needs useDashboard() to return: focus products (with percent_remaining + days-since-last-use), status counts for the donut, current_streak + last-7-days log flags for the checkmark row, and the wishlist item that's "ready to reconsider" (id + minimal display fields + its route target). Currently missing: [LIST]. Can lib/api add these to the mock + hook shape?
 ```
 
 **B. Log-usage hook signature.** If the shared write path isn't exposed the way the ring needs:
+
 ```
 CROSS-LANE REQUEST — to Shrey (lib/api)
 The Home ring slider needs to log a usage via the shared useProducts/log_usage hook: log_usage(product_id, percent, note?, photo_url?). Please confirm the exact hook name and args so Home and Matt's inventory detail both call the same one. Currently the mock exposes: [WHAT YOU SEE].
 ```
 
 **C. Focus Pot cap in the mock.** If you can't test the max-5 guard because the mock has no priority flag/toggle:
+
 ```
 CROSS-LANE REQUEST — to Shrey (lib/api / mocks)
 To build and test the Focus Pot max-5 guard, useProducts needs a way to set/unset is_priority in the mock and reflect the count. Can the mock support toggling is_priority so I can verify the 6th-pin block in the UI?
 ```
 
 **D. Wishlist deep-link route.** For the "ready to reconsider" nudge:
+
 ```
 CROSS-LANE REQUEST — to Shrey / Joon
 The Home "ready to reconsider" nudge should deep-link to a specific wishlist item on Joon's Wishlist tab. What is the exact route path/params to router.push to (e.g. /(tabs)/wishlist?itemId=...)? I will navigate by route only and will not edit wishlist files.
 ```
 
 **E. Shared empty/error pattern.** If Shrey owns the cross-cutting empty/error components:
+
 ```
 CROSS-LANE REQUEST — to Shrey (components/ui)
 Does a shared empty-state / error-state primitive exist in components/ui I should import for Home's new-user and error states? If yes, point me to it. If not, I'll build a local one in features/home for now.
 ```
 
 **F. ProgressRing API change after Matt adopts it.** If you must change props once Matt imports the ring:
+
 ```
 CROSS-LANE REQUEST — to Matt (+ Shrey to route)
 I need to change components/ProgressRing.tsx props: [OLD] -> [NEW], because [REASON]. Your Progress tab imports it — can we align on the new API so your screen doesn't break? Proposed change is backward-compatible: [YES/NO].
@@ -336,7 +364,7 @@ I need to change components/ProgressRing.tsx props: [OLD] -> [NEW], because [REA
 ## 7. Common pitfalls
 
 - **Editing outside your lane.** The single biggest risk. If the agent touches `lib/api`, `components/ui`, `theme`, `mocks`, Matt's or Joon's files — stop it and file a CROSS-LANE REQUEST. Prove your PR is clean with `git diff --name-only main`.
-- **Hardcoding a hex/font/radius.** Never. Everything comes from the NativeWind theme (`theme/`) fed by `docs/DESIGN-TOKENS.md`. Rose `#f2a2a2` is a *token*, not a literal you type.
+- **Hardcoding a hex/font/radius.** Never. Everything comes from the NativeWind theme (`theme/`) fed by `docs/DESIGN-TOKENS.md`. Rose `#f2a2a2` is a _token_, not a literal you type.
 - **Calling supabase-js or writing SQL.** You never do either. All data goes through `lib/api` hooks. Aaron never writes SQL.
 - **Breaking ProgressRing's props after Matt imports it.** Lock the API in Phase 1; changes afterward need coordination (§6-F).
 - **Treating the streak as a reward.** Streak + weekly checkmarks are **display only** — no badges, points, unlocks, or celebrations tied to them. That's a hard project decision (D15).

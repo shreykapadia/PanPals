@@ -118,7 +118,7 @@ intercept (unchanged); **Matt** = Inventory entry + browse/filter/edit + usage
 logging (narrowed — no longer owns empties or the Progress tab); **Talbia** =
 finish/celebration flow + repurchase review + **private** empties archive +
 Progress tab (`features/empties/*`, `app/(tabs)/progress.tsx`). The "Mark as
-Finished" button sits in Matt's inventory detail and only *navigates* to Talbia's
+Finished" button sits in Matt's inventory detail and only _navigates_ to Talbia's
 finish flow — no shared file edits.
 
 **D21 — 2026-07-21 — Design source of truth = PanPal Aesthetic Design System

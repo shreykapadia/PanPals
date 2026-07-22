@@ -11,13 +11,13 @@ Verification is local and mandatory; Shrey re-verifies at review.
 
 ## Branching: trunk-based, short-lived branches
 
-| Branch | Pattern | Created by | Merges into | Max lifespan |
-|---|---|---|---|---|
-| `main` | protected, always demoable | — | — | permanent |
-| Feature | `feat/<owner>/<module>-<slug>` (e.g. `feat/joon/wishlist-intercept-banner`) | module owner | `main` via PR | **2 days** |
-| Schema | `schema/<slug>` | **Shrey only (D20)** | `main` via PR | 1 day |
-| Fix | `fix/<owner>/<slug>` | anyone | `main` via PR | 1 day |
-| Docs | `docs/<slug>` | anyone | `main` via PR | 1 day |
+| Branch  | Pattern                                                                     | Created by           | Merges into   | Max lifespan |
+| ------- | --------------------------------------------------------------------------- | -------------------- | ------------- | ------------ |
+| `main`  | protected, always demoable                                                  | —                    | —             | permanent    |
+| Feature | `feat/<owner>/<module>-<slug>` (e.g. `feat/joon/wishlist-intercept-banner`) | module owner         | `main` via PR | **2 days**   |
+| Schema  | `schema/<slug>`                                                             | **Shrey only (D20)** | `main` via PR | 1 day        |
+| Fix     | `fix/<owner>/<slug>`                                                        | anyone               | `main` via PR | 1 day        |
+| Docs    | `docs/<slug>`                                                               | anyone               | `main` via PR | 1 day        |
 
 A branch that can't merge in 2 days is a scope problem — shrink the task.
 
@@ -38,12 +38,12 @@ A branch that can't merge in 2 days is a scope problem — shrink the task.
 
 ## PR review pipeline (4 gates)
 
-| Gate | What | Who/where | Pass condition |
-|---|---|---|---|
-| 1. Static + tests | `npm run verify` (tsc --noEmit, eslint, prettier --check, jest) | Author, locally, before opening PR — checkbox in template | zero errors |
-| 2. Re-verify | Shrey pulls the branch, runs `npm run verify` + the module's Maestro flow | Shrey's machine | green |
-| 3. AI review | Claude Code `/review` for logic; Antigravity prompt: "verify this PR only touches paths owned by <author> per AI-CONTEXT.md §3; list any changes to shared contracts, theme, navigation, or types" | Shrey's machine | no lane violations, no contract drift |
-| 4. Human | Read the diff against the PRD function named in the PR description | Shrey | matches spec, demoable |
+| Gate              | What                                                                                                                                                                                               | Who/where                                                 | Pass condition                        |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------- |
+| 1. Static + tests | `npm run verify` (tsc --noEmit, eslint, prettier --check, jest)                                                                                                                                    | Author, locally, before opening PR — checkbox in template | zero errors                           |
+| 2. Re-verify      | Shrey pulls the branch, runs `npm run verify` + the module's Maestro flow                                                                                                                          | Shrey's machine                                           | green                                 |
+| 3. AI review      | Claude Code `/review` for logic; Antigravity prompt: "verify this PR only touches paths owned by <author> per AI-CONTEXT.md §3; list any changes to shared contracts, theme, navigation, or types" | Shrey's machine                                           | no lane violations, no contract drift |
+| 4. Human          | Read the diff against the PRD function named in the PR description                                                                                                                                 | Shrey                                                     | matches spec, demoable                |
 
 ## AI session hygiene (every dev, every session)
 
