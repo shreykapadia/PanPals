@@ -34,6 +34,11 @@ expo-env.d.ts
 supabase/.branches/
 supabase/.temp/
 
+# === Catalog seed source data (D17) ===
+# The raw third-party CSV is an input to scripts/build-catalog-seed.mjs, not
+# an artifact — regenerate supabase/seed.sql from it, don't commit it.
+data/
+
 # === Testing / coverage ===
 coverage/
 .maestro/.cache/
