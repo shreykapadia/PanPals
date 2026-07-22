@@ -8,18 +8,19 @@
 
 ## 1. Your lane
 
-| ✅ OWN & edit | 📥 Import but NEVER edit | 🚫 Forbidden (other lanes / not in scope) |
-|---|---|---|
-| `app/(tabs)/progress.tsx` (Progress tab screen) | `components/ui/*` (Shrey — Card, Button, Chip, and any shared empty/error primitives) | `app/(tabs)/inventory.tsx`, `features/inventory/*` (Matt — incl. the "Mark as Finished" button) |
-| `features/empties/*` (components, hooks, `strings.ts`, `__tests__/`) | `components/ProgressRing.tsx` (Aaron — you import it for the celebration + summary) | `app/(tabs)/index.tsx`, `features/home/*` (Aaron) |
-| `.maestro/finish-and-archive.yaml` (your flow) | `lib/api/*` hooks — esp. `useEmpties`, `useDashboard`, `useProducts`, and `track()` (Shrey) | `app/(tabs)/wishlist.tsx`, `features/wishlist/*` (Joon) |
-| | `mocks/types.ts` + `mocks/*` fixtures (Shrey) | `app/_layout.tsx`, `app/(tabs)/_layout.tsx`, `app/(auth)/*`, `app/(tabs)/you.tsx`, `lib/*`, `theme/*`, `mocks/*`, `components/ui/*`, `docs/*`, `scripts/*` (Shrey) |
-| | `theme/*` NativeWind token config (Shrey) | `supabase/*`, `types/database.ts` (Shrey) |
+| ✅ OWN & edit                                                        | 📥 Import but NEVER edit                                                                    | 🚫 Forbidden (other lanes / not in scope)                                                                                                                          |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `app/(tabs)/progress.tsx` (Progress tab screen)                      | `components/ui/*` (Shrey — Card, Button, Chip, and any shared empty/error primitives)       | `app/(tabs)/inventory.tsx`, `features/inventory/*` (Matt — incl. the "Mark as Finished" button)                                                                    |
+| `features/empties/*` (components, hooks, `strings.ts`, `__tests__/`) | `components/ProgressRing.tsx` (Aaron — you import it for the celebration + summary)         | `app/(tabs)/index.tsx`, `features/home/*` (Aaron)                                                                                                                  |
+| `.maestro/finish-and-archive.yaml` (your flow)                       | `lib/api/*` hooks — esp. `useEmpties`, `useDashboard`, `useProducts`, and `track()` (Shrey) | `app/(tabs)/wishlist.tsx`, `features/wishlist/*` (Joon)                                                                                                            |
+|                                                                      | `mocks/types.ts` + `mocks/*` fixtures (Shrey)                                               | `app/_layout.tsx`, `app/(tabs)/_layout.tsx`, `app/(auth)/*`, `app/(tabs)/you.tsx`, `lib/*`, `theme/*`, `mocks/*`, `components/ui/*`, `docs/*`, `scripts/*` (Shrey) |
+|                                                                      | `theme/*` NativeWind token config (Shrey)                                                   | `supabase/*`, `types/database.ts` (Shrey)                                                                                                                          |
 
 **The #1 rule of this project is: never edit a file outside your lane.** If a task seems to need it, you stop and file a CROSS-LANE REQUEST (see §7). Merge conflicts are the enemy; staying in your lane is how five people ship in parallel.
 
 **Two seams you depend on but never edit:**
-- **The finish entry point** lives on Matt's inventory item detail. His "Mark as Finished" button only **navigates** (expo-router) into *your* finish screen. You own the destination; Matt owns the button. Neither of you edits the other's files — you just agree on the route name (§4, §7-A).
+
+- **The finish entry point** lives on Matt's inventory item detail. His "Mark as Finished" button only **navigates** (expo-router) into _your_ finish screen. You own the destination; Matt owns the button. Neither of you edits the other's files — you just agree on the route name (§4, §7-A).
 - **The ProgressRing** is Aaron's. You import it for the celebration ring-close and for the Progress summary. If you ever need its props to change, that's a cross-lane coordination with Aaron (§7-D), not an edit.
 
 ---
@@ -53,6 +54,7 @@ npx expo start
 ```
 
 After `npx expo start` you'll see a QR code and a menu:
+
 - **Phone:** install **Expo Go** from the App Store / Play Store, then scan the QR code.
 - **Web (easiest to click around):** press `w` in the terminal to open it in your browser.
 - **iOS simulator:** press `i` (needs Xcode). **Android emulator:** press `a` (needs Android Studio).
@@ -60,9 +62,11 @@ After `npx expo start` you'll see a QR code and a menu:
 To stop the app: click the terminal and press `Ctrl + C`.
 
 **The one command you'll run constantly** (this is the quality gate — no CI server exists, so this IS the check):
+
 ```bash
 npm run verify
 ```
+
 It runs TypeScript, lint, formatting, and tests. It must show **zero errors** before every PR.
 
 ---
@@ -70,8 +74,8 @@ It runs TypeScript, lint, formatting, and tests. It must show **zero errors** be
 ## 4. Dependencies & sequencing
 
 - **Wait for Shrey's Phase 0 to merge into `main` before you write any code.** Phase 0 gives you: the NativeWind theme/tokens, the `components/ui/*` primitives, `mocks/types.ts`, and the `lib/api/*` hooks (`useEmpties`, `useDashboard`, `useProducts`, `track`) returning **mock data**. Confirm with Shrey that Phase 0 is merged, then `git pull` on `main`.
-- **You build against mocks, not the database.** `useEmpties()`, `useDashboard()`, and `useProducts()` return fixture data until Shrey's `types/database.ts` lands. Your UI **never** imports supabase-js and **never** writes SQL. Finishing a product goes through the shared `useEmpties().finish(...)` — the hook does the write (it wraps the `finish_product` RPC); you build the *interaction and celebration*.
-- **The finish entry point is a route, not a button you build.** Matt's inventory item detail has the "Mark as Finished" button; it calls `router.push(...)` to a route that renders *your* finish screen. **Agree on the exact route name and params with Matt + Shrey before Phase 2** (§7-A). You never touch inventory files; you just own what the route opens.
+- **You build against mocks, not the database.** `useEmpties()`, `useDashboard()`, and `useProducts()` return fixture data until Shrey's `types/database.ts` lands. Your UI **never** imports supabase-js and **never** writes SQL. Finishing a product goes through the shared `useEmpties().finish(...)` — the hook does the write (it wraps the `finish_product` RPC); you build the _interaction and celebration_.
+- **The finish entry point is a route, not a button you build.** Matt's inventory item detail has the "Mark as Finished" button; it calls `router.push(...)` to a route that renders _your_ finish screen. **Agree on the exact route name and params with Matt + Shrey before Phase 2** (§7-A). You never touch inventory files; you just own what the route opens.
 - **ProgressRing comes from Aaron.** Import `components/ProgressRing.tsx` for the celebration ring-close animation and for the Progress-tab summary. Don't reimplement a ring.
 - **Suggested build order:** Phase 1 (private empties archive + Progress tab, against mocks) → Phase 2 (finish flow + celebration + repurchase review, wired to the finish route and `useEmpties().finish`) → Phase 3 (states, a11y, analytics, Maestro) → Phase 4 (user-testing support).
 - **Every session starts clean:**
@@ -88,21 +92,23 @@ You never write SQL or edit these — this is just so you know the exact shapes 
 
 **`empties` table (PRIVATE archive — owner-only read/write, D13).** One row per finished product.
 
-| Column | Type | Notes |
-|---|---|---|
-| `id` | uuid | |
-| `user_id` | uuid | owner (RLS keeps it private — never shown as an "author") |
-| `product_id` | uuid → products | the product that was finished |
-| `review_text` | text \| null | optional 1-liner |
-| `repurchase` | enum: `yes` \| `maybe` \| `no` | the verdict (matrix 12) |
-| `months_in_use` | int \| null | computed by the RPC from `opened_at` |
-| `photo_url` | text \| null | optional |
-| `created_at` | timestamptz | when it was finished |
+| Column          | Type                           | Notes                                                     |
+| --------------- | ------------------------------ | --------------------------------------------------------- |
+| `id`            | uuid                           |                                                           |
+| `user_id`       | uuid                           | owner (RLS keeps it private — never shown as an "author") |
+| `product_id`    | uuid → products                | the product that was finished                             |
+| `review_text`   | text \| null                   | optional 1-liner                                          |
+| `repurchase`    | enum: `yes` \| `maybe` \| `no` | the verdict (matrix 12)                                   |
+| `months_in_use` | int \| null                    | computed by the RPC from `opened_at`                      |
+| `photo_url`     | text \| null                   | optional                                                  |
+| `created_at`    | timestamptz                    | when it was finished                                      |
 
 **The finish hook (Shrey's — you consume it):**
+
 ```
 useEmpties().finish(product_id, review_text?, repurchase, photo_url?)
 ```
+
 This wraps the `finish_product` RPC, which: sets `products.status = 'finished'`, sets `is_priority = false` (removes it from the Focus Pot), creates the `empties` row, and computes `months_in_use` from `opened_at`. **No badge/points logic.** `useEmpties()` also gives you the list of the current user's empties for the archive (owner-only).
 
 **`products.status` transition:** the finish flow moves a product from `in_rotation` (or `unopened`) → `finished`. You don't set this field yourself — `finish()` does it via the RPC.
@@ -120,6 +126,7 @@ This wraps the `finish_product` RPC, which: sets `products.status = 'finished'`,
 **Goal:** Build the Progress tab as "My Progress": a summary header (compose Aaron's `ProgressRing` + `useDashboard`) plus the **private empties archive** — a list of the user's finished products. Reuse the `empties-feed.png` **card layout only**, stripped of the like button, author, and any feed framing. Include a warm empty state for "no finishes yet." No finish flow yet, no writes — read mock data from `useEmpties` / `useDashboard`.
 
 > **Paste this to your agent:**
+>
 > ```
 > You are working in the PanPals repo (Expo SDK 53+, React Native, TypeScript strict, expo-router, NativeWind, Zustand, TanStack Query). Read AI-CONTEXT.md, docs/DESIGN-TOKENS.md, docs/DATA-MODEL.md, and docs/PRD.md (function F6) first.
 >
@@ -146,6 +153,7 @@ This wraps the `finish_product` RPC, which: sets `products.status = 'finished'`,
 > ```
 
 **Files created:**
+
 - `app/(tabs)/progress.tsx` (Progress tab — thin)
 - `features/empties/EmptyCard.tsx`
 - `features/empties/EmptiesArchive.tsx` (the list)
@@ -156,13 +164,16 @@ This wraps the `finish_product` RPC, which: sets `products.status = 'finished'`,
 - `features/empties/__tests__/EmptiesArchive.test.tsx`, `features/empties/__tests__/EmptyCard.test.tsx`
 
 **Verify:**
+
 ```bash
 npm run verify        # must be zero errors
 npx expo start        # then press w for web
 ```
+
 Click through: open the **Progress** tab. You see a "My Progress" summary at the top (a ring/donut + a finished count) and below it a list of empties cards. Each card shows a product, a months-in-use chip, a Yes/Maybe/No verdict pill, and a review line when present. There is **no** like button, no author name, no "community" tab. Temporarily point the mock at "no empties" (ask the agent how) and confirm the warm empty state appears.
 
 **Done when:**
+
 - [ ] `npm run verify` passes with zero errors.
 - [ ] Progress tab shows a "My Progress" summary using Aaron's `ProgressRing` + `useDashboard`, and the private empties archive below it.
 - [ ] Empties cards reuse the `empties-feed.png` layout **stripped of likes/author/feed** — verified: no like button, no author, no comments, no "Community" sub-tab.
@@ -181,6 +192,7 @@ Click through: open the **Progress** tab. You see a "My Progress" summary at the
 > **Coordinate first (do this before pasting):** confirm with Matt + Shrey the exact expo-router **route name and params** the "Mark as Finished" button pushes to (e.g. `/empties/finish?productId=...`). See §7-A. Your screen reads `productId` from the route.
 
 > **Paste this to your agent:**
+>
 > ```
 > Continue in the PanPals repo, my lane only. Re-read AI-CONTEXT.md and docs/DATA-MODEL.md (the empties table + finish_product RPC + the useEmpties hook) first.
 >
@@ -207,21 +219,25 @@ Click through: open the **Progress** tab. You see a "My Progress" summary at the
 > ```
 
 **Files created / changed:**
+
 - `features/empties/FinishFlow.tsx` (the screen the route renders — thin)
 - `features/empties/CelebrationState.tsx` (ring-close + confetti + months-in-use chip)
 - `features/empties/RepurchaseReview.tsx` (rating + 1-line review + Yes/Maybe/No, skippable)
 - `features/empties/useFinishProduct.ts` (wraps `useEmpties().finish` mutation)
 - Updates to `strings.ts`, `EmptyCard.tsx` (edit-review affordance placeholder), and `__tests__/`
-- *(If the route needs a file, e.g. `app/empties/finish.tsx`, confirm ownership with Shrey in §7-A before creating it — it may live in your lane or be scaffolded by Shrey.)*
+- _(If the route needs a file, e.g. `app/empties/finish.tsx`, confirm ownership with Shrey in §7-A before creating it — it may live in your lane or be scaffolded by Shrey.)_
 
 **Verify:**
+
 ```bash
 npm run verify
 npx expo start        # press w for web (or i / a for simulators)
 ```
+
 Click: trigger the finish route (in dev you may open it directly, or use Matt's button once his branch is merged). Confirm → a ring closes and confetti plays with a "months in use" chip and **no score/points/badge anywhere**. Enter a 1-line review and pick a verdict; also try **Skip** and confirm it still finishes. After saving, land on the Progress tab and see the just-finished product as a new card in the archive with its verdict.
 
 **Done when:**
+
 - [ ] `npm run verify` passes with zero errors.
 - [ ] The finish route renders your screen and reads `productId` from params (route name agreed with Matt + Shrey).
 - [ ] Celebration shows ring-close + confetti + months-in-use chip and has **no points, badges, or score**.
@@ -238,6 +254,7 @@ Click: trigger the finish route (in dev you may open it directly, or use Matt's 
 **Goal:** Production polish: loading / empty / error states across the Progress tab and finish flow, a full accessibility pass, fire `product_finished` via the shared `track()`, and write the `finish-and-archive.yaml` Maestro flow.
 
 > **Paste this to your agent:**
+>
 > ```
 > Continue in the PanPals repo, my lane only. Re-read AI-CONTEXT.md §5–§7 and docs/TESTING.md first.
 >
@@ -264,19 +281,23 @@ Click: trigger the finish route (in dev you may open it directly, or use Matt's 
 > ```
 
 **Files created / changed:**
+
 - `features/empties/EmptiesSkeleton.tsx`, `features/empties/EmptiesErrorState.tsx`
 - `.maestro/finish-and-archive.yaml`
 - Updates to `useEmptiesArchive.ts`, `useFinishProduct.ts` (fire `track()`), `strings.ts`, `__tests__/`
 
 **Verify:**
+
 ```bash
 npm run verify
 maestro test .maestro/finish-and-archive.yaml     # needs a running simulator/emulator
 npx expo start
 ```
+
 Click: with the mock set to "loading," the Progress tab shows skeletons; with "no empties," the warm empty state; force an error (ask the agent how to toggle the mock) and confirm a gentle retry, not a red wall. Turn on a screen reader briefly and confirm the verdict pills and summary announce their values; toggle reduce-motion and confirm the celebration degrades to a static full ring + chip. Run the Maestro flow — it should go green.
 
 **Done when:**
+
 - [ ] `npm run verify` passes with zero errors.
 - [ ] Loading, empty (no finishes), and error states all exist and are calm/non-judgmental.
 - [ ] Every touchable has an accessibilityLabel; verdict/status never conveyed by color alone; reduce-motion respected.
@@ -292,6 +313,7 @@ Click: with the mock set to "loading," the Progress tab shows skeletons; with "n
 **Goal:** Help the moderated sessions (5–8 MBA testers) hit the PRD metric: the finish moment is described as **"motivating," not "restrictive."** No new features — just fixes surfaced by testing.
 
 > **Paste this to your agent:**
+>
 > ```
 > Continue in the PanPals repo, my lane only. We are in user testing. Do NOT add features.
 >
@@ -307,6 +329,7 @@ Click: with the mock set to "loading," the Progress tab shows skeletons; with "n
 **Verify:** `npm run verify`; re-run `finish-and-archive.yaml`; click through the specific moment the tester struggled with and confirm the finish still feels motivating (not restrictive) and the archive stays private.
 
 **Done when:**
+
 - [ ] The reported issue is fixed with the smallest change.
 - [ ] The finish moment still reads as motivating, with no gamification and empties still private.
 - [ ] `npm run verify` passes; Maestro flow still green.
@@ -319,6 +342,7 @@ Click: with the mock set to "loading," the Progress tab shows skeletons; with "n
 Copy the relevant block, fill the brackets, and post it in the team channel for Shrey to route. **Do not let your agent edit the file itself.**
 
 **A. The finish-route seam (Matt + Shrey) — you'll almost certainly need this in Phase 2.**
+
 ```
 CROSS-LANE REQUEST — to Matt (+ Shrey to route)
 Matt's inventory item detail owns the "Mark as Finished" button; my features/empties finish flow is the destination. We need to agree on ONE expo-router route name + params so his button and my screen match. Proposed: router.push('/empties/finish?productId=<id>') opening my FinishFlow, which reads productId from params.
@@ -327,24 +351,28 @@ Matt's inventory item detail owns the "Mark as Finished" button; my features/emp
 ```
 
 **B. Missing/changed `useEmpties` hook (Shrey).** If `useEmpties` doesn't expose `finish(...)` or the archive list the way the screens need:
+
 ```
 CROSS-LANE REQUEST — to Shrey (lib/api)
 My finish flow + archive need useEmpties() to expose: (1) finish(product_id, review_text?, repurchase: 'yes'|'maybe'|'no', photo_url?) wrapping the finish_product RPC (sets status=finished, is_priority=false, creates the empties row, computes months_in_use), and (2) the current user's list of empties (owner-only) with product display info, review_text, repurchase, months_in_use, photo_url, created_at. Currently the mock exposes: [WHAT YOU SEE]. Can lib/api add/adjust these on the mock + hook shape?
 ```
 
 **C. Editing a saved review later (Shrey).** If verdicts/reviews should be editable from the archive (matrix 12 says "editable later"):
+
 ```
 CROSS-LANE REQUEST — to Shrey (lib/api)
 Matrix 12 says the repurchase review is "editable later." Is there (or can there be) a useEmpties() method to update an existing empty's review_text / repurchase verdict? If not exposed yet, what's the intended path? I'll build the edit UI in features/empties once the hook exists.
 ```
 
 **D. ProgressRing props (Aaron, + Shrey to route).** If the ring you import doesn't expose what the celebration/summary needs:
+
 ```
 CROSS-LANE REQUEST — to Aaron (+ Shrey to route)
 My finish celebration + Progress summary import components/ProgressRing.tsx. I need it to support: [e.g. an animated fill-to-100% for the ring-close, or a size prop for the summary]. Its current props are: [WHAT YOU SEE]. Can we align so I don't need to reimplement a ring or edit your file?
 ```
 
 **E. Shared empty/error pattern (Shrey).** If Shrey owns the cross-cutting empty/error components:
+
 ```
 CROSS-LANE REQUEST — to Shrey (components/ui)
 Does a shared empty-state / error-state primitive exist in components/ui I should import for the Progress tab's archive-empty and hook-error states? If yes, point me to it. If not, I'll build a local one in features/empties for now.
@@ -354,13 +382,13 @@ Does a shared empty-state / error-state primitive exist in components/ui I shoul
 
 ## 8. Common pitfalls
 
-- **Rebuilding a social feed.** The `empties-feed.png` mockup is a **layout reference only** — the Community feed is **deferred (D13)**. Reuse the card *shape* but strip the like button, author/avatar, "posted by," comments, and any "Community" sub-tab. Empties are a private personal shelf.
+- **Rebuilding a social feed.** The `empties-feed.png` mockup is a **layout reference only** — the Community feed is **deferred (D13)**. Reuse the card _shape_ but strip the like button, author/avatar, "posted by," comments, and any "Community" sub-tab. Empties are a private personal shelf.
 - **Editing inventory files.** The "Mark as Finished" button is **Matt's**. You own only the destination screen. If the agent tries to touch `app/(tabs)/inventory.tsx` or `features/inventory/*`, stop it and use §7-A. Coordinate the route name; never edit his file.
 - **Making empties public / cross-user.** RLS on `empties` is **owner-only read and write**. Never frame an empty as belonging to someone else, never add a shared/global list. If a screen implies visibility to other users, it's wrong.
 - **Adding points / badges / score to the celebration.** The finish moment is gratifying but **not gamified** — no points, no badges, no unlocks (D15). Ring-close + confetti + months-in-use chip is the whole reward.
 - **Editing outside your lane.** The single biggest risk. If the agent touches `lib/api`, `components/ui`, `components/ProgressRing.tsx`, `theme`, `mocks`, or Matt's/Joon's/Aaron's files — stop it and file a CROSS-LANE REQUEST. Prove your PR is clean with `git diff --name-only main`.
 - **Calling supabase-js or writing SQL.** You never do either. Finishing goes through `useEmpties().finish(...)`; the archive reads from `useEmpties()`; the summary reads from `useDashboard()`. Talbia never writes SQL.
-- **Hardcoding a hex/font/radius.** Never. Everything comes from the NativeWind theme (`theme/`) fed by `docs/DESIGN-TOKENS.md`. Rose `#F2A2A2` and sage `#A8C69F` are *tokens*, not literals you type.
+- **Hardcoding a hex/font/radius.** Never. Everything comes from the NativeWind theme (`theme/`) fed by `docs/DESIGN-TOKENS.md`. Rose `#F2A2A2` and sage `#A8C69F` are _tokens_, not literals you type.
 - **Verdict conveyed by color alone.** Always include the word Yes/Maybe/No. Never rely on a green/amber/rose pill by itself.
 - **Inline strings in JSX.** All user-visible copy lives in `features/empties/strings.ts`.
 - **Skipping states.** Loading, empty (no finishes), and error are required — not optional polish.

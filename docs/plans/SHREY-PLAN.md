@@ -8,22 +8,22 @@
 
 ## 1. Your lane
 
-| Files you OWN & edit | Files you may IMPORT but NEVER edit | The four feature lanes you must NOT edit |
-|---|---|---|
-| `app/_layout.tsx` (root layout, providers) | `features/*` — read for context only | `app/(tabs)/index.tsx` + `features/home/*` + `components/ProgressRing.tsx` → **Aaron** |
-| `app/(tabs)/_layout.tsx` (5-tab navigator: Home \| Inventory \| Progress \| Wishlist \| You) | — | `app/(tabs)/wishlist.tsx` + `features/wishlist/*` → **Joon** |
-| `app/(auth)/*` (welcome, sign-up, sign-in, goal capture) | — | `app/(tabs)/inventory.tsx` + `features/inventory/*` → **Matt** |
-| `app/(tabs)/you.tsx` (Profile / You tab) | — | `app/(tabs)/progress.tsx` + `features/empties/*` → **Talbia** |
-| **`supabase/*`** (migrations, `seed.sql`, RLS, RPC functions, RLS tests) | — | Any feature owner's `strings.ts` / `__tests__` |
-| **`types/database.ts`** (generated — never hand-edit contents, but you own the file) | — | |
-| `lib/*` (incl. `lib/api/*` hooks, `lib/analytics.ts` `track()`, `lib/supabase.ts`) | — | |
-| `theme/*` (NativeWind config from DESIGN-TOKENS) | — | |
-| `mocks/*` (`mocks/types.ts` + fixtures) | — | |
-| `components/ui/*` (Button, Card, Input, Badge/Chip, EmptyState, LoadingState, ErrorState, **ProductSearch**) | — | |
-| `docs/*`, `.github/*` (CODEOWNERS, PR template), `scripts/*` | — | |
-| Root config: `package.json`, `tsconfig.json`, `tailwind.config.js`, `app.json`, `babel.config.js`, `.eslintrc.js`, `.prettierrc`, `metro.config.js`, `jest.config.js` | — | |
+| Files you OWN & edit                                                                                                                                                  | Files you may IMPORT but NEVER edit  | The four feature lanes you must NOT edit                                               |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ | -------------------------------------------------------------------------------------- |
+| `app/_layout.tsx` (root layout, providers)                                                                                                                            | `features/*` — read for context only | `app/(tabs)/index.tsx` + `features/home/*` + `components/ProgressRing.tsx` → **Aaron** |
+| `app/(tabs)/_layout.tsx` (5-tab navigator: Home \| Inventory \| Progress \| Wishlist \| You)                                                                          | —                                    | `app/(tabs)/wishlist.tsx` + `features/wishlist/*` → **Joon**                           |
+| `app/(auth)/*` (welcome, sign-up, sign-in, goal capture)                                                                                                              | —                                    | `app/(tabs)/inventory.tsx` + `features/inventory/*` → **Matt**                         |
+| `app/(tabs)/you.tsx` (Profile / You tab)                                                                                                                              | —                                    | `app/(tabs)/progress.tsx` + `features/empties/*` → **Talbia**                          |
+| **`supabase/*`** (migrations, `seed.sql`, RLS, RPC functions, RLS tests)                                                                                              | —                                    | Any feature owner's `strings.ts` / `__tests__`                                         |
+| **`types/database.ts`** (generated — never hand-edit contents, but you own the file)                                                                                  | —                                    |                                                                                        |
+| `lib/*` (incl. `lib/api/*` hooks, `lib/analytics.ts` `track()`, `lib/supabase.ts`)                                                                                    | —                                    |                                                                                        |
+| `theme/*` (NativeWind config from DESIGN-TOKENS)                                                                                                                      | —                                    |                                                                                        |
+| `mocks/*` (`mocks/types.ts` + fixtures)                                                                                                                               | —                                    |                                                                                        |
+| `components/ui/*` (Button, Card, Input, Badge/Chip, EmptyState, LoadingState, ErrorState, **ProductSearch**)                                                          | —                                    |                                                                                        |
+| `docs/*`, `.github/*` (CODEOWNERS, PR template), `scripts/*`                                                                                                          | —                                    |                                                                                        |
+| Root config: `package.json`, `tsconfig.json`, `tailwind.config.js`, `app.json`, `babel.config.js`, `.eslintrc.js`, `.prettierrc`, `metro.config.js`, `jest.config.js` | —                                    |                                                                                        |
 
-Rule: if a task needs a file in the right column, **stop and emit a CROSS-LANE REQUEST** (§7). As lead you own nearly every cross-cutting file, so most "cross-lane" traffic is *inbound* requests from teammates that you route (§7).
+Rule: if a task needs a file in the right column, **stop and emit a CROSS-LANE REQUEST** (§7). As lead you own nearly every cross-cutting file, so most "cross-lane" traffic is _inbound_ requests from teammates that you route (§7).
 
 ---
 
@@ -63,6 +63,7 @@ only reliable way to hand off between tools is through committed code + the `.md
 files.
 
 **The four handoff rules:**
+
 1. **One task, one tool at a time.** Never run both agents editing the same files
    at once — you'll create merge conflicts with yourself. Finish (or at least
    commit) in one before opening the other.
@@ -94,9 +95,9 @@ pass. Not required — either tool can do any phase here. The `AI-CONTEXT.md` +
 wrote it.
 
 **PR review across tools (WORKFLOW.md Gate 3):** you can run Claude Code's
-`/review` for logic and, in Antigravity, prompt: *"verify this PR only touches
+`/review` for logic and, in Antigravity, prompt: _"verify this PR only touches
 paths owned by the author per AI-CONTEXT.md §3; list any changes to shared
-contracts, theme, navigation, or types."* Either satisfies the gate.
+contracts, theme, navigation, or types."_ Either satisfies the gate.
 
 ---
 
@@ -111,7 +112,7 @@ contracts, theme, navigation, or types."* Either satisfies the gate.
 2. **Expo tooling & simulators:** `npm install -g eas-cli` (optional); Xcode (iOS Simulator) and/or Android Studio; **Expo Go** on your phone for the fastest preview.
 3. **Maestro** (E2E): `curl -Ls "https://get.maestro.mobile.dev" | bash` then `maestro --version`.
 4. **Supabase CLI + Docker** (you own the backend now):
-   - **Docker Desktop** — required to run the local Supabase stack (`docker --version` should work and Docker must be *running*).
+   - **Docker Desktop** — required to run the local Supabase stack (`docker --version` should work and Docker must be _running_).
    - **Supabase CLI:** `brew install supabase/tap/supabase` (or `npm i -g supabase`), confirm `supabase --version`.
 5. **Clone the repo** (after Phase 0-B creates it): `git clone <repo-url> && cd panpals-starter-kit`, then `npm install`.
 6. **Create the hosted Supabase project** at supabase.com (free tier). From Settings → API copy the **Project URL**, **anon key**, and **service-role key**. You keep all three (you are the only backend owner now — you no longer hand keys to anyone). Link the CLI: `supabase link --project-ref <ref>`.
@@ -128,7 +129,7 @@ contracts, theme, navigation, or types."* Either satisfies the gate.
 ## 4. Dependencies & sequencing (you are the critical path)
 
 - **Nothing else starts until Phase 0 is merged.** Aaron, Joon, Matt, and Talbia are all blocked on your scaffold, tokens, shared UI kit, and — most importantly — the **five `lib/api` hooks returning realistic fixtures**. You wait on no one; you build Phase 0 entirely against mocks.
-- **Mock-first bridge (the whole reason 5 people build at once):** front-end consumes `lib/api/*` hooks that serve `mocks/` fixtures typed by `mocks/types.ts`. Those fixtures mirror `docs/DATA-MODEL.md` exactly. When `types/database.ts` lands, you swap each hook's *internals* to real Supabase **without changing a single hook signature** — so no feature screen ever changes.
+- **Mock-first bridge (the whole reason 5 people build at once):** front-end consumes `lib/api/*` hooks that serve `mocks/` fixtures typed by `mocks/types.ts`. Those fixtures mirror `docs/DATA-MODEL.md` exactly. When `types/database.ts` lands, you swap each hook's _internals_ to real Supabase **without changing a single hook signature** — so no feature screen ever changes.
 - **Backend runs right after Phase 0 and is also critical path:** you build it yourself now (Phases B1–B6). The schema/RLS/RPCs must land early so the mock→real swap (Phase 2) is unblocked. There is no separate Talbia data plan anymore.
 - **Schema-first daily merge order (you enforce for everyone, WORKFLOW.md D14/D20):** every day your `schema/*` PR merges **first**; you regenerate `types/database.ts` in that same PR; then all open feature branches rebase on `main` and re-import from the regenerated types. This is the "daily regenerate-and-rebase ritual."
 - **What blocks your own later phases:** Phase 2 auth wire-up needs `profiles` + RLS live (B2); catalog search wire-up needs `search_catalog()` + seeded `catalog_products` (B3+B4); analytics wire-up needs `analytics_events` (B2). All of those are your own backend phases — you unblock yourself.
@@ -143,27 +144,27 @@ These are the exact shapes `mocks/types.ts` mirrors and `types/database.ts` will
 
 ### Tables (columns abbreviated — full spec in `docs/DATA-MODEL.md`)
 
-| Table | Key columns | RLS |
-|---|---|---|
-| `profiles` | `id`(=auth.uid), `username`, `avatar_url?`, `age_range?`, `location?`, `selected_goals text[]` (≥1), `current_streak`/`longest_streak`/`last_log_date` (**display only**) | owner only |
-| `catalog_products` | `id`, `brand`, `name`, `category`, `shade_or_variant?`, `image_url?`, `source` (provenance), `active_flag` | **read = all authenticated**; no user writes (only globally-readable table) |
-| `products` | `id`, `user_id`, `catalog_product_id?`, `brand`, `name`, `shade?`, `category` enum, `format` enum, `status` enum (unopened/in_rotation/finished), `percent_remaining` 0–100, `photo_url?`, `pao_months?`(6/12), `opened_at?`, `is_priority` (**trigger: max 5 true/user**), `source_wishlist_item_id?` | owner only |
-| `usage_logs` | `id`, `product_id`, `percent_after` 0–100, `note?`, `photo_url?`, `logged_at` (one row per log; never overwrite) | owner only (via product) |
-| `wishlist_items` | `id`, `user_id`, `catalog_product_id?`, `brand`, `name`, `shade?`, `category`, `price?`, `product_url?`, `photo_url?`, `priority` enum (high/medium/low), `rank_position?`, `reflection_response?`, `cooling_off_ends_at` (default `now()+14d`), `reminder_at?`, `status` enum (cooling/ready/removed/purchased), `last_reviewed_at?` | owner only |
-| `empties` | `id`, `user_id`, `product_id`, `review_text?`, `repurchase` enum (yes/maybe/no), `months_in_use?`, `photo_url?` | **PRIVATE: read = owner only, write = owner only** |
-| `analytics_events` | `id`, `user_id?`, `event_name`, `entity_id?`, `source_view?`, `properties jsonb?` (**never raw review text**) | owner only |
+| Table              | Key columns                                                                                                                                                                                                                                                                                                                           | RLS                                                                         |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `profiles`         | `id`(=auth.uid), `username`, `avatar_url?`, `age_range?`, `location?`, `selected_goals text[]` (≥1), `current_streak`/`longest_streak`/`last_log_date` (**display only**)                                                                                                                                                             | owner only                                                                  |
+| `catalog_products` | `id`, `brand`, `name`, `category`, `shade_or_variant?`, `image_url?`, `source` (provenance), `active_flag`                                                                                                                                                                                                                            | **read = all authenticated**; no user writes (only globally-readable table) |
+| `products`         | `id`, `user_id`, `catalog_product_id?`, `brand`, `name`, `shade?`, `category` enum, `format` enum, `status` enum (unopened/in_rotation/finished), `percent_remaining` 0–100, `photo_url?`, `pao_months?`(6/12), `opened_at?`, `is_priority` (**trigger: max 5 true/user**), `source_wishlist_item_id?`                                | owner only                                                                  |
+| `usage_logs`       | `id`, `product_id`, `percent_after` 0–100, `note?`, `photo_url?`, `logged_at` (one row per log; never overwrite)                                                                                                                                                                                                                      | owner only (via product)                                                    |
+| `wishlist_items`   | `id`, `user_id`, `catalog_product_id?`, `brand`, `name`, `shade?`, `category`, `price?`, `product_url?`, `photo_url?`, `priority` enum (high/medium/low), `rank_position?`, `reflection_response?`, `cooling_off_ends_at` (default `now()+14d`), `reminder_at?`, `status` enum (cooling/ready/removed/purchased), `last_reviewed_at?` | owner only                                                                  |
+| `empties`          | `id`, `user_id`, `product_id`, `review_text?`, `repurchase` enum (yes/maybe/no), `months_in_use?`, `photo_url?`                                                                                                                                                                                                                       | **PRIVATE: read = owner only, write = owner only**                          |
+| `analytics_events` | `id`, `user_id?`, `event_name`, `entity_id?`, `source_view?`, `properties jsonb?` (**never raw review text**)                                                                                                                                                                                                                         | owner only                                                                  |
 
 **Do NOT create:** `empty_likes`, `badges`, or any public/global read RLS on `empties` (all deferred, D13/D15).
 
 ### The five RPCs and the hook that wraps each
 
-| RPC | Signature | Behavior | Wrapping `lib/api` hook |
-|---|---|---|---|
-| `log_usage` | `(product_id uuid, percent int, note text, photo_url text)` | insert `usage_log`, update `products.percent_remaining`, bump streak if first log today | `useProducts` (usage mutation) — also called from Home & inventory detail |
-| `finish_product` | `(product_id uuid, review text, repurchase text, photo_url text)` | set `status=finished`, `is_priority=false`, insert **private** `empties` row, compute `months_in_use` from `opened_at`. **No badges/points** | `useEmpties` (finish mutation) |
-| `get_dashboard` | `()` | one round-trip: focus products, status counts for donut, streak, per-category active counts, wishlist items with `status='ready'` | `useDashboard` |
-| `search_catalog` | `(q text, category text null, limit int)` | case-insensitive **prefix** type-ahead over `catalog_products` (brand+name), returns `{id, brand, name, category, shade_or_variant, image_url}` | `useCatalogSearch` (and `ProductSearch`) |
-| `find_similar_owned` | `(category text, exclude_product_id uuid null)` | count + list of active owned products in the same category — powers the F5 duplicate intercept | `useProducts` (similar-owned selector) / consumed by Joon's banner |
+| RPC                  | Signature                                                         | Behavior                                                                                                                                        | Wrapping `lib/api` hook                                                   |
+| -------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `log_usage`          | `(product_id uuid, percent int, note text, photo_url text)`       | insert `usage_log`, update `products.percent_remaining`, bump streak if first log today                                                         | `useProducts` (usage mutation) — also called from Home & inventory detail |
+| `finish_product`     | `(product_id uuid, review text, repurchase text, photo_url text)` | set `status=finished`, `is_priority=false`, insert **private** `empties` row, compute `months_in_use` from `opened_at`. **No badges/points**    | `useEmpties` (finish mutation)                                            |
+| `get_dashboard`      | `()`                                                              | one round-trip: focus products, status counts for donut, streak, per-category active counts, wishlist items with `status='ready'`               | `useDashboard`                                                            |
+| `search_catalog`     | `(q text, category text null, limit int)`                         | case-insensitive **prefix** type-ahead over `catalog_products` (brand+name), returns `{id, brand, name, category, shade_or_variant, image_url}` | `useCatalogSearch` (and `ProductSearch`)                                  |
+| `find_similar_owned` | `(category text, exclude_product_id uuid null)`                   | count + list of active owned products in the same category — powers the F5 duplicate intercept                                                  | `useProducts` (similar-owned selector) / consumed by Joon's banner        |
 
 ---
 
@@ -180,6 +181,7 @@ Split so each PR stays ≤ ~400 lines. Do 0-A first (repo), 0-B (Supabase projec
 **Goal:** A running Expo app with expo-router file-based tabs, the NativeWind theme wired to DESIGN-TOKENS, the shared UI primitives, and `npm run verify` passing.
 
 **Paste this to your agent:**
+
 ```
 You are scaffolding the PanPals React Native app. Read AI-CONTEXT.md and docs/DESIGN-TOKENS.md first. Create a fresh Expo project (SDK 53+) with TypeScript strict, expo-router (file-based routing), NativeWind, Zustand, and TanStack Query. Do NOT hardcode any hex, font, or radius — everything comes from the theme.
 
@@ -205,11 +207,13 @@ Only edit files under my lane; if anything else is needed, output a CROSS-LANE R
 **Files created:** `package.json`, `tsconfig.json`, `babel.config.js`, `metro.config.js`, `app.json`, `.eslintrc.js`, `.prettierrc`, `jest.config.js`, `.gitignore`, `.env.example`, `global.css`, `theme/tokens.ts`, `theme/fonts.ts`, `tailwind.config.js`, `app/_layout.tsx`, `app/(tabs)/_layout.tsx`, placeholder `app/(tabs)/{index,inventory,progress,wishlist}.tsx`, `app/(tabs)/you.tsx` (stub), `components/ui/{Button,Card,Input,Badge,Chip,Icon,EmptyState,LoadingState,ErrorState,index}.tsx`, `components/ui/__tests__/ui.test.tsx`.
 
 **Verify:**
+
 - `npm install` then `npm run verify` → tsc, eslint, prettier --check, jest all green, zero warnings.
 - `npx expo start` → iOS sim (`i`). Confirm: app boots signed-out, the 5-tab bar shows **Home | Inventory | Progress | Wishlist | You** in that order, tapping each switches screens, You renders.
 - `grep -rEn "#[0-9a-fA-F]{6}" app components | grep -v theme/` returns nothing outside `theme/`.
 
 **Done when:**
+
 - [ ] `npm run verify` passes (tsc --noEmit, eslint --max-warnings 0, prettier --check, jest).
 - [ ] RTL smoke test covers the UI primitives.
 - [ ] Loading / empty / error components render.
@@ -229,6 +233,7 @@ Do these by hand (web + terminal), then use the agent only for `.github/*`:
 3. **Confirm your hosted Supabase project** (from §3): URL + anon key in `.env`; service-role key stays in your CLI/shell only. `supabase link --project-ref <ref>`.
 
 **Paste this to your agent (for the .github files only):**
+
 ```
 Create ONLY these files, no others:
 - .github/CODEOWNERS — assign reviewers by AI-CONTEXT.md §3 lanes: app/_layout.tsx, app/(auth)/*, app/(tabs)/_layout.tsx, app/(tabs)/you.tsx, supabase/*, types/database.ts, lib/*, theme/*, mocks/*, docs/*, .github/*, scripts/*, components/ui/* → @shrey; app/(tabs)/index.tsx, features/home/*, components/ProgressRing.tsx → @aaron; app/(tabs)/wishlist.tsx, features/wishlist/* → @joon; app/(tabs)/inventory.tsx, features/inventory/* → @matt; app/(tabs)/progress.tsx, features/empties/* → @talbia. A catch-all "* @shrey" line last.
@@ -240,11 +245,13 @@ Only edit files under my lane; if anything else is needed, output a CROSS-LANE R
 **Files created:** `.github/CODEOWNERS`, `.github/pull_request_template.md`.
 
 **Verify:**
+
 - Throwaway test PR → auto-requests **@shrey**, shows the template. Cannot merge without approval; cannot push to `main`.
 - Repo public; squash-merge is the only merge button.
 - `supabase link` succeeds; `supabase projects list` shows your project.
 
 **Done when:**
+
 - [ ] Repo public; `main` protected (PR + 1 CODEOWNERS review + up-to-date + no force push).
 - [ ] Squash-merge only.
 - [ ] PR template + CODEOWNERS live and auto-assigning (note: `supabase/*` and `types/database.ts` route to you now, not Talbia).
@@ -257,6 +264,7 @@ Only edit files under my lane; if anything else is needed, output a CROSS-LANE R
 **Goal:** All five `lib/api` hooks return realistic fixtures typed by `mocks/types.ts`, so Aaron/Joon/Matt/Talbia build immediately. Single most important deliverable for parallel work.
 
 **Paste this to your agent:**
+
 ```
 Read docs/DATA-MODEL.md fully. Create the mock-first data layer. UI must NEVER call supabase-js directly — all data flows through these hooks. Until types/database.ts exists, hooks return fixtures from mocks/ typed by mocks/types.ts.
 
@@ -278,11 +286,13 @@ Only edit files under my lane; if anything else is needed, output a CROSS-LANE R
 **Files created:** `mocks/types.ts`, `mocks/fixtures.ts`, `lib/api/{useProducts,useWishlist,useDashboard,useEmpties,useCatalogSearch,index}.ts`, `lib/queryKeys.ts`, `lib/api/__tests__/hooks.test.ts`.
 
 **Verify:**
+
 - `npm run verify` green.
 - Temporarily log `useDashboard()` in the You tab; confirm realistic data renders (focus ≤5, donut counts, 5-day streak). Remove temp log before PR.
 - Confirm ≥1 category in fixtures has ≥3 active owned products (so Joon's intercept banner triggers).
 
 **Done when:**
+
 - [ ] All five hooks return typed fixtures; signatures match the future RPCs (§5).
 - [ ] `mocks/types.ts` mirrors DATA-MODEL.md (no deferred fields).
 - [ ] Hook tests pass; `npm run verify` green.
@@ -295,6 +305,7 @@ Only edit files under my lane; if anything else is needed, output a CROSS-LANE R
 **Goal:** The reusable `ProductSearch` type-ahead (Joon & Matt import it), `track()` + event dictionary, and the auth store/shell.
 
 **Paste this to your agent:**
+
 ```
 Read docs/DATA-MODEL.md (event dictionary + catalog_products) and AI-CONTEXT.md.
 
@@ -312,11 +323,13 @@ Only edit files under my lane; if anything else is needed, output a CROSS-LANE R
 **Files created:** `components/ui/ProductSearch.tsx`, `lib/analytics.ts`, `lib/auth/store.ts`, `lib/auth/useAuth.ts`, `app/(auth)/_layout.tsx`, tests under `components/ui/__tests__/` and `lib/__tests__/`.
 
 **Verify:**
+
 - `npm run verify` green.
 - Drop `ProductSearch` on You temporarily, type a fixture brand; confirm type-ahead + selecting fires `onSelect` and "Enter manually" always shows. Remove before PR.
 - `track('account_completed')` logs a structured event; passing `review_text` is rejected.
 
 **Done when:**
+
 - [ ] `ProductSearch` reusable, imports `useCatalogSearch`, has three states + a11y labels.
 - [ ] `track()` typed to the exact dictionary; refuses raw review text.
 - [ ] Auth store/shell in place (mock session).
@@ -329,6 +342,7 @@ Only edit files under my lane; if anything else is needed, output a CROSS-LANE R
 **Goal:** Welcome / sign-up / sign-in / goal-capture (row 1) and the real You tab (row 20), all against the mock auth store.
 
 **Paste this to your agent:**
+
 ```
 Read AI-CONTEXT.md and docs/PRD.md (matrix rows 1 and 20). Build the auth flow and You tab against the MOCK auth store (lib/auth) — no supabase-js.
 
@@ -348,11 +362,13 @@ Only edit files under my lane; if anything else is needed, output a CROSS-LANE R
 **Files created:** `app/(auth)/{welcome,sign-up,sign-in,goal-capture,strings}.tsx`, real `app/(tabs)/you.tsx` (+ strings), `.maestro/catalog-search.yaml`, `.maestro/signup.yaml`, tests under respective `__tests__/`.
 
 **Verify:**
+
 - `npm run verify` green.
 - Sim walkthrough: Welcome → Create account → sign-up → **goal capture blocks continue until ≥1 goal**, optionals skippable → Home. You tab: edit goals works, toggle OFF by default, sign out → Welcome, delete requires confirmation.
 - `maestro test .maestro/catalog-search.yaml` (and `signup.yaml`) pass on a running sim.
 
 **Done when:**
+
 - [ ] Row 1 works on mock auth (≥1 goal, skippable optionals).
 - [ ] Row 20 works (edit goals, toggle default-off, sign out, delete-with-confirmation).
 - [ ] Loading/empty/error on every screen; a11y labels + ≥44px targets.
@@ -372,8 +388,9 @@ Branch every backend PR as `schema/<slug>`. Each is a ≤~400-line PR. Develop a
 **Goal:** `supabase/` initialized and the local Postgres stack running under Docker, so you can iterate on migrations without touching hosted.
 
 **Paste this to your agent:**
+
 ```
-Read docs/DATA-MODEL.md. Initialize the Supabase project structure in this repo. Assume Docker Desktop is running and the Supabase CLI is installed. 
+Read docs/DATA-MODEL.md. Initialize the Supabase project structure in this repo. Assume Docker Desktop is running and the Supabase CLI is installed.
 
 Create/edit ONLY:
 - supabase/config.toml (via `supabase init`) — project id "panpals", default local ports.
@@ -389,11 +406,13 @@ Only edit files under my lane (supabase/*, scripts/*); if anything else is neede
 **Files created:** `supabase/config.toml`, `supabase/.gitignore`, `supabase/seed.sql` (placeholder), `scripts/db-reset.sh`, `scripts/rls-check.sh` (placeholder).
 
 **Verify:**
+
 - `supabase start` boots the local stack (Postgres + Studio + Auth); `supabase status` prints local URL + local anon/service keys.
 - `supabase db reset` runs clean (no migrations yet, so just an empty DB).
 - Studio opens at the local URL.
 
 **Done when:**
+
 - [ ] `supabase start` / `supabase status` succeed under Docker.
 - [ ] `scripts/db-reset.sh` runs `supabase db reset` cleanly.
 - [ ] Only `supabase/*` + `scripts/*` changed; PR filled.
@@ -405,6 +424,7 @@ Only edit files under my lane (supabase/*, scripts/*); if anything else is neede
 **Goal:** One migration creating every table in §5 with enums, FKs, defaults, RLS policies (owner-only for all user tables incl. **private** empties; catalog readable by all authenticated), and the trigger enforcing **max 5 `is_priority=true` per user**.
 
 **Paste this to your agent:**
+
 ```
 Read docs/DATA-MODEL.md fully. Create ONE migration under supabase/migrations/ (timestamped, e.g. supabase/migrations/0001_core_schema.sql) implementing the schema EXACTLY. Local stack only — do not apply to hosted.
 
@@ -433,12 +453,14 @@ Only edit files under supabase/*; if anything else is needed, output a CROSS-LAN
 **Files created:** `supabase/migrations/0001_core_schema.sql`.
 
 **Verify:**
+
 - `supabase db reset` applies the migration with no errors.
 - In Studio / psql: all seven tables exist with correct enums, defaults, FKs; `wishlist_items.cooling_off_ends_at` default resolves to `now()+14d`.
 - Trigger asserts (run in psql as a test user): inserting a 6th `is_priority=true` product raises the exception; the 5th succeeds; flipping an existing product to priority when 5 already exist fails.
 - RLS is enabled (`SELECT relrowsecurity FROM pg_class` true for all user tables); `catalog_products` has an authenticated SELECT policy.
 
 **Done when:**
+
 - [ ] Migration applies cleanly via `supabase db reset`.
 - [ ] All tables/enums/FKs/defaults/checks match DATA-MODEL.md.
 - [ ] Max-5-priority trigger enforced (6th fails, 5th passes).
@@ -452,6 +474,7 @@ Only edit files under supabase/*; if anything else is needed, output a CROSS-LAN
 **Goal:** `log_usage`, `finish_product`, `get_dashboard`, `search_catalog`, `find_similar_owned` as `SECURITY DEFINER` (or invoker where RLS suffices) functions matching the §5 signatures exactly — **no badges/points anywhere**.
 
 **Paste this to your agent:**
+
 ```
 Read docs/DATA-MODEL.md §RPCs. Create ONE migration supabase/migrations/0002_rpcs.sql defining exactly these five Postgres functions. They must respect RLS (operate as the calling user; use auth.uid()). Signatures and return shapes must match so lib/api hooks map 1:1 with no client reshaping.
 
@@ -469,11 +492,13 @@ Only edit files under supabase/*; if anything else is needed, output a CROSS-LAN
 **Files created:** `supabase/migrations/0002_rpcs.sql`.
 
 **Verify:**
+
 - `supabase db reset` applies both migrations.
 - In psql as a seeded test user: `select * from log_usage(...)` updates percent + inserts a log + bumps streak once/day; `finish_product(...)` sets finished + creates a private empties row + computes months_in_use; `get_dashboard()` returns focus/donut/streak/category/ready-wishlist in one payload; `search_catalog('ma')` returns prefix matches; `find_similar_owned('face', null)` returns the right count.
 - Confirm no function references badges/points/likes.
 
 **Done when:**
+
 - [ ] All five RPCs match the §5 signatures and return shapes.
 - [ ] Each behaves per DATA-MODEL.md; streak bumps once per day; finish is idempotent-safe and private.
 - [ ] EXECUTE granted to authenticated; RLS respected.
@@ -486,6 +511,7 @@ Only edit files under supabase/*; if anything else is needed, output a CROSS-LAN
 **Goal:** `supabase/seed.sql` populating `catalog_products` from a **license-clean** cosmetics dataset (MIT or CC), with provenance documented and **no retailer scraping**.
 
 **Paste this to your agent:**
+
 ```
 Read docs/DATA-MODEL.md (catalog_products, D17). I will provide a license-clean cosmetics dataset CSV (Kaggle, MIT or CC-licensed — provenance recorded). Build the catalog seed pipeline.
 
@@ -501,11 +527,13 @@ Only edit files under supabase/*, scripts/*, docs/*; if anything else is needed,
 **Files created:** `scripts/build-catalog-seed.ts`, `supabase/seed.sql` (populated), `docs/CATALOG-PROVENANCE.md`.
 
 **Verify:**
+
 - `supabase db reset` runs seed; `select count(*) from catalog_products` returns the expected rows.
 - `search_catalog('<brand-prefix>')` returns seeded rows; categories all map to the enum.
 - `docs/CATALOG-PROVENANCE.md` states license (MIT/CC) + source + date; no retailer scraping.
 
 **Done when:**
+
 - [ ] `catalog_products` seeded from a license-clean dataset; provenance documented.
 - [ ] Categories mapped to `product_category`; `active_flag` true; `search_catalog` finds them.
 - [ ] Seed is regenerable via `scripts/build-catalog-seed.ts`; only `supabase/*`, `scripts/*`, `docs/*` changed; PR filled.
@@ -517,6 +545,7 @@ Only edit files under supabase/*, scripts/*, docs/*; if anything else is needed,
 **Goal:** A repeatable SQL script proving owner-only isolation for all user tables (incl. **private empties**) and global-read for `catalog_products`, using two test users. Output attached to every schema PR (TESTING.md / DATA-MODEL.md).
 
 **Paste this to your agent:**
+
 ```
 Read docs/DATA-MODEL.md §RLS verification and docs/TESTING.md §RLS. Create a runnable RLS verification harness for the LOCAL stack.
 
@@ -534,10 +563,12 @@ Only edit files under supabase/*, scripts/*; if anything else is needed, output 
 **Files created:** `supabase/tests/rls_verification.sql`, `scripts/rls-check.sh` (populated).
 
 **Verify:**
+
 - `bash scripts/rls-check.sh` prints all asserts PASS: cross-user reads/writes fail on every owned table, empties private, catalog readable by both, trigger blocks the 6th priority.
 - Copy the PASS output into the PR description (required for schema PRs).
 
 **Done when:**
+
 - [ ] All cross-user isolation asserts PASS; empties confirmed private.
 - [ ] `catalog_products` confirmed readable by both users.
 - [ ] Trigger assert PASS; output attached to the PR; only `supabase/*`, `scripts/*` changed.
@@ -549,6 +580,7 @@ Only edit files under supabase/*, scripts/*; if anything else is needed, output 
 **Goal:** Generate `types/database.ts` from the schema, push all migrations + seed to your **hosted** project, and establish the daily ritual you run for the team.
 
 **Paste this to your agent (for the type-gen + script only):**
+
 ```
 Read AI-CONTEXT.md §2/§4. Generate the typed database client contract and a helper script.
 
@@ -565,11 +597,13 @@ Then, by hand: `supabase db push` (applies 0001 + 0002 to hosted), `supabase db 
 **Files created:** `types/database.ts`, `scripts/gen-types.sh`.
 
 **Verify:**
+
 - `npm run verify` green (tsc sees `types/database.ts`).
 - Hosted project shows all tables/RPCs/seed; a two-user check against hosted matches B5 results.
 - `types/database.ts` enums/rows line up field-for-field with `mocks/types.ts` (diff by eye).
 
 **Done when:**
+
 - [ ] Migrations + seed applied to hosted; hosted RLS verified.
 - [ ] `types/database.ts` generated and committed; matches `mocks/types.ts` shapes.
 - [ ] `scripts/gen-types.sh` documents the **daily regenerate-and-rebase ritual** (schema PR merges first → regenerate types in same PR → feature owners rebase + re-import). Only `types/*`, `scripts/*` changed (+ hosted, no code).
@@ -581,6 +615,7 @@ Then, by hand: `supabase db push` (applies 0001 + 0002 to hosted), `supabase db 
 **Goal:** Point `lib/api` at real Supabase, wire real auth to `profiles`, catalog search to `search_catalog()`, You-tab profile edits/delete to real rows, and analytics to `analytics_events` — **without changing any hook signature**, so feature screens need zero edits.
 
 **Paste this to your agent:**
+
 ```
 types/database.ts now exists (I generated it). Wire the mock-first layer to real Supabase WITHOUT changing any public hook signature — feature screens must not change.
 
@@ -597,12 +632,14 @@ Only edit files under my lane; if anything else is needed, output a CROSS-LANE R
 **Files created/edited:** `lib/supabase.ts`, updated `lib/api/*`, `lib/auth/*`, `lib/analytics.ts`, updated `lib/api/__tests__`.
 
 **Verify:**
+
 - `npm run verify` green.
 - Sim against hosted: sign up creates a real `profiles` row with goals; catalog search returns seeded rows; finishing a product writes a real **private** `empties` row; `analytics_events` rows appear.
 - `git diff --name-only main` shows only `lib/*` (no feature screen changed).
 - Maestro `catalog-search.yaml` still passes against real data.
 
 **Done when:**
+
 - [ ] `lib/supabase.ts` is the only supabase-js importer; hook signatures unchanged.
 - [ ] Real auth + goal capture + catalog search + You edits/delete + analytics work end to end.
 - [ ] Unit tests still mock hooks (no live Supabase in Jest); `npm run verify` green.
@@ -615,6 +652,7 @@ Only edit files under my lane; if anything else is needed, output a CROSS-LANE R
 **Goal:** Every shared screen has real empty/loading/error states, the a11y + privacy baseline (row 25) is enforced app-wide, all dictionary events fire, and your Maestro flows are solid.
 
 **Paste this to your agent:**
+
 ```
 Polish pass on my lane only. Read AI-CONTEXT.md §5-6 and docs/DESIGN-TOKENS.md.
 - Audit app/(auth)/*, app/(tabs)/you.tsx, and components/ui/* for the three states (loading/empty/error) and calm copy.
@@ -630,11 +668,13 @@ Only edit files under my lane; if anything else is needed, output a CROSS-LANE R
 **Files created/edited:** updates across `app/(auth)/*`, `app/(tabs)/you.tsx`, `components/ui/*`, `.maestro/*`, `docs/` a11y note.
 
 **Verify:**
+
 - `npm run verify` green.
 - VoiceOver through auth + You — every control announces a meaningful label.
 - Maestro `catalog-search.yaml` + `signup.yaml` pass.
 
 **Done when:**
+
 - [ ] Loading/empty/error on every shared screen; a11y labels + AA contrast + ≥44px targets; no color-only status.
 - [ ] Privacy defaults verified; dictionary events fire; Maestro green; `npm run verify` green; only my-lane files changed; PR filled.
 
@@ -645,12 +685,14 @@ Only edit files under my lane; if anything else is needed, output a CROSS-LANE R
 **Goal:** Run the full Maestro set nightly, keep `main` demoable, run the daily merge windows, and support the 5–8 tester moderated sessions (≤15s median log; intercept changes ≥1 decision; finish "motivating").
 
 Not an agent-coding task. Your standing duties as lead:
+
 - **Nightly:** `maestro test .maestro/` (full set: log-product, focus-and-ring, wishlist-intercept, catalog-search, finish-and-archive). Anything red blocks the demo — file a fix.
 - **Every 12pm & 9pm — the 4-gate PR pipeline (WORKFLOW.md) for all four teammates:** pull the branch, `npm run verify`, run the module's Maestro flow, `/review` for logic, Antigravity lane-check ("verify this PR only touches paths owned by <author> per AI-CONTEXT §3"), then read the diff against the named PRD function. Squash-merge if green.
 - **Enforce schema-first merge order daily:** your `schema/*` PR merges first; regenerate `types/database.ts` in the same PR (`scripts/gen-types.sh`); tell feature owners to rebase on `main` and re-import.
 - **Facilitate testing:** record log-time timings and verbatim quotes as design-fair exhibits.
 
 **Verify / Done when:**
+
 - [ ] Full Maestro set green nightly; `main` always demoable.
 - [ ] All PRs pass the 4 gates before squash-merge; no lane violations reach `main`.
 - [ ] Daily regenerate-and-rebase ritual observed.
@@ -660,9 +702,10 @@ Not an agent-coding task. Your standing duties as lead:
 
 ## 7. Cross-lane requests you'll RECEIVE and how to route them
 
-You own every cross-cutting file (theme, mocks, `lib/api`, UI kit, **and now `supabase/*` + `types/database.ts`**), so you rarely *send* a request — you *receive and route* them. When a teammate files a `CROSS-LANE REQUEST`, handle it as an additive change in your lane:
+You own every cross-cutting file (theme, mocks, `lib/api`, UI kit, **and now `supabase/*` + `types/database.ts`**), so you rarely _send_ a request — you _receive and route_ them. When a teammate files a `CROSS-LANE REQUEST`, handle it as an additive change in your lane:
 
 **Paste this to your agent when a request comes in:**
+
 ```
 A teammate filed this CROSS-LANE REQUEST: <paste it>. Make ONLY the minimal, ADDITIVE change to the named file(s) in my lane (theme/*, mocks/*, components/ui/*, lib/api/* signatures, or — if it needs schema — supabase/* + a regenerated types/database.ts). Never change a hook return shape or a column in a breaking way — add optional fields/columns instead. If schema changes, add a new migration (never edit a merged one), re-run RLS verification, regenerate types, and update mocks/types.ts to match. Add/adjust a test. Then tell me exactly which teammate to notify to rebase.
 
@@ -670,11 +713,12 @@ Only edit files under my lane; if anything else is needed, output a CROSS-LANE R
 ```
 
 **Typical inbound requests and routing:**
-- *Aaron needs a new field on `Product` (e.g. an extra donut status count in `get_dashboard`)* → add the optional column via a new migration, extend the RPC additively, regenerate types, mirror in `mocks/types.ts`, notify Aaron to rebase.
-- *Joon needs `ProductSearch` to accept a `category` filter* → already supported; point him at the prop.
-- *Matt needs `find_similar_owned` to also return the newest item's shade* → extend the RPC return additively, regenerate types, mirror mock, notify Matt.
-- *Talbia (empties UI) needs an extra field on the `Empty` shape or `finish_product` return* → additive column/return, new migration, re-run RLS verification (empties stay **private**), regenerate types, notify Talbia.
-- *Anyone asks for badges/likes/points/a public empties feed* → **decline**; these are deferred (D13/D15). Empties stay private; no `empty_likes`/`badges`.
+
+- _Aaron needs a new field on `Product` (e.g. an extra donut status count in `get_dashboard`)_ → add the optional column via a new migration, extend the RPC additively, regenerate types, mirror in `mocks/types.ts`, notify Aaron to rebase.
+- _Joon needs `ProductSearch` to accept a `category` filter_ → already supported; point him at the prop.
+- _Matt needs `find_similar_owned` to also return the newest item's shade_ → extend the RPC return additively, regenerate types, mirror mock, notify Matt.
+- _Talbia (empties UI) needs an extra field on the `Empty` shape or `finish_product` return_ → additive column/return, new migration, re-run RLS verification (empties stay **private**), regenerate types, notify Talbia.
+- _Anyone asks for badges/likes/points/a public empties feed_ → **decline**; these are deferred (D13/D15). Empties stay private; no `empty_likes`/`badges`.
 
 Always: schema change = new migration + RLS re-verify + type regen + mock mirror, merged first, then teammates rebase.
 

@@ -1,6 +1,6 @@
 # Joon's Implementation Plan — Wishlist & Impulse Intercept
 
-> **Mission:** Build the calm, non-shaming Wishlist tab that intercepts impulse buys with the user's *own* inventory, holds items in a 14-day cooling-off, and lets them reconsider, manage, and convert purchases into inventory — never policing, never blocking.
+> **Mission:** Build the calm, non-shaming Wishlist tab that intercepts impulse buys with the user's _own_ inventory, holds items in a 14-day cooling-off, and lets them reconsider, manage, and convert purchases into inventory — never policing, never blocking.
 >
 > **PRD functions owned:** **F5** (Intercept an impulse) and **F7** (Reconsider a wishlist item).
 > **Feature-matrix rows owned:** 2 (capture), 3 (prioritize + reflection), 6 (duplicate detection), 7 (impulse pause decision), 13 (reconsideration), 17 (browse & manage), 18 (purchase → inventory conversion), 19 (in-app reminders), 22 (confidence-tiered language).
@@ -9,13 +9,13 @@
 
 ## 1. Your lane
 
-| ✅ OWN & edit (only these) | 📥 Import but NEVER edit | 🚫 Forbidden — never touch |
-|---|---|---|
-| `app/(tabs)/wishlist.tsx` | `components/ui/*` (Shrey's shared primitives: Button, Card, Chip, Banner, TextInput, etc.) | `app/_layout.tsx`, `app/(auth)/*` (Shrey) |
-| `features/wishlist/*` — components, hooks, `strings.ts`, `__tests__/` | `components/ProductSearch` (Shrey's catalog search UI) | `lib/*`, `theme/*`, `mocks/*`, `docs/*` (Shrey) |
-| `.maestro/wishlist-intercept.yaml` (your flow only) | `lib/api/*` hooks: `useWishlist`, `useProducts`, `useCatalogSearch`, and the similar-owned hook (`useSimilarOwned`) | `supabase/*`, `types/database.ts` (Shrey) |
-| | `mocks/types.ts` (import types only) | `app/(tabs)/index.tsx`, `features/home/*`, `components/ProgressRing.tsx` (Aaron) |
-| | `theme/*` NativeWind tokens (use classNames, never edit) | `app/(tabs)/inventory.tsx`, `features/inventory/*` (Matt); `app/(tabs)/progress.tsx`, `features/empties/*` (Talbia) |
+| ✅ OWN & edit (only these)                                            | 📥 Import but NEVER edit                                                                                            | 🚫 Forbidden — never touch                                                                                          |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `app/(tabs)/wishlist.tsx`                                             | `components/ui/*` (Shrey's shared primitives: Button, Card, Chip, Banner, TextInput, etc.)                          | `app/_layout.tsx`, `app/(auth)/*` (Shrey)                                                                           |
+| `features/wishlist/*` — components, hooks, `strings.ts`, `__tests__/` | `components/ProductSearch` (Shrey's catalog search UI)                                                              | `lib/*`, `theme/*`, `mocks/*`, `docs/*` (Shrey)                                                                     |
+| `.maestro/wishlist-intercept.yaml` (your flow only)                   | `lib/api/*` hooks: `useWishlist`, `useProducts`, `useCatalogSearch`, and the similar-owned hook (`useSimilarOwned`) | `supabase/*`, `types/database.ts` (Shrey)                                                                           |
+|                                                                       | `mocks/types.ts` (import types only)                                                                                | `app/(tabs)/index.tsx`, `features/home/*`, `components/ProgressRing.tsx` (Aaron)                                    |
+|                                                                       | `theme/*` NativeWind tokens (use classNames, never edit)                                                            | `app/(tabs)/inventory.tsx`, `features/inventory/*` (Matt); `app/(tabs)/progress.tsx`, `features/empties/*` (Talbia) |
 
 **The golden rule:** if a task seems to need a change to any file in the two right-hand columns, STOP and output a `CROSS-LANE REQUEST` (see §6). Editing another person's file is the #1 thing that breaks this project.
 
@@ -29,7 +29,7 @@ You will not write code. You paste prompts into your AI coding agent (Claude Cod
 2. For each phase: copy the entire **"Paste this to your agent"** block verbatim into your agent, including the "Only edit files under my lane…" sentence at the end. That sentence is your safety net.
 3. When the agent finishes, run the **Verify** commands, click through what's listed, and check off **Done when**.
 4. If the agent ever says it needs to edit a file outside your lane, or you see a file changed that isn't in your ✅ column, stop and post the matching `CROSS-LANE REQUEST` (§6) in the team channel for Shrey.
-5. **Commit roughly every 30 minutes** of agent work — small commits are your undo button. Tell the agent: *"Commit the current work with a short message describing what changed."*
+5. **Commit roughly every 30 minutes** of agent work — small commits are your undo button. Tell the agent: _"Commit the current work with a short message describing what changed."_
 6. **Copy tone is sacred.** Claire (our test persona) uninstalls at one shaming word. Every warning must sound like a supportive friend pointing at facts, never a scold. "You already have 4 similar blushes" ✅ / "Stop overspending!" ❌. If any string reads as judgmental, tell the agent to rewrite it softer.
 
 ---
@@ -61,11 +61,13 @@ You will not write code. You paste prompts into your AI coding agent (Claude Cod
 You read/write these only through Shrey's `lib/api` hooks — never SQL, never supabase-js.
 
 **Hooks**
+
 - `useWishlist()` → `{ data: WishlistItem[], add(w), update(id, patch), remove(id), restore(id), markPurchased(id), createFromWishlist(id) }`.
 - `useSimilarOwned(category, excludeProductId?)` → `{ count, items: Product[] }` (wraps `find_similar_owned` — powers the intercept + confidence-tiered language).
 - `useCatalogSearch(q, category?)` → `{ data: CatalogProduct[] }` (wraps `search_catalog`, for pre-fill).
 
 **Columns you touch**
+
 - `wishlist_items`: `id, catalog_product_id?, brand, name, shade?, category, price?, product_url?, photo_url?, priority (high|medium|low), rank_position?, reflection_response?, cooling_off_ends_at (created +14d), reminder_at?, status (cooling|ready|removed|purchased), last_reviewed_at?, created_at`.
 - Conversion: `createFromWishlist(id)` sets `wishlist_items.status='purchased'` and creates a `products` row with `source_wishlist_item_id` — you call the hook, never edit inventory files.
 - `catalog_products`: `id, brand, name, category, shade_or_variant?, image_url?`.
@@ -73,9 +75,11 @@ You read/write these only through Shrey's `lib/api` hooks — never SQL, never s
 ## 5. Phases
 
 Session start (every phase, every session):
+
 ```
 git checkout main && git pull && git checkout -b feat/joon/<slug>
 ```
+
 One module per branch, one PR per branch, PR ≤ ~400 changed lines. Never `git push --force`, never merge, never commit to `main`.
 
 ---
@@ -85,6 +89,7 @@ One module per branch, one PR per branch, PR ≤ ~400 changed lines. Never `git 
 **Goal:** A working Wishlist tab that lists items and lets the user add one three ways (catalog search, pasted retailer URL for metadata only, or manual entry), set High/Medium/Low priority + optional reflection, and browse/edit/remove/restore — all against mock data. No intercept yet.
 
 **Paste this to your agent:**
+
 ```
 You are working in the PanPals repo. Read AI-CONTEXT.md and docs/DATA-MODEL.md
 first. I own only app/(tabs)/wishlist.tsx and features/wishlist/*.
@@ -133,6 +138,7 @@ anything else is needed output a CROSS-LANE REQUEST and stop.
 ```
 
 **Files created:**
+
 - `app/(tabs)/wishlist.tsx`
 - `features/wishlist/strings.ts`
 - `features/wishlist/components/WishlistItemCard.tsx`
@@ -141,11 +147,13 @@ anything else is needed output a CROSS-LANE REQUEST and stop.
 - `features/wishlist/__tests__/wishlist-capture.test.tsx`
 
 **Verify:**
+
 - Run `npm run verify` — must pass (tsc, eslint, prettier, jest), zero errors.
 - Launch the app, open the **Wishlist** tab. Click: add an item via catalog search (fields pre-fill), edit a field before saving, add one via pasted link, add one manually. Set priority to High. Add a reflection answer. Remove an item, then restore it. Apply a category filter.
 - Confirm no red/alarm colors and no shaming copy anywhere.
 
 **Done when:**
+
 - [ ] Wishlist tab lists mock items with priority chip + days-on-list.
 - [ ] Add flow works via catalog search, pasted URL (metadata only), and manual entry, completable in <1 min.
 - [ ] Catalog match pre-fills fields; fields still editable before save.
@@ -157,9 +165,10 @@ anything else is needed output a CROSS-LANE REQUEST and stop.
 
 ### Phase 1b — Impulse intercept + confidence-tiered language (rows 6, 7, 22)
 
-**Goal:** When the user adds/opens an item, call the similar-owned hook and show the "Hold on" intercept banner that matches `wishlist-intercept.png`: the count and strongest matches of *their own* owned items, WHY each is similar, three actions, and a recorded decision. Buy Now is visually deprioritized but never disabled.
+**Goal:** When the user adds/opens an item, call the similar-owned hook and show the "Hold on" intercept banner that matches `wishlist-intercept.png`: the count and strongest matches of _their own_ owned items, WHY each is similar, three actions, and a recorded decision. Buy Now is visually deprioritized but never disabled.
 
 **Paste this to your agent:**
+
 ```
 You are working in the PanPals repo. Read AI-CONTEXT.md, docs/PRD.md (F5), and
 docs/PERSONAS.md (Claire). I own only app/(tabs)/wishlist.tsx and
@@ -206,11 +215,13 @@ anything else is needed output a CROSS-LANE REQUEST and stop.
 ```
 
 **Files created:**
+
 - `features/wishlist/components/InterceptBanner.tsx`
 - `features/wishlist/hooks/useIntercept.ts`
 - `features/wishlist/__tests__/intercept.test.tsx`
 
 **Verify:**
+
 - Run `npm run verify` — must pass.
 - With mock inventory holding 4 same-category items, add a 5th of that category → banner appears, listing the owned items with a WHY for each, and all three actions. Confirm the retailer/Buy Now button is present but secondary and **tappable** (never disabled).
 - Add an item in a category you own 0–2 of → **no** banner.
@@ -218,6 +229,7 @@ anything else is needed output a CROSS-LANE REQUEST and stop.
 - Read every banner string aloud: does it sound like a supportive friend? No word implies wrongdoing. A category-only match is never called a "duplicate."
 
 **Done when:**
+
 - [ ] Banner shows count + strongest owned matches + WHY, matching the mockup, in blush/amber (no red).
 - [ ] Threshold correct: appears at ≥3 same-category owned items, absent below.
 - [ ] Language scales with confidence; category-only never labeled "exact duplicate."
@@ -231,6 +243,7 @@ anything else is needed output a CROSS-LANE REQUEST and stop.
 **Goal:** Items enter a 14-day cooling-off, flip to "ready" on day 14, and show a reconsideration detail with actions. Detect likely-duplicate wishlist entries. Mark-purchased converts to an inventory product via a shared hook (no re-entry) preserving history. Opt-in in-app reminders (no push).
 
 **Paste this to your agent:**
+
 ```
 You are working in the PanPals repo. Read AI-CONTEXT.md and docs/DATA-MODEL.md
 (wishlist_items) and docs/PRD.md (F7). I own only app/(tabs)/wishlist.tsx and
@@ -274,12 +287,14 @@ anything else is needed output a CROSS-LANE REQUEST and stop.
 ```
 
 **Files created:**
+
 - `features/wishlist/components/ReconsiderDetail.tsx`
 - `features/wishlist/hooks/useCoolingOff.ts` (or a pure helper `coolingOff.ts`)
 - `features/wishlist/__tests__/cooling-off.test.ts`
 - `features/wishlist/__tests__/purchase-conversion.test.tsx`
 
 **Verify:**
+
 - Run `npm run verify` — must pass.
 - Add an item → status is "cooling," cooling-off ends 14 days out. Use a mock item dated 14+ days ago → shows as "ready." Open its detail → days-on-list, priority, similar-owned count, and the three actions all render.
 - Add a near-duplicate of an existing wishlist entry → "keep both?" prompt appears; keeping both works.
@@ -287,6 +302,7 @@ anything else is needed output a CROSS-LANE REQUEST and stop.
 - Toggle a reminder on → stored; no OS push permission dialog ever appears.
 
 **Done when:**
+
 - [ ] Cooling-off = +14 days; flips cooling→ready on day 14 (helper unit-tested).
 - [ ] Reconsider detail shows days-on-list, priority, similar-owned count + Buy externally / Keep waiting / Remove.
 - [ ] Duplicate wishlist entry prompt asks to keep both, never auto-blocks.
@@ -300,6 +316,7 @@ anything else is needed output a CROSS-LANE REQUEST and stop.
 **Goal:** Replace mock wrappers with the real `lib/api/*` hooks now that `types/database.ts` has landed. No UI rewrite — the hook names are the same.
 
 **Paste this to your agent:**
+
 ```
 You are working in the PanPals repo. types/database.ts and the real lib/api hooks
 have landed on main. I own only app/(tabs)/wishlist.tsx and features/wishlist/*.
@@ -324,11 +341,13 @@ anything else is needed output a CROSS-LANE REQUEST and stop.
 **Files created:** none new (edits only to your lane).
 
 **Verify:**
+
 - `npm run verify` — must pass.
 - Click the full wishlist flow against real data: add, intercept, cooling-off, reconsider, mark-purchased, reminder. Confirm data persists via the real hooks.
 - `git diff --name-only main` shows only files in your lane.
 
 **Done when:**
+
 - [ ] All mock wrappers removed; real `lib/api` hooks used everywhere.
 - [ ] No `supabase-js` import, no SQL, no hook-signature changes.
 - [ ] Full flow works on real data; `npm run verify` green; only your lane changed.
@@ -340,6 +359,7 @@ anything else is needed output a CROSS-LANE REQUEST and stop.
 **Goal:** Production-quality loading/empty/error states, full accessibility, analytics via the shared `track()`, and the passing Maestro flow.
 
 **Paste this to your agent:**
+
 ```
 You are working in the PanPals repo. Read AI-CONTEXT.md (§5 conventions, §7 DoD)
 and docs/TESTING.md. I own only app/(tabs)/wishlist.tsx, features/wishlist/*, and
@@ -371,16 +391,19 @@ REQUEST and stop.
 ```
 
 **Files created:**
+
 - `.maestro/wishlist-intercept.yaml`
 - `features/wishlist/__tests__/analytics.test.tsx`
 
 **Verify:**
+
 - `npm run verify` — must pass.
 - Run the Maestro flow locally: `maestro test .maestro/wishlist-intercept.yaml` → green. It should add a 4th same-category item, show the banner listing owned items, and tap the cooling-off CTA.
 - Turn on VoiceOver/TalkBack briefly: every button announces a meaningful label; warnings are readable without relying on color.
 - Confirm the five analytics events fire (check the mock/console) and no raw reflection text is logged.
 
 **Done when:**
+
 - [ ] Loading/empty/error states polished with supportive copy.
 - [ ] Full a11y: labels on all touchables; no color-only status; contrast OK.
 - [ ] `track()` fires the five events; no raw review/reflection text logged.
@@ -393,12 +416,14 @@ REQUEST and stop.
 **Goal:** Support Shrey's moderated sessions (5–8 MBA-cohort testers). The intercept tone is the riskiest assumption in the whole app — this phase is about listening, not building.
 
 **What you do:**
+
 - Sit in on / review sessions where a Claire-type tester hits the intercept.
 - Record: does the banner read as **supportive or judgmental**? Capture exact quotes.
 - **Success targets (from PRD/PERSONAS):** ≥1 of 5–8 testers says the banner would change a real purchase decision; **zero** testers use the word "judged."
 - If any tester feels judged, that is a copy bug — file a `fix/joon/<slug>` branch and soften the offending string in `strings.ts`. No structural rewrite needed.
 
 **Done when:**
+
 - [ ] Intercept observed with ≥2 Claire testers; quotes recorded as design-fair exhibits.
 - [ ] Zero "judged" reactions; ≥1 "would change my decision."
 - [ ] Any tone issues fixed in `strings.ts` via a small fix PR.
@@ -410,6 +435,7 @@ REQUEST and stop.
 Copy the relevant block, fill the brackets, and post it in the team channel for Shrey to route. Do NOT make the change yourself.
 
 **A. Similar-owned hook (needed for Phase 1b):**
+
 ```
 CROSS-LANE REQUEST — to Shrey (lib/api)
 Need: a useSimilarOwned() hook in lib/api that wraps the find_similar_owned RPC.
@@ -420,6 +446,7 @@ rows 6/7/22). I'm mocking this shape locally until it lands.
 ```
 
 **B. Wishlist → inventory conversion hook (needed for Phase 1c):**
+
 ```
 CROSS-LANE REQUEST — to Shrey (lib/api)
 Need: a shared hook to convert a purchased wishlist item into an inventory product
@@ -430,6 +457,7 @@ Blocking: row 18. I'm mocking it locally until it lands.
 ```
 
 **C. New shared UI primitive:**
+
 ```
 CROSS-LANE REQUEST — to Shrey (components/ui)
 Need: a shared [Banner/Chip/Segment] primitive in components/ui for the intercept
@@ -439,6 +467,7 @@ primitives].
 ```
 
 **D. Missing/changed type or token:**
+
 ```
 CROSS-LANE REQUEST — to Shrey (mocks/types.ts / types/database.ts / theme)
 Need: [field/enum/token] on [entity] — e.g. wishlist_items.confidence tier, or a
@@ -449,7 +478,7 @@ blush-banner background token. Blocking: [what]. I'll mock locally meanwhile.
 
 ## 7. Common pitfalls
 
-- **Shaming copy = instant churn.** Claire uninstalls at one shaming word. Never "duplicate!", "stop", "wasting", "again?!". Prefer neutral facts about *her own* items. Read every string aloud.
+- **Shaming copy = instant churn.** Claire uninstalls at one shaming word. Never "duplicate!", "stop", "wasting", "again?!". Prefer neutral facts about _her own_ items. Read every string aloud.
 - **Calling a category-only match a "duplicate."** Row 22 is explicit: scale language by confidence. Category-only = "in the same category," never "exact duplicate."
 - **Disabling Buy Now.** It must always stay tappable, just visually deprioritized. Hard blocks are an anti-persona (D2) — we chose soft alerts on purpose.
 - **Red/alarm styling.** Intercept banners use blush/soft-amber, never error red. Red is only for real failures.

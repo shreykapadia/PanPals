@@ -26,7 +26,7 @@ It lives online. Everyone's work eventually ends up there so we all have the
 same version.
 
 **Everyone owns a different "lane."** You're each responsible for one part of the
-app, and you only ever change *your* files. Because no two people touch the same
+app, and you only ever change _your_ files. Because no two people touch the same
 file, our work never collides. Your plan tells you exactly which files are yours.
 
 **The AI does the coding; you steer.** You open the project in an AI coding tool,
@@ -47,15 +47,18 @@ Do these in order. If any step asks a question you don't understand, just accept
 the defaults (keep clicking "Next" / "Continue" / "Install").
 
 ### a) A GitHub account
+
 - Go to **github.com** and sign up (free). Pick a username you don't mind
   teammates seeing.
 - Send your username to Shrey so he can add you to the project.
 - When Shrey adds you, you'll get an email invite — click **Accept**.
 
 ### b) The AI coding tool
+
 This is where you'll actually work. **Ask Shrey which one the team is using** —
 it will be one of these, and this guide works the same in all of them because
 they all read our shared rulebook automatically:
+
 - **Antigravity** (by Google) — a full app with a built-in chat panel. Good, free starting point.
 - **Claude Code** — runs inside a code editor or a terminal window.
 - **Codex** — similar, chat-driven.
@@ -64,6 +67,7 @@ Install the one Shrey names, then sign in with the account he tells you (we may
 be sharing a paid plan — check the team chat).
 
 ### c) Node.js — "the engine that runs the app"
+
 - Go to **nodejs.org**.
 - Click the big button that says **"LTS"** (LTS = the stable version). Do **not**
   pick the "Current" one.
@@ -71,6 +75,7 @@ be sharing a paid plan — check the team chat).
 - You don't need to understand what it does — the app simply won't run without it.
 
 ### d) GitHub Desktop — "the friendly way to sync your work" (recommended)
+
 - Go to **desktop.github.com**, download, install, and sign in with your GitHub account.
 - This gives you buttons for saving and sharing your work instead of typing
   commands. (Git, the tool underneath, comes bundled with it — nothing extra to install.)
@@ -78,6 +83,7 @@ be sharing a paid plan — check the team chat).
   see Section 8.
 
 ### e) The "Expo Go" app on your phone — "the window to see the app"
+
 - On your phone, install **Expo Go** from the App Store (iPhone) or Play Store (Android).
 - This is how you'll preview PanPals live while you build it. (You can also
   preview it in a web browser — Section 6 — so this is optional but nice to have.)
@@ -93,14 +99,16 @@ Native or Supabase — the AI does that for you in Section 6.
 called **cloning** (just a fancy word for "download a synced copy").
 
 **Easiest way — GitHub Desktop:**
+
 1. Open GitHub Desktop.
 2. **File → Clone repository.**
 3. Pick **PanPals** from the list (it appears once Shrey has added you).
 4. Choose where to save it (Desktop or Documents is fine) and click **Clone**.
 
 **Or, let your AI tool do it:** open your AI tool and tell it, in plain English:
+
 > "Clone our GitHub project called PanPals to my computer and open it."
-It will ask permission to connect to GitHub the first time — say yes.
+> It will ask permission to connect to GitHub the first time — say yes.
 
 You now have a folder called `panpals-starter-kit` on your laptop. Open that
 folder in your AI coding tool (usually **File → Open Folder**).
@@ -114,11 +122,13 @@ When you open the folder you'll see a lot of files ending in `.md`. Don't panic 
 document." Here's what they are and who they're for:
 
 **The one file you live in:**
-- **`docs/plans/YOUR-NAME-PLAN.md`** (e.g. `JOON-PLAN.md`). This is *your* step-by-step
+
+- **`docs/plans/YOUR-NAME-PLAN.md`** (e.g. `JOON-PLAN.md`). This is _your_ step-by-step
   plan. It's the only file you'll actively follow. It contains ready-made
   instructions you copy and paste to the AI, in order.
 
 **Files the AI reads automatically (you don't do anything with them):**
+
 - **`AI-CONTEXT.md`** — the team rulebook: what we're building, the design rules,
   and the all-important list of who owns which files. Your AI tool reads this on
   its own before it writes anything. You don't need to open it, but it's why the
@@ -127,6 +137,7 @@ document." Here's what they are and who they're for:
   rulebook. Ignore them.
 
 **Reference material (open only if you're curious or your plan points you there):**
+
 - `docs/PRD.md` — the full feature list.
 - `docs/DESIGN-TOKENS.md` — the exact colors, fonts, and shapes for the app's look.
 - `docs/DATA-MODEL.md` — the list of information the app stores (Shrey's area).
@@ -152,17 +163,19 @@ it out too, but here it is in plain terms.
 
 **Step 1 — Get the latest version.** Before starting anything, grab everyone's
 latest changes so you're not building on an old copy.
+
 - In GitHub Desktop: make sure the top says the **main** branch, then click
   **Fetch / Pull origin**.
-- Or tell the AI: *"Switch to the main branch and pull the latest changes."*
+- Or tell the AI: _"Switch to the main branch and pull the latest changes."_
 
 **Step 2 — Make your own copy to work in (a "branch").** You never build directly
 on the shared version. You make your own copy, called a **branch**, so your
 half-finished work can't disturb anyone. Your plan gives you the exact name to
 use (something like `feat/joon/wishlist-add-item`).
+
 - Easiest: paste the first step from your plan — it usually tells the AI to
   create the branch for you.
-- Or tell the AI: *"Create a new branch called `feat/joon/wishlist-add-item` and switch to it."*
+- Or tell the AI: _"Create a new branch called `feat/joon/wishlist-add-item` and switch to it."_
 
 **Step 3 — Paste the first step from your plan.** Your plan is a series of ready
 prompts. Copy the first one, paste it into the AI's chat, and send it. The AI
@@ -182,6 +195,7 @@ you also need to install the app's building blocks (this happens once per
 project, and the AI does it for you).
 
 **First time only — install the building blocks.** In the AI chat, type:
+
 > "Install the project's packages (run `npm install`), then start the app."
 
 ("Packages" are the pre-made pieces the app is built from — things like the
@@ -190,6 +204,7 @@ automatically. You don't choose them; they're already listed in the project.)
 
 **Start the app.** The AI will run `npx expo start`. You'll see a block of text
 and a **QR code** appear. To view the app:
+
 - **On your phone:** open **Expo Go** (Android) or your **Camera** (iPhone) and
   scan the QR code. PanPals opens on your phone.
 - **In a web browser:** press the **`w`** key in the window where it's running,
@@ -200,7 +215,7 @@ You're looking for two things: does it do what your plan's step said, and does i
 look right?
 
 If nothing shows up or you see a red error screen, don't worry — copy the error
-text, paste it to the AI, and say *"I got this error, please fix it."* That's a
+text, paste it to the AI, and say _"I got this error, please fix it."_ That's a
 normal part of the process.
 
 ---
@@ -208,12 +223,13 @@ normal part of the process.
 ## 7. Giving feedback and fixing things
 
 This back-and-forth is the actual job, and it's all plain English:
+
 - **Something looks off?** Take a screenshot, drag it into the AI chat, and say
-  what's wrong: *"The 'Add to Wishlist' button is too small and the wrong color —
-  make it the big pink pill button like the rest of the app."*
-- **Something doesn't work?** Describe it: *"When I tap Save, nothing happens."*
-- **Want it to match the design?** Say: *"Compare this to `docs/mockups/wishlist-intercept.png`
-  and make it match."*
+  what's wrong: _"The 'Add to Wishlist' button is too small and the wrong color —
+  make it the big pink pill button like the rest of the app."_
+- **Something doesn't work?** Describe it: _"When I tap Save, nothing happens."_
+- **Want it to match the design?** Say: _"Compare this to `docs/mockups/wishlist-intercept.png`
+  and make it match."_
 
 The AI changes the code; you refresh the app (it usually updates on its own) and
 look again. Repeat until you're happy. There's no limit to how many times you can
@@ -228,30 +244,34 @@ Shrey to fold into the shared version. Three plain-English actions:
 
 **Save your progress often ("commit").** A commit is a saved checkpoint — your
 undo button. Do it every 20–30 minutes.
+
 - GitHub Desktop: type a short note in the box (e.g. "add wishlist item form")
   and click **Commit to `feat/...`**.
-- Or ask the AI: *"Commit my changes with the message 'add wishlist item form'."*
+- Or ask the AI: _"Commit my changes with the message 'add wishlist item form'."_
 
 **Send it up to GitHub ("push").** This uploads your branch so it's backed up and
 Shrey can see it.
+
 - GitHub Desktop: click **Push origin**.
-- Or ask the AI: *"Push my branch."*
+- Or ask the AI: _"Push my branch."_
 - **Always push before you stop for the day**, even if you're not finished —
   work sitting only on your laptop can be lost.
 
 **Ask Shrey to merge it in ("Pull Request," or PR).** When a feature is complete,
 you open a Pull Request — a polite request that says "my work is ready, please add
 it to the shared version." Shrey reviews it and merges it.
+
 - GitHub Desktop shows a **"Create Pull Request"** button after you push — click it,
   fill in the short template (what you built + confirm you checked it), and submit.
 - Then message Shrey in the team chat so he knows to review it.
 
 **One quality check before every PR.** Your plan asks you to run one command first:
+
 > "Run `npm run verify` and fix anything it complains about."
-This automatically checks your code for basic mistakes. If it comes back clean,
-you're good to open the PR. If not, paste what it says to the AI and let it fix it.
-We don't have an automatic checker, so this step is how we keep the app working
-for everyone.
+> This automatically checks your code for basic mistakes. If it comes back clean,
+> you're good to open the PR. If not, paste what it says to the AI and let it fix it.
+> We don't have an automatic checker, so this step is how we keep the app working
+> for everyone.
 
 ---
 
@@ -275,11 +295,11 @@ Follow these and it's very hard to cause a real problem.
 - **A red error screen or a scary message in the chat.** Copy the whole message,
   paste it to the AI, and say "please fix this and explain simply." 90% of the
   time it just fixes it.
-- **The app won't start.** Ask the AI: *"The app won't start — check what's wrong
-  and fix it."* Common cause the first time: packages didn't install — tell it to
+- **The app won't start.** Ask the AI: _"The app won't start — check what's wrong
+  and fix it."_ Common cause the first time: packages didn't install — tell it to
   run `npm install` again.
 - **The AI wants to change a file that isn't yours.** Don't let it. Tell it:
-  *"That file isn't in my lane. Instead, write me a CROSS-LANE REQUEST."* Then post
+  _"That file isn't in my lane. Instead, write me a CROSS-LANE REQUEST."_ Then post
   that in the team chat for Shrey.
 - **You're just lost.** Message the team chat. Shrey (or whoever's around) can hop
   on a call — the first setup is the only genuinely confusing part, and it's much
