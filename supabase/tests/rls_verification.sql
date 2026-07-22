@@ -10,11 +10,18 @@ begin;
 
 -- ============================================================================
 -- Helper: pg_temp means this vanishes with the session/rollback — nothing to
--- clean up manually.
+-- clean up manually. Results go both to RAISE NOTICE (readable when run via
+-- `psql -f`, e.g. scripts/rls-check.sh against local) AND a temp table (so
+-- the final SELECT below returns a proper result set when run via
+-- `supabase db query --linked -f`, which does not stream NOTICE output).
 -- ============================================================================
+
+create table pg_temp.results (seq int generated always as identity, description text, passed boolean);
+grant insert, select on pg_temp.results to authenticated;
 
 create function pg_temp._assert(description text, condition boolean) returns void as $$
 begin
+  insert into pg_temp.results (description, passed) values (description, condition);
   if condition then
     raise notice 'PASS: %', description;
   else
@@ -177,5 +184,15 @@ select pg_temp._assert(
   'B CAN read catalog_products (globally readable)',
   (select count(*) from public.catalog_products) > 0
 );
+
+-- Final result set — this is what `supabase db query --linked -f` returns,
+-- since it doesn't stream RAISE NOTICE output. scripts/rls-check.sh (local)
+-- greps the RAISE NOTICE lines instead; both paths assert the same 15 checks.
+set local role postgres;
+select
+  case when passed then 'PASS' else 'FAIL' end as result,
+  description
+from pg_temp.results
+order by seq;
 
 rollback;
