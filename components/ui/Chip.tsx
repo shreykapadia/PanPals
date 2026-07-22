@@ -22,7 +22,7 @@ export const Chip: React.FC<ChipProps> = ({
       accessibilityRole="checkbox"
       accessibilityState={{ checked: selected }}
       accessibilityLabel={accessibilityLabel || label}
-      className={`rounded-full px-4 py-2 border flex-row items-center justify-center ${
+      className={`rounded-full px-4 py-2 min-h-[44px] border flex-row items-center justify-center ${
         selected
           ? 'bg-primary-container border-primary-container'
           : 'bg-card-surface border-border-warm'

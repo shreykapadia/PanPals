@@ -81,4 +81,29 @@ describe('YouTab', () => {
     await waitFor(() => expect(mockDeleteAccount).toHaveBeenCalled());
     await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/(auth)/welcome'));
   });
+
+  it('shows an inline error and stays signed in when sign-out fails', async () => {
+    mockSignOut.mockRejectedValueOnce(new Error('network error'));
+    const { getByLabelText, findByText } = renderWithClient();
+    await waitFor(() => expect(getByLabelText('Sign out')).toBeTruthy());
+
+    fireEvent.press(getByLabelText('Sign out'));
+
+    await findByText("We couldn't sign you out. Please try again.");
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it('shows an inline error and keeps the modal open when delete-account fails', async () => {
+    mockDeleteAccount.mockRejectedValueOnce(new Error('network error'));
+    const { getByLabelText, findByText } = renderWithClient();
+    await waitFor(() => expect(getByLabelText('Delete account')).toBeTruthy());
+
+    fireEvent.press(getByLabelText('Delete account'));
+    const confirmButton = await waitFor(() => getByLabelText('Delete my account'));
+    fireEvent.changeText(getByLabelText('Type DELETE to confirm'), 'DELETE');
+    fireEvent.press(confirmButton);
+
+    await findByText("We couldn't delete your account. Please try again.");
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
 });

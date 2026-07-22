@@ -54,5 +54,6 @@ export const authStrings = {
     continueLabel: 'Continue',
     errorGoals: 'Choose at least one goal to continue.',
     errorName: 'Let us know what to call you.',
+    errorSubmit: "We couldn't save your goals. Please try again.",
   },
 };

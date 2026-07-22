@@ -43,6 +43,9 @@ data/
 coverage/
 .maestro/.cache/
 
+# === Local working notes (not for the team) ===
+SESSION-HANDOFF.md
+
 # === Editor / OS junk ===
 .DS_Store
 *.log

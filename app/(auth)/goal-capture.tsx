@@ -20,6 +20,7 @@ export default function GoalCaptureScreen() {
   const [ageRange, setAgeRange] = useState<string | undefined>();
   const [location, setLocation] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | undefined>();
 
   const toggleGoal = (goal: string) => {
     setSelectedGoals((prev) =>
@@ -32,6 +33,7 @@ export default function GoalCaptureScreen() {
   const handleContinue = async () => {
     if (!canContinue) return;
     setIsSubmitting(true);
+    setFormError(undefined);
     try {
       await updateProfile({
         username: firstName.trim(),
@@ -41,6 +43,8 @@ export default function GoalCaptureScreen() {
       });
       track('account_completed');
       router.replace('/(tabs)');
+    } catch {
+      setFormError(s.errorSubmit);
     } finally {
       setIsSubmitting(false);
     }
@@ -59,6 +63,7 @@ export default function GoalCaptureScreen() {
             placeholder={s.firstNamePlaceholder}
             accessibilityLabel={s.firstNameLabel}
           />
+          <Text className="text-xs font-satoshi text-muted-text mt-2 px-2">{s.errorName}</Text>
         </Card>
 
         <Card className="mb-4">
@@ -76,9 +81,7 @@ export default function GoalCaptureScreen() {
               />
             ))}
           </View>
-          <Text className="text-xs font-satoshi text-muted-text mt-3 px-2">
-            Choose at least one to continue.
-          </Text>
+          <Text className="text-xs font-satoshi text-muted-text mt-3 px-2">{s.errorGoals}</Text>
         </Card>
 
         <Card className="mb-6">
@@ -120,6 +123,12 @@ export default function GoalCaptureScreen() {
             </Text>
           </Pressable>
         </Card>
+
+        {formError && (
+          <Text accessibilityRole="alert" className="text-xs text-error font-satoshi mb-2 px-2">
+            {formError}
+          </Text>
+        )}
 
         <Button
           label={s.continueLabel}
