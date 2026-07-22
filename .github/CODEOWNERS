@@ -1,0 +1,44 @@
+# CODEOWNERS — PanPals
+# Replace the placeholder handles with real GitHub usernames before first PR.
+# NOTE: "required review" branch protection is free on PUBLIC repos only.
+# Recommendation: make the repo public (it doubles as your design-fair exhibit).
+
+# Default: everything requires Shrey's review
+*                               @shrey-github-handle
+
+# Backend / data platform — Shrey ONLY (D20: Shrey owns all migrations + types)
+/supabase/                      @shrey-github-handle
+/types/database.ts              @shrey-github-handle
+
+# Home & Progress rings — Aaron
+/app/(tabs)/index.tsx           @aaron-github-handle @shrey-github-handle
+/features/home/                 @aaron-github-handle @shrey-github-handle
+/components/ProgressRing.tsx    @aaron-github-handle @shrey-github-handle
+
+# Wishlist & Impulse Intercept — Joon
+/app/(tabs)/wishlist.tsx        @joon-github-handle @shrey-github-handle
+/features/wishlist/             @joon-github-handle @shrey-github-handle
+
+# Inventory & Logging — Matt
+/app/(tabs)/inventory.tsx       @matt-github-handle @shrey-github-handle
+/features/inventory/            @matt-github-handle @shrey-github-handle
+
+# Finish, Empties & Progress tab — Talbia
+/app/(tabs)/progress.tsx        @talbia-github-handle @shrey-github-handle
+/features/empties/              @talbia-github-handle @shrey-github-handle
+
+# Shared platform — Shrey only
+/app/_layout.tsx                @shrey-github-handle
+/app/(tabs)/_layout.tsx         @shrey-github-handle
+/app/(tabs)/you.tsx             @shrey-github-handle
+/app/(auth)/                    @shrey-github-handle
+/components/ui/                 @shrey-github-handle
+/lib/                           @shrey-github-handle
+/theme/                         @shrey-github-handle
+/mocks/                         @shrey-github-handle
+/docs/                          @shrey-github-handle
+/scripts/                       @shrey-github-handle
+/.github/                       @shrey-github-handle
+/AI-CONTEXT.md                  @shrey-github-handle
+/CLAUDE.md                      @shrey-github-handle
+/AGENTS.md                      @shrey-github-handle
