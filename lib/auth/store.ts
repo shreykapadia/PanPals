@@ -15,6 +15,7 @@ interface AuthState {
   signUp: (email: string, password: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 /**
@@ -37,6 +38,13 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ session: { user }, user, isLoading: false });
   },
   signOut: async () => {
+    await SecureStore.deleteItemAsync(SIGNED_IN_KEY);
+    set({ session: null, user: null, isLoading: false });
+  },
+  deleteAccount: async () => {
+    // MOCK-FIRST: real account + data deletion is Phase 2. For now this
+    // behaves like sign-out so the UI flow (confirm -> deleted -> welcome)
+    // is fully exercisable against the mock store.
     await SecureStore.deleteItemAsync(SIGNED_IN_KEY);
     set({ session: null, user: null, isLoading: false });
   },

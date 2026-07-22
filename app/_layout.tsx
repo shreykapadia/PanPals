@@ -34,7 +34,7 @@ export default function RootLayout() {
     const signedIn = !!session;
 
     if (!signedIn && !inAuthGroup) {
-      router.replace('/(auth)/login');
+      router.replace('/(auth)/welcome');
     } else if (signedIn && inAuthGroup) {
       router.replace('/(tabs)');
     }

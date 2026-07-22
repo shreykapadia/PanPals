@@ -20,6 +20,9 @@ export const queryKeys = {
   dashboard: {
     all: ['dashboard'] as const,
   },
+  profile: {
+    all: ['profile'] as const,
+  },
   empties: {
     all: ['empties'] as const,
     lists: () => [...queryKeys.empties.all, 'list'] as const,

@@ -1,0 +1,17 @@
+# Update appId if you're running against a custom dev client instead of
+# Expo Go (host.exp.Exponent is Expo Go's bundle id).
+appId: host.exp.Exponent
+---
+- launchApp
+- assertVisible: 'PanPals'
+- tapOn: 'Create account'
+- tapOn: 'Email address'
+- inputText: 'newuser@panpals.app'
+- tapOn: 'Password'
+- inputText: 'password123'
+- tapOn: 'Create account'
+- tapOn: 'First name'
+- inputText: 'Maya'
+- tapOn: 'Finish what I own'
+- tapOn: 'Continue'
+- assertVisible: 'Home Dashboard'

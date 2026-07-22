@@ -1,0 +1,25 @@
+# SHELL (Phase 0-E): no feature screen embeds components/ui/ProductSearch.tsx
+# yet — that lands with Joon's wishlist "add item" screen or Matt's log modal
+# (AI-CONTEXT §3). This flow fails at the "reach a screen with ProductSearch"
+# step below until one of those exists; that failure is expected, not a bug.
+# The accessibility labels referenced already exist on ProductSearch
+# (Phase 0-D) so wiring this up is just adding the navigation step.
+appId: host.exp.Exponent
+---
+- launchApp
+- assertVisible: 'PanPals'
+- tapOn: 'Sign in'
+- tapOn: 'Email address'
+- inputText: 'maya@panpals.app'
+- tapOn: 'Password'
+- inputText: 'password123'
+- tapOn: 'Sign in'
+- assertVisible: 'Home Dashboard'
+# TODO once Joon/Matt's screen exists, navigate to it here, e.g.:
+# - tapOn: "Wishlist"
+# - tapOn: "Add to wishlist"
+- assertVisible: 'Search the product catalog'
+- tapOn: 'Search the product catalog'
+- inputText: 'rare'
+- assertVisible: 'Rare Beauty'
+- tapOn: 'Rare Beauty'
