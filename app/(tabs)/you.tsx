@@ -80,6 +80,22 @@ export default function YouTab() {
     return (
       <SafeAreaView className="flex-1 bg-surface">
         <ErrorState message={s.errorProfile} onRetry={() => refetch()} />
+        <View className="px-6 pb-6 gap-2">
+          {signOutError && (
+            <Text
+              accessibilityRole="alert"
+              className="text-xs text-error font-satoshi text-center px-2"
+            >
+              {signOutError}
+            </Text>
+          )}
+          <Button
+            label={s.signOut}
+            onPress={handleSignOut}
+            variant="secondary"
+            accessibilityLabel={s.signOut}
+          />
+        </View>
       </SafeAreaView>
     );
   }

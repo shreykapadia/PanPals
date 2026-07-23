@@ -31,11 +31,12 @@ export default function RootLayout() {
     if (!fontsLoaded || authLoading) return;
 
     const inAuthGroup = segments[0] === '(auth)';
+    const onGoalCapture = (segments as string[])[1] === 'goal-capture';
     const signedIn = !!session;
 
     if (!signedIn && !inAuthGroup) {
       router.replace('/(auth)/welcome');
-    } else if (signedIn && inAuthGroup) {
+    } else if (signedIn && inAuthGroup && !onGoalCapture) {
       router.replace('/(tabs)');
     }
   }, [session, segments, fontsLoaded, authLoading, router]);
