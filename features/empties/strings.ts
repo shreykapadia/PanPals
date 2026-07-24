@@ -1,4 +1,4 @@
-import { RepurchaseVerdict } from '../../mocks/types';
+import { Category, RepurchaseVerdict } from '../../mocks/types';
 
 export const emptiesStrings = {
   progressTitle: 'My Progress',
@@ -13,6 +13,24 @@ export const emptiesStrings = {
     `Product status: ${inRotation} in rotation, ${unopened} unopened, ${finished} finished`,
   archiveTitle: 'Your Empties',
   archiveAccessibilityLabel: 'Your private empties archive',
+  archiveFilterAll: 'All',
+  archiveFilterVerdictLabel: 'Repurchase',
+  archiveFilterCategoryLabel: 'Category',
+  archiveFilterAccessibilityLabel: (filter: string, option: string) =>
+    `Filter ${filter} by ${option}`,
+  archiveClearFilters: 'Clear filters',
+  archiveClearFiltersAccessibilityLabel: 'Clear archive filters',
+  archiveNoMatchesTitle: 'No empties match these filters',
+  archiveNoMatchesMessage: 'Try another verdict or category to see more of your finishes.',
+  archiveCategoryLabels: {
+    lip: 'Lips',
+    face: 'Face',
+    eye: 'Eyes',
+    skincare: 'Skincare',
+    fragrance: 'Fragrance',
+    hair: 'Hair',
+    other: 'Other',
+  } satisfies Record<Category, string>,
   fallbackProductName: 'Finished product',
   cardAccessibilityLabel: (brand: string, name: string, verdict: string) =>
     `${brand} ${name}. Repurchase: ${verdict}.`,

@@ -38,6 +38,26 @@ const archiveEntry: ArchiveEntry = {
   },
 };
 
+const secondArchiveEntry: ArchiveEntry = {
+  empty: {
+    id: 'empty-2',
+    user_id: 'user-1',
+    product_id: 'product-2',
+    review_text: null,
+    repurchase: 'no',
+    months_in_use: 2,
+    photo_url: null,
+    created_at: '2026-07-23T00:00:00.000Z',
+  },
+  product: {
+    ...archiveEntry.product!,
+    id: 'product-2',
+    brand: 'Summer Fridays',
+    name: 'Lip Butter Balm',
+    category: 'lip',
+  },
+};
+
 describe('private empties archive', () => {
   it('renders one card for every finished product without feed controls', () => {
     const { getByText, queryByText } = render(<EmptiesArchive entries={[archiveEntry]} />);
@@ -64,6 +84,23 @@ describe('private empties archive', () => {
 
     expect(getByText('Your empties will gather here')).toBeTruthy();
     expect(getByText(/private shelf/i)).toBeTruthy();
+  });
+
+  it('filters the archive by verdict and category, then clears the filters', () => {
+    const { getByLabelText, getByText, queryByText } = render(
+      <EmptiesArchive entries={[archiveEntry, secondArchiveEntry]} />,
+    );
+
+    fireEvent.press(getByLabelText('Filter Repurchase by No'));
+    expect(getByText('Lip Butter Balm')).toBeTruthy();
+    expect(queryByText('Soft Pinch Liquid Blush')).toBeNull();
+
+    fireEvent.press(getByLabelText('Filter Category by Face'));
+    expect(getByText('No empties match these filters')).toBeTruthy();
+
+    fireEvent.press(getByLabelText('Clear archive filters'));
+    expect(getByText('Lip Butter Balm')).toBeTruthy();
+    expect(getByText('Soft Pinch Liquid Blush')).toBeTruthy();
   });
 
   it('shows an accessible loading state while private progress is loading', () => {
