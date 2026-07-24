@@ -55,8 +55,8 @@ describe('private empties archive', () => {
       <EmptyCard empty={archiveEntry.empty} product={archiveEntry.product} />,
     );
 
-    expect(getByText('4 months in use')).toBeTruthy();
-    expect(getByText('Repurchase: Yes')).toBeTruthy();
+    expect(getByText('4 MONTHS IN USE')).toBeTruthy();
+    expect(getByText('REPURCHASE: YES')).toBeTruthy();
   });
 
   it('shows a warm empty state when there are no finished products', () => {

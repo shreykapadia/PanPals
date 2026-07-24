@@ -1,5 +1,6 @@
 import React from 'react';
 import { Image, Text, View } from 'react-native';
+import { Badge } from '../../components/ui/Badge';
 import { Card } from '../../components/ui/Card';
 import { Empty, Product } from '../../mocks/types';
 import { emptiesStrings } from './strings';
@@ -44,17 +45,9 @@ export function EmptyCard({ empty, product }: EmptyCardProps) {
             </Text>
             <View className="mt-3 flex-row flex-wrap gap-2">
               {empty.months_in_use !== null ? (
-                <View className="rounded-full bg-surface-container px-3 py-1">
-                  <Text className="text-xs font-satoshi-medium text-dark-neutral">
-                    {emptiesStrings.monthsInUse(empty.months_in_use)}
-                  </Text>
-                </View>
+                <Badge label={emptiesStrings.monthsInUse(empty.months_in_use)} />
               ) : null}
-              <View className="rounded-full bg-eco-sage px-3 py-1">
-                <Text className="text-xs font-satoshi-medium text-dark-neutral">
-                  {emptiesStrings.repurchaseLabel}: {verdict}
-                </Text>
-              </View>
+              <Badge label={`${emptiesStrings.repurchaseLabel}: ${verdict}`} variant="success" />
             </View>
           </View>
         </View>

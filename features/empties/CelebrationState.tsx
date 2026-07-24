@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, Image, Pressable, Text, View } from 'react-native';
 import { Icon } from '../../components/ui/Icon';
 import { Product } from '../../mocks/types';
+import { colors } from '../../theme/tokens';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ProgressRing } from './components/ProgressRing';
 import { emptiesStrings } from './strings';
@@ -315,12 +316,12 @@ export function CelebrationState({
       {onCancel ? (
         <Pressable
           onPress={onCancel}
-          hitSlop={16}
+          hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel={emptiesStrings.finishCancelAccessibilityLabel}
-          className="absolute left-6 top-12 z-50 h-12 w-12 items-center justify-center rounded-full bg-card-surface shadow-sm"
+          className="absolute right-4 top-12 z-50 min-h-[44px] min-w-[44px] items-center justify-center"
         >
-          <Icon name="close" size={20} />
+          <Icon name="close" size={22} color={colors['inactive-gray']} />
         </Pressable>
       ) : null}
     </SafeAreaView>
