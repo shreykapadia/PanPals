@@ -1,5 +1,6 @@
 import React from 'react';
 import { Text, View } from 'react-native';
+import { Badge } from '../../components/ui/Badge';
 import { DashboardData } from '../../mocks/types';
 import { ProgressRing } from './components/ProgressRing';
 import { emptiesStrings } from './strings';
@@ -12,6 +13,8 @@ export function ProgressSummary({ dashboard }: ProgressSummaryProps) {
   const { status_counts: statusCounts } = dashboard;
   const totalProducts = Object.values(statusCounts).reduce((total, count) => total + count, 0);
   const finishedCount = statusCounts.finished ?? 0;
+  const inRotationCount = statusCounts.in_rotation ?? 0;
+  const unopenedCount = statusCounts.unopened ?? 0;
   const percentFinished =
     totalProducts === 0 ? 0 : Math.round((finishedCount / totalProducts) * 100);
 
@@ -34,6 +37,18 @@ export function ProgressSummary({ dashboard }: ProgressSummaryProps) {
             {emptiesStrings.progressStreak(dashboard.streak.current_streak)}
           </Text>
         </View>
+      </View>
+      <View
+        accessibilityLabel={emptiesStrings.progressStatusAccessibilityLabel(
+          inRotationCount,
+          unopenedCount,
+          finishedCount,
+        )}
+        className="mt-5 flex-row flex-wrap gap-2"
+      >
+        <Badge label={emptiesStrings.progressInRotationCount(inRotationCount)} variant="success" />
+        <Badge label={emptiesStrings.progressUnopenedCount(unopenedCount)} />
+        <Badge label={emptiesStrings.progressFinishedCount(finishedCount)} />
       </View>
     </View>
   );

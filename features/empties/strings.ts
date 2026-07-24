@@ -7,6 +7,10 @@ export const emptiesStrings = {
   progressRingAccessibility: (percent: number) => `${percent}% of your products are finished`,
   progressFinishedCount: (count: number) => `${count} finished`,
   progressStreak: (count: number) => `${count}-day logging streak`,
+  progressInRotationCount: (count: number) => `${count} in rotation`,
+  progressUnopenedCount: (count: number) => `${count} unopened`,
+  progressStatusAccessibilityLabel: (inRotation: number, unopened: number, finished: number) =>
+    `Product status: ${inRotation} in rotation, ${unopened} unopened, ${finished} finished`,
   archiveTitle: 'Your Empties',
   archiveAccessibilityLabel: 'Your private empties archive',
   fallbackProductName: 'Finished product',
