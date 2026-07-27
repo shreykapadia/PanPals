@@ -1,0 +1,33 @@
+# Assumes the seeded test account (maya@panpals.app) has at least one active
+# product not yet in the Focus Pot, so "Add to your Focus Pot" has something
+# to pin. If Shrey's seed data changes, adjust the account/data here rather
+# than the Home screen itself.
+#
+# The final swipe is a best-effort screen-relative gesture on the slider
+# track (Maestro has no way to target our custom PanResponder thumb
+# precisely) — if it lands on a different 5% step than expected on a given
+# device, that's a coordinate-tuning issue with this flow, not a Home bug.
+appId: host.exp.Exponent
+---
+- launchApp
+- assertVisible: 'PanPal'
+- tapOn: 'Sign in'
+- tapOn: 'Email address'
+- inputText: 'maya@panpals.app'
+- tapOn: 'Password'
+- inputText: 'password123'
+- tapOn: 'Sign in'
+- assertVisible: "Today's Focus"
+
+# Pin a product to the Focus Pot -> its ring should appear in Today's Focus
+- tapOn: 'Pin .+ to your Focus Pot'
+- assertVisible: '.+% remaining$'
+
+# Tap its ring to open the usage slider and update the percent
+- tapOn: 'Log a use for .+'
+- assertVisible: 'Adjust percent remaining for .+'
+- swipe:
+    start: 30%, 55%
+    end: 75%, 55%
+- tapOn: 'Save update'
+- assertNotVisible: 'Save update'

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Camera, Plus, Search } from 'lucide-react-native';
 import { colors } from '../../theme/tokens';
 import { homeStrings } from './strings';
@@ -8,14 +9,16 @@ function QuickActionPill({
   icon,
   label,
   accessibilityLabel,
+  onPress,
 }: {
   icon: React.ReactNode;
   label: string;
   accessibilityLabel: string;
+  onPress: () => void;
 }) {
   return (
     <Pressable
-      onPress={() => {}}
+      onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       className="mr-3 min-h-[44px] flex-row items-center gap-2 rounded-full border border-border-warm bg-card-surface px-4 py-2"
@@ -27,22 +30,27 @@ function QuickActionPill({
 }
 
 export function QuickActions() {
+  const router = useRouter();
+
   return (
     <View className="mb-8 flex-row">
       <QuickActionPill
         icon={<Camera size={16} color={colors['inactive-gray']} strokeWidth={2} />}
         label={homeStrings.quickActionScan}
         accessibilityLabel={homeStrings.quickActionScanAccessibilityLabel}
+        onPress={() => {}}
       />
       <QuickActionPill
         icon={<Search size={16} color={colors['inactive-gray']} strokeWidth={2} />}
         label={homeStrings.quickActionSearch}
         accessibilityLabel={homeStrings.quickActionSearchAccessibilityLabel}
+        onPress={() => {}}
       />
       <QuickActionPill
         icon={<Plus size={16} color={colors['inactive-gray']} strokeWidth={2} />}
         label={homeStrings.quickActionLogItem}
         accessibilityLabel={homeStrings.quickActionLogItemAccessibilityLabel}
+        onPress={() => router.push('/(tabs)/inventory')}
       />
     </View>
   );

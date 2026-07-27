@@ -20,8 +20,10 @@ jest.mock('../../../lib/api', () => ({
   }),
 }));
 
+const mockRouterPush = jest.fn();
+
 jest.mock('expo-router', () => ({
-  useRouter: () => ({ push: jest.fn() }),
+  useRouter: () => ({ push: mockRouterPush }),
 }));
 
 function makeProduct(overrides: Partial<Product>): Product {
@@ -81,6 +83,7 @@ describe('HomeScreen', () => {
     mockTogglePriorityMutate.mockReset();
     mockLogUsageMutate.mockReset();
     mockLogUsageReset.mockReset();
+    mockRouterPush.mockReset();
   });
 
   it('never renders more than 5 focus rings even with 6 pinned products', () => {
@@ -270,5 +273,35 @@ describe('HomeScreen', () => {
         expect.anything(),
       ),
     );
+  });
+
+  it('navigates to Inventory when the empty Focus Pot state points to Log Item', () => {
+    mockUseDashboard.mockReturnValue({
+      data: makeDashboard({ focus_products: [] }),
+      isPending: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+
+    const { getByLabelText } = render(<HomeScreen />);
+
+    fireEvent.press(getByLabelText('Log Item'));
+
+    expect(mockRouterPush).toHaveBeenCalledWith('/(tabs)/inventory');
+  });
+
+  it('navigates to Inventory from the Log Item quick-action pill', () => {
+    mockUseDashboard.mockReturnValue({
+      data: makeDashboard({ focus_products: [] }),
+      isPending: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+
+    const { getByLabelText } = render(<HomeScreen />);
+
+    fireEvent.press(getByLabelText('Log a new item'));
+
+    expect(mockRouterPush).toHaveBeenCalledWith('/(tabs)/inventory');
   });
 });

@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { ErrorState } from '../../components/ui/ErrorState';
-import { LoadingState } from '../../components/ui/LoadingState';
 import { useLogUsage } from '../../lib/api';
 import { Product } from '../../mocks/types';
 import { AddToFocusRow } from './AddToFocusRow';
 import { FocusCard } from './FocusCard';
+import { HomeSkeleton } from './HomeSkeleton';
 import { StatusDonut } from './StatusDonut';
 import { QuickActions } from './QuickActions';
 import { RecentProgress } from './RecentProgress';
@@ -19,6 +20,7 @@ import { useFocusPot } from './useFocusPot';
 import { useHomeData } from './useHomeData';
 
 export function HomeScreen() {
+  const router = useRouter();
   const {
     focusProducts,
     isFocusFull,
@@ -57,10 +59,7 @@ export function HomeScreen() {
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-surface">
-        <LoadingState
-          message={homeStrings.loadingMessage}
-          accessibilityLabel={homeStrings.loadingAccessibilityLabel}
-        />
+        <HomeSkeleton />
       </SafeAreaView>
     );
   }
@@ -105,6 +104,8 @@ export function HomeScreen() {
               message={homeStrings.focusEmptyMessage}
               accessibilityLabel={homeStrings.focusEmptyAccessibilityLabel}
               icon="home"
+              actionLabel={homeStrings.focusEmptyActionLabel}
+              onAction={() => router.push('/(tabs)/inventory')}
             />
           </View>
         )}

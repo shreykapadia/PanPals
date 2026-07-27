@@ -1,7 +1,6 @@
 export const homeStrings = {
   wordmark: 'PanPal',
 
-  loadingMessage: 'Loading your dashboard...',
   loadingAccessibilityLabel: 'Loading your Home dashboard',
   errorTitle: 'Your dashboard needs another moment',
   errorMessage: 'Please try again. Your products are still yours.',
@@ -12,6 +11,7 @@ export const homeStrings = {
   focusEmptyMessage: 'Pin up to 5 products from your inventory to track them here.',
   focusEmptyAccessibilityLabel:
     'Your Focus Pot is empty. Pin up to 5 products from your inventory to track them here.',
+  focusEmptyActionLabel: 'Log Item',
   focusRingAccessibilityLabel: (brand: string, name: string, percent: number) =>
     `${brand} ${name}: ${percent}% remaining`,
   focusRingLabel: (percent: number) => `${percent}%`,
@@ -49,7 +49,7 @@ export const homeStrings = {
   quickActionSearch: 'Search',
   quickActionSearchAccessibilityLabel: 'Search your products (coming soon)',
   quickActionLogItem: 'Log Item',
-  quickActionLogItemAccessibilityLabel: 'Log a new item (coming soon)',
+  quickActionLogItemAccessibilityLabel: 'Log a new item',
 
   recentProgressTitle: 'Recent progress',
   recentProgressEmptyTitle: 'No updates yet',

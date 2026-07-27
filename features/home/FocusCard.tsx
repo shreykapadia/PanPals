@@ -21,7 +21,7 @@ export function FocusCard({ product, onPressRing, onUnpin }: FocusCardProps) {
         onPress={() => onUnpin(product.id)}
         accessibilityRole="button"
         accessibilityLabel={homeStrings.unpinAccessibilityLabel(product.brand, product.name)}
-        className="mb-1 ml-auto min-h-[32px] min-w-[32px] items-center justify-center self-end rounded-full"
+        className="mb-1 ml-auto min-h-[44px] min-w-[44px] items-center justify-center self-end rounded-full"
       >
         <X size={16} color={colors['inactive-gray']} strokeWidth={2} />
       </Pressable>
