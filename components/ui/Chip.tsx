@@ -29,7 +29,7 @@ export const Chip: React.FC<ChipProps> = ({
       } ${className}`}
     >
       <Text
-        className={`text-xs font-semibold font-satoshi ${
+        className={`text-sm font-satoshi-medium ${
           selected ? 'text-dark-neutral' : 'text-muted-text'
         }`}
       >

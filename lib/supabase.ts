@@ -1,4 +1,5 @@
 import 'react-native-url-polyfill/auto';
+import { Platform } from 'react-native';
 import { createClient } from '@supabase/supabase-js';
 import * as SecureStore from 'expo-secure-store';
 import { Database } from '../types/database';
@@ -17,10 +18,23 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
+// expo-secure-store has no web implementation — every call rejects there,
+// which left auth's isLoading stuck true forever on web (app/_layout.tsx
+// waits on it before rendering anything). Session storage falls back to
+// localStorage on web; native keeps SecureStore unchanged.
 const ExpoSecureStoreAdapter = {
-  getItem: (key: string) => SecureStore.getItemAsync(key),
-  setItem: (key: string, value: string) => SecureStore.setItemAsync(key, value),
-  removeItem: (key: string) => SecureStore.deleteItemAsync(key),
+  getItem: (key: string) =>
+    Platform.OS === 'web'
+      ? Promise.resolve(globalThis.localStorage?.getItem(key) ?? null)
+      : SecureStore.getItemAsync(key),
+  setItem: (key: string, value: string) =>
+    Platform.OS === 'web'
+      ? Promise.resolve(globalThis.localStorage?.setItem(key, value))
+      : SecureStore.setItemAsync(key, value),
+  removeItem: (key: string) =>
+    Platform.OS === 'web'
+      ? Promise.resolve(globalThis.localStorage?.removeItem(key))
+      : SecureStore.deleteItemAsync(key),
 };
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {

@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Text, KeyboardAvoidingView, Platform, ScrollView, Pressable } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button } from '../../components/ui/Button';
-import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
+import { Icon } from '../../components/ui/Icon';
+import { OnboardingScaffold } from '../../components/onboarding/OnboardingScaffold';
+import { Reveal } from '../../components/onboarding/Reveal';
 import { useAuth } from '../../lib/auth/useAuth';
+import { colors } from '../../theme/tokens';
 import { authStrings } from './strings';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -20,13 +22,24 @@ export default function SignUpScreen() {
   const [emailError, setEmailError] = useState<string | undefined>();
   const [passwordError, setPasswordError] = useState<string | undefined>();
   const [formError, setFormError] = useState<string | undefined>();
+  const [confirmationSent, setConfirmationSent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const validateEmail = () => {
+    const next = EMAIL_PATTERN.test(email.trim()) ? undefined : s.errorEmail;
+    setEmailError(next);
+    return next;
+  };
+
+  const validatePassword = () => {
+    const next = password.length >= 6 ? undefined : s.errorPassword;
+    setPasswordError(next);
+    return next;
+  };
+
   const handleSubmit = async () => {
-    const nextEmailError = EMAIL_PATTERN.test(email.trim()) ? undefined : s.errorEmail;
-    const nextPasswordError = password.length >= 6 ? undefined : s.errorPassword;
-    setEmailError(nextEmailError);
-    setPasswordError(nextPasswordError);
+    const nextEmailError = validateEmail();
+    const nextPasswordError = validatePassword();
     setFormError(undefined);
     if (nextEmailError || nextPasswordError) return;
 
@@ -34,7 +47,9 @@ export default function SignUpScreen() {
     try {
       const { needsEmailConfirmation } = await signUp(email.trim(), password);
       if (needsEmailConfirmation) {
-        setFormError(s.errorConfirmEmail);
+        // A confirmation link is a success, not a failure — it gets the sage
+        // panel below, never the error red (DESIGN-TOKENS §4).
+        setConfirmationSent(true);
         return;
       }
       router.replace('/(auth)/goal-capture');
@@ -46,67 +61,96 @@ export default function SignUpScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-surface">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
-      >
-        <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}>
-          <Card className="p-6">
-            <Text className="text-base font-bold font-satoshi text-dark-neutral mb-6 text-center">
-              {s.title}
+    <OnboardingScaffold
+      onBack={() => router.back()}
+      step={{ current: 1, total: 3, accessibilityLabel: s.stepLabel }}
+      footer={
+        <>
+          <Text className="text-sm font-satoshi text-muted-text text-center px-4">{s.legal}</Text>
+          <Pressable
+            onPress={() => router.push('/(auth)/sign-in')}
+            accessibilityRole="button"
+            accessibilityLabel={`${s.switchPrompt} ${s.switchAction}`}
+            className="items-center py-3"
+          >
+            <Text className="text-sm font-satoshi text-muted-text">
+              {s.switchPrompt}{' '}
+              <Text className="text-dark-neutral font-satoshi-medium">{s.switchAction}</Text>
             </Text>
+          </Pressable>
+        </>
+      }
+    >
+      <Reveal className="pt-4">
+        <Text className="text-2xl font-caslon-bold text-dark-neutral leading-8">{s.title}</Text>
+        <Text className="text-base font-satoshi text-muted-text mt-2 mb-8">{s.subtitle}</Text>
+      </Reveal>
 
-            <Input
-              label={s.emailLabel}
-              value={email}
-              onChangeText={setEmail}
-              placeholder={s.emailPlaceholder}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              error={emailError}
-              accessibilityLabel={s.emailLabel}
-            />
+      <Reveal delay={80}>
+        <Input
+          label={s.emailLabel}
+          value={email}
+          onChangeText={(next) => {
+            setEmail(next);
+            if (emailError) setEmailError(undefined);
+          }}
+          onBlur={() => email.length > 0 && validateEmail()}
+          placeholder={s.emailPlaceholder}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoComplete="email"
+          error={emailError}
+          accessibilityLabel={s.emailLabel}
+        />
 
-            <Input
-              label={s.passwordLabel}
-              value={password}
-              onChangeText={setPassword}
-              placeholder={s.passwordPlaceholder}
-              secureTextEntry
-              autoCapitalize="none"
-              error={passwordError}
-              accessibilityLabel={s.passwordLabel}
-            />
+        <Input
+          label={s.passwordLabel}
+          value={password}
+          onChangeText={(next) => {
+            setPassword(next);
+            if (passwordError) setPasswordError(undefined);
+          }}
+          onBlur={() => password.length > 0 && validatePassword()}
+          placeholder={s.passwordPlaceholder}
+          hint={s.passwordHint}
+          secureToggle
+          autoCapitalize="none"
+          autoComplete="new-password"
+          error={passwordError}
+          accessibilityLabel={s.passwordLabel}
+        />
 
-            {formError && (
-              <Text accessibilityRole="alert" className="text-xs text-error font-satoshi mb-2 px-2">
-                {formError}
+        {confirmationSent && (
+          <View
+            accessibilityRole="alert"
+            className="flex-row items-start rounded-xl bg-secondary-container p-4 mb-4"
+          >
+            <Icon name="check" size={18} color={colors['on-secondary-container']} strokeWidth={2} />
+            <View className="flex-1 ml-3">
+              <Text className="text-base font-satoshi-medium text-on-secondary-container">
+                {s.confirmEmailTitle}
               </Text>
-            )}
-
-            <Button
-              label={s.submit}
-              onPress={handleSubmit}
-              loading={isSubmitting}
-              className="mt-4"
-              accessibilityLabel={s.submit}
-            />
-
-            <Pressable
-              onPress={() => router.push('/(auth)/sign-in')}
-              accessibilityRole="button"
-              accessibilityLabel={`${s.switchPrompt} ${s.switchAction}`}
-              className="items-center py-4"
-            >
-              <Text className="text-xs font-satoshi text-muted-text">
-                {s.switchPrompt}{' '}
-                <Text className="text-dark-neutral font-semibold">{s.switchAction}</Text>
+              <Text className="text-sm font-satoshi text-on-secondary-container mt-1">
+                {s.confirmEmail}
               </Text>
-            </Pressable>
-          </Card>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+            </View>
+          </View>
+        )}
+
+        {formError && (
+          <Text accessibilityRole="alert" className="text-sm text-error font-satoshi mb-3 px-2">
+            {formError}
+          </Text>
+        )}
+
+        <Button
+          label={s.submit}
+          onPress={handleSubmit}
+          loading={isSubmitting}
+          className="mt-2"
+          accessibilityLabel={s.submit}
+        />
+      </Reveal>
+    </OnboardingScaffold>
   );
 }

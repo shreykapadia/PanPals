@@ -142,11 +142,13 @@ export default function YouTab() {
               <View className="flex-row flex-wrap gap-2 mb-4">
                 {GOAL_OPTIONS.map((goal) => (
                   <Chip
-                    key={goal}
-                    label={goal}
-                    selected={draftGoals.includes(goal)}
-                    onPress={() => toggleDraftGoal(goal)}
-                    accessibilityLabel={`${goal}${draftGoals.includes(goal) ? ', selected' : ''}`}
+                    key={goal.value}
+                    label={goal.title}
+                    selected={draftGoals.includes(goal.value)}
+                    onPress={() => toggleDraftGoal(goal.value)}
+                    accessibilityLabel={`${goal.title}${
+                      draftGoals.includes(goal.value) ? ', selected' : ''
+                    }`}
                   />
                 ))}
               </View>

@@ -5,13 +5,29 @@ appId: host.exp.Exponent
 - launchApp
 - assertVisible: 'PanPals'
 - tapOn: 'Create account'
+
+# Step 1 of 3 — account. The submit button is labelled "Sign up"; the welcome
+# CTA is the one labelled "Create account".
 - tapOn: 'Email address'
 - inputText: 'newuser@panpals.app'
 - tapOn: 'Password'
 - inputText: 'password123'
-- tapOn: 'Create account'
+- tapOn: 'Sign up'
+
+# Step 2 of 3 — first name. "Next" stays disabled until the field has a value.
+- assertVisible: 'What should we call you?'
 - tapOn: 'First name'
 - inputText: 'Maya'
+- tapOn: 'Next'
+
+# Step 3 of 3 — goals. Optional details stay collapsed; Continue is the only
+# submit, and it's disabled until at least one goal is selected.
+- assertVisible: 'What brings you to PanPals?'
+- assertVisible: 'Add a few optional details'
 - tapOn: 'Finish what I own'
 - tapOn: 'Continue'
+
+# The handoff beat auto-advances after ~1.4s; tapping it skips straight through.
+- assertVisible: 'You’re all set, Maya.'
+- tapOn: 'Continue to PanPals'
 - assertVisible: 'Home Dashboard'
