@@ -15,6 +15,26 @@ export const homeStrings = {
   focusRingAccessibilityLabel: (brand: string, name: string, percent: number) =>
     `${brand} ${name}: ${percent}% remaining`,
   focusRingLabel: (percent: number) => `${percent}%`,
+  logRingAccessibilityLabel: (brand: string, name: string) => `Log a use for ${brand} ${name}`,
+  unpinAccessibilityLabel: (brand: string, name: string) =>
+    `Unpin ${brand} ${name} from your Focus Pot`,
+
+  addToFocusTitle: 'Add to your Focus Pot',
+  addToFocusEmptyMessage: 'Everything in rotation is already pinned.',
+  addToFocusNoProductsMessage: 'Log your first product to start building your Focus Pot.',
+  pinAccessibilityLabel: (brand: string, name: string) => `Pin ${brand} ${name} to your Focus Pot`,
+  focusPotFullMessage: 'Your Focus Pot holds 5 — unpin one to add another',
+  focusPotFullAccessibilityLabel: 'Your Focus Pot holds 5. Unpin one to add another.',
+
+  sliderPercentAccessibilityLabel: (percent: number) => `${percent}% remaining`,
+  sliderAccessibilityLabel: (brand: string, name: string) =>
+    `Adjust percent remaining for ${brand} ${name}`,
+  sliderCancel: 'Cancel',
+  sliderCancelAccessibilityLabel: 'Cancel without saving this update',
+  sliderConfirm: 'Save update',
+  sliderConfirmAccessibilityLabel: (percent: number) => `Save ${percent}% remaining`,
+  logUsageErrorMessage: 'Your update wasn’t saved. Please try again.',
+  logUsageErrorAccessibilityLabel: 'Your update was not saved. Please try again.',
 
   statusDonutTitle: 'Your products',
   statusDonutTotalLabel: (count: number) => `${count} ${count === 1 ? 'item' : 'items'}`,

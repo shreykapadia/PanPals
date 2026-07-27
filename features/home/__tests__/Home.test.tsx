@@ -1,12 +1,23 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { HomeScreen } from '../HomeScreen';
 import { Product, DashboardData } from '../../../mocks/types';
 
 const mockUseDashboard = jest.fn();
+const mockUseProducts = jest.fn();
+const mockTogglePriorityMutate = jest.fn();
+const mockLogUsageMutate = jest.fn();
+const mockLogUsageReset = jest.fn();
 
 jest.mock('../../../lib/api', () => ({
   useDashboard: () => mockUseDashboard(),
+  useProducts: () => mockUseProducts(),
+  useTogglePriority: () => ({ mutate: mockTogglePriorityMutate, isPending: false }),
+  useLogUsage: () => ({
+    mutate: mockLogUsageMutate,
+    reset: mockLogUsageReset,
+    isPending: false,
+  }),
 }));
 
 jest.mock('expo-router', () => ({
@@ -61,6 +72,15 @@ function makeDashboard(overrides: Partial<DashboardData>): DashboardData {
 describe('HomeScreen', () => {
   beforeEach(() => {
     mockUseDashboard.mockReset();
+    mockUseProducts.mockReset().mockReturnValue({
+      data: [],
+      isPending: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+    mockTogglePriorityMutate.mockReset();
+    mockLogUsageMutate.mockReset();
+    mockLogUsageReset.mockReset();
   });
 
   it('never renders more than 5 focus rings even with 6 pinned products', () => {
@@ -118,5 +138,137 @@ describe('HomeScreen', () => {
     const { getByLabelText } = render(<HomeScreen />);
 
     expect(getByLabelText('Your Home dashboard could not be loaded. Try again.')).toBeTruthy();
+  });
+
+  it('blocks pinning a 6th product and shows a calm full-Focus-Pot message', () => {
+    const focusProducts = Array.from({ length: 5 }, (_, index) =>
+      makeProduct({ id: `focus-${index}`, is_priority: true }),
+    );
+    mockUseDashboard.mockReturnValue({
+      data: makeDashboard({ focus_products: focusProducts }),
+      isPending: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+    mockUseProducts.mockReturnValue({
+      data: [
+        ...focusProducts,
+        makeProduct({ id: 'unpinned-1', is_priority: false, name: 'Extra Product' }),
+      ],
+      isPending: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+
+    const { getByText, queryByLabelText } = render(<HomeScreen />);
+
+    expect(getByText('Your Focus Pot holds 5 — unpin one to add another')).toBeTruthy();
+    expect(queryByLabelText(/^Pin /)).toBeNull();
+  });
+
+  it('points to Log Item when the account has no products at all yet', () => {
+    mockUseDashboard.mockReturnValue({
+      data: makeDashboard({ focus_products: [] }),
+      isPending: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+    mockUseProducts.mockReturnValue({
+      data: [],
+      isPending: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+
+    const { getByText } = render(<HomeScreen />);
+
+    expect(getByText('Log your first product to start building your Focus Pot.')).toBeTruthy();
+  });
+
+  it('says everything is already pinned when products exist but none are unpinned', () => {
+    const focusProduct = makeProduct({ id: 'focus-1', is_priority: true });
+    mockUseDashboard.mockReturnValue({
+      data: makeDashboard({ focus_products: [focusProduct] }),
+      isPending: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+    mockUseProducts.mockReturnValue({
+      data: [focusProduct],
+      isPending: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+
+    const { getByText } = render(<HomeScreen />);
+
+    expect(getByText('Everything in rotation is already pinned.')).toBeTruthy();
+  });
+
+  it('pins an unpinned product through the shared Focus Pot hook when there is room', () => {
+    mockUseDashboard.mockReturnValue({
+      data: makeDashboard({ focus_products: [] }),
+      isPending: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+    mockUseProducts.mockReturnValue({
+      data: [makeProduct({ id: 'unpinned-1', is_priority: false, name: 'Extra Product' })],
+      isPending: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+
+    const { getByLabelText } = render(<HomeScreen />);
+
+    fireEvent.press(getByLabelText('Pin Rare Beauty Extra Product to your Focus Pot'));
+
+    expect(mockTogglePriorityMutate).toHaveBeenCalledWith({
+      productId: 'unpinned-1',
+      isPriority: true,
+    });
+  });
+
+  it('unpins a focus product through the shared Focus Pot hook', () => {
+    const focusProduct = makeProduct({ id: 'focus-1', is_priority: true });
+    mockUseDashboard.mockReturnValue({
+      data: makeDashboard({ focus_products: [focusProduct] }),
+      isPending: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+
+    const { getByLabelText } = render(<HomeScreen />);
+
+    fireEvent.press(
+      getByLabelText('Unpin Rare Beauty Soft Pinch Liquid Blush from your Focus Pot'),
+    );
+
+    expect(mockTogglePriorityMutate).toHaveBeenCalledWith({
+      productId: 'focus-1',
+      isPriority: false,
+    });
+  });
+
+  it('logs a usage through the shared log_usage hook when a ring update is confirmed', async () => {
+    const focusProduct = makeProduct({ id: 'focus-1', percent_remaining: 25 });
+    mockUseDashboard.mockReturnValue({
+      data: makeDashboard({ focus_products: [focusProduct] }),
+      isPending: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+
+    const { getByLabelText } = render(<HomeScreen />);
+
+    fireEvent.press(getByLabelText('Log a use for Rare Beauty Soft Pinch Liquid Blush'));
+    fireEvent.press(getByLabelText('Save 25% remaining'));
+
+    await waitFor(() =>
+      expect(mockLogUsageMutate).toHaveBeenCalledWith(
+        { productId: 'focus-1', percentAfter: 25 },
+        expect.anything(),
+      ),
+    );
   });
 });
