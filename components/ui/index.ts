@@ -4,6 +4,7 @@ export * from './Input';
 export * from './Badge';
 export * from './Chip';
 export * from './Icon';
+export * from './RingMark';
 export * from './EmptyState';
 export * from './LoadingState';
 export * from './ErrorState';

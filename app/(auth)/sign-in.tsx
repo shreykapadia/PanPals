@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, KeyboardAvoidingView, Platform, ScrollView, Pressable } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Text, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button } from '../../components/ui/Button';
-import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
+import { OnboardingScaffold } from '../../components/onboarding/OnboardingScaffold';
+import { Reveal } from '../../components/onboarding/Reveal';
 import { useAuth } from '../../lib/auth/useAuth';
 import { authStrings } from './strings';
 
@@ -22,10 +22,15 @@ export default function SignInScreen() {
   const [formError, setFormError] = useState<string | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const validateEmail = () => {
+    const next = EMAIL_PATTERN.test(email.trim()) ? undefined : s.errorEmail;
+    setEmailError(next);
+    return next;
+  };
+
   const handleSubmit = async () => {
-    const nextEmailError = EMAIL_PATTERN.test(email.trim()) ? undefined : s.errorEmail;
+    const nextEmailError = validateEmail();
     const nextPasswordError = password.length > 0 ? undefined : s.errorPassword;
-    setEmailError(nextEmailError);
     setPasswordError(nextPasswordError);
     setFormError(undefined);
     if (nextEmailError || nextPasswordError) return;
@@ -42,73 +47,73 @@ export default function SignInScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-surface">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
-      >
-        <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}>
-          <View className="items-center mb-8">
-            <Text className="text-3xl font-bold font-caslon text-dark-neutral text-center">
-              PanPals
-            </Text>
-          </View>
+    <OnboardingScaffold
+      onBack={() => router.back()}
+      footer={
+        <Pressable
+          onPress={() => router.push('/(auth)/sign-up')}
+          accessibilityRole="button"
+          accessibilityLabel={`${s.switchPrompt} ${s.switchAction}`}
+          className="items-center py-3"
+        >
+          <Text className="text-sm font-satoshi text-muted-text">
+            {s.switchPrompt}{' '}
+            <Text className="text-dark-neutral font-satoshi-medium">{s.switchAction}</Text>
+          </Text>
+        </Pressable>
+      }
+    >
+      <Reveal className="pt-4">
+        <Text className="text-2xl font-caslon-bold text-dark-neutral leading-8">{s.title}</Text>
+        <Text className="text-base font-satoshi text-muted-text mt-2 mb-8">{s.subtitle}</Text>
+      </Reveal>
 
-          <Card className="p-6">
-            <Text className="text-base font-bold font-satoshi text-dark-neutral mb-6 text-center">
-              {s.title}
-            </Text>
+      <Reveal delay={80}>
+        <Input
+          label={s.emailLabel}
+          value={email}
+          onChangeText={(next) => {
+            setEmail(next);
+            if (emailError) setEmailError(undefined);
+          }}
+          onBlur={() => email.length > 0 && validateEmail()}
+          placeholder={s.emailPlaceholder}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoComplete="email"
+          error={emailError}
+          accessibilityLabel={s.emailLabel}
+        />
 
-            <Input
-              label={s.emailLabel}
-              value={email}
-              onChangeText={setEmail}
-              placeholder={s.emailPlaceholder}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              error={emailError}
-              accessibilityLabel={s.emailLabel}
-            />
+        <Input
+          label={s.passwordLabel}
+          value={password}
+          onChangeText={(next) => {
+            setPassword(next);
+            if (passwordError) setPasswordError(undefined);
+          }}
+          placeholder={s.passwordPlaceholder}
+          secureToggle
+          autoCapitalize="none"
+          autoComplete="current-password"
+          error={passwordError}
+          accessibilityLabel={s.passwordLabel}
+        />
 
-            <Input
-              label={s.passwordLabel}
-              value={password}
-              onChangeText={setPassword}
-              placeholder={s.passwordPlaceholder}
-              secureTextEntry
-              autoCapitalize="none"
-              error={passwordError}
-              accessibilityLabel={s.passwordLabel}
-            />
+        {formError && (
+          <Text accessibilityRole="alert" className="text-sm text-error font-satoshi mb-3 px-2">
+            {formError}
+          </Text>
+        )}
 
-            {formError && (
-              <Text accessibilityRole="alert" className="text-xs text-error font-satoshi mb-2 px-2">
-                {formError}
-              </Text>
-            )}
-
-            <Button
-              label={s.submit}
-              onPress={handleSubmit}
-              loading={isSubmitting}
-              className="mt-4"
-              accessibilityLabel={s.submit}
-            />
-
-            <Pressable
-              onPress={() => router.push('/(auth)/sign-up')}
-              accessibilityRole="button"
-              accessibilityLabel={`${s.switchPrompt} ${s.switchAction}`}
-              className="items-center py-4"
-            >
-              <Text className="text-xs font-satoshi text-muted-text">
-                {s.switchPrompt}{' '}
-                <Text className="text-dark-neutral font-semibold">{s.switchAction}</Text>
-              </Text>
-            </Pressable>
-          </Card>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        <Button
+          label={s.submit}
+          onPress={handleSubmit}
+          loading={isSubmitting}
+          className="mt-2"
+          accessibilityLabel={s.submit}
+        />
+      </Reveal>
+    </OnboardingScaffold>
   );
 }

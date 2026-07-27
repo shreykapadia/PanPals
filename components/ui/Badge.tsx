@@ -42,7 +42,7 @@ export const Badge: React.FC<BadgeProps> = ({ label, variant = 'default', classN
     <View
       className={`rounded-full px-3 py-1 flex-row items-center justify-center ${bg} ${className}`}
     >
-      <Text className={`text-[11px] font-semibold uppercase tracking-wider font-satoshi ${text}`}>
+      <Text className={`text-[11px] uppercase tracking-wider font-satoshi-medium ${text}`}>
         {label.toUpperCase()}
       </Text>
     </View>

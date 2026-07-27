@@ -8,7 +8,10 @@ appId: host.exp.Exponent
 ---
 - launchApp
 - assertVisible: 'PanPals'
-- tapOn: 'Sign in'
+# Welcome's secondary path is labelled "I already have an account"; "Sign in"
+# is the submit button on the screen it leads to.
+- tapOn: 'I already have an account'
+- assertVisible: 'Welcome back'
 - tapOn: 'Email address'
 - inputText: 'maya@panpals.app'
 - tapOn: 'Password'

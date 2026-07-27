@@ -2,10 +2,12 @@ import React from 'react';
 import { Pressable, Text, ActivityIndicator } from 'react-native';
 import { colors } from '../../theme/tokens';
 
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost';
+
 interface ButtonProps {
   label: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary';
+  variant?: ButtonVariant;
   disabled?: boolean;
   loading?: boolean;
   accessibilityLabel?: string;
@@ -21,17 +23,23 @@ export const Button: React.FC<ButtonProps> = ({
   accessibilityLabel,
   className = '',
 }) => {
-  const baseStyles = 'h-12 w-full rounded-full flex flex-row items-center justify-center px-6';
+  // `ghost` drops the pill chrome so a screen can offer a secondary path
+  // without a second full-width pill competing with the primary CTA.
+  const baseStyles = `h-12 w-full flex flex-row items-center justify-center px-6 ${
+    variant === 'ghost' ? '' : 'rounded-full'
+  }`;
 
   const variantStyles =
     variant === 'primary'
       ? 'bg-primary-container active:bg-primary'
-      : 'bg-card-surface border border-border-warm active:bg-surface-container';
+      : variant === 'secondary'
+        ? 'bg-card-surface border border-border-warm active:bg-surface-container'
+        : 'active:opacity-60';
 
-  const textStyles =
-    variant === 'primary'
-      ? 'text-dark-neutral font-semibold text-sm tracking-wide font-satoshi'
-      : 'text-dark-neutral font-semibold text-sm tracking-wide font-satoshi';
+  // Satoshi ships Regular/Medium/Bold in assets/fonts — there is no Semibold
+  // face, so the documented weight-600 button label uses the Medium family
+  // rather than a fontWeight only iOS can fake (DESIGN-TOKENS §2).
+  const textStyles = 'text-dark-neutral text-base tracking-wide font-satoshi-medium';
 
   return (
     <Pressable

@@ -85,15 +85,22 @@ Libre Caslon Text (serif) for headlines only; **Satoshi** (sans) for everything 
 > Google Fonts (`@expo-google-fonts/libre-caslon-text`). Weights used: Satoshi
 > 400/500/600/700; Caslon 600/700.
 
+> **2026-07-26 revision (font-size accessibility audit):** Body/button/caption
+> sizes bumped up a step — 12px and 14px land below the ~16px floor most
+> platform accessibility guidance (Apple HIG, Material, Lighthouse "legible
+> font sizes") treats as safe for anything conveying real information, not
+> just decoration. Error, legal, and form-hint copy were the worst offenders
+> at 12px. Headings (H1/H2) were already fine and are unchanged.
+
 | Style                  | Font              | Size               | Weight | Line height        | Notes                    |
 | ---------------------- | ----------------- | ------------------ | ------ | ------------------ | ------------------------ |
 | H1 / hero title        | Libre Caslon Text | 24px (`text-2xl`)  | 700    | 32px (`leading-8`) |                          |
 | H2 / section header    | Libre Caslon Text | 18px (`text-lg`)   | 600    | 24px (`leading-6`) |                          |
 | H3 / card title        | Satoshi           | 16px (`text-base`) | 600    | 20px (`leading-5`) |                          |
-| Body primary           | Satoshi           | 14px (`text-sm`)   | 400    | 20px               |                          |
-| Body secondary / muted | Satoshi           | 12px (`text-xs`)   | 400    | 16px               | color `#666666`          |
-| Button label           | Satoshi           | 14px (`text-sm`)   | 600    | —                  | `tracking-wide` (0.25px) |
-| Badge / micro-copy     | Satoshi           | 11px               | 500    | —                  | uppercase / badge style  |
+| Body primary           | Satoshi           | 16px (`text-base`) | 400    | 24px (`leading-6`) |                          |
+| Body secondary / muted | Satoshi           | 14px (`text-sm`)   | 400    | 20px               | color `#666666`          |
+| Button label           | Satoshi           | 16px (`text-base`) | 600    | —                  | `tracking-wide` (0.25px) |
+| Badge / micro-copy     | Satoshi           | 12px (`text-xs`)   | 500    | —                  | uppercase / badge style  |
 
 ## 3. Radius & spacing
 

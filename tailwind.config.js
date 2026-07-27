@@ -26,6 +26,11 @@ module.exports = {
         'header-height': '56px',
         'footer-height': '80px',
       },
+      letterSpacing: {
+        // DESIGN-TOKENS §2 specifies 0.25px on button labels; Tailwind's
+        // default `tracking-wide` (0.025em) lands at ~0.35px at 14px.
+        wide: '0.25px',
+      },
       fontFamily: {
         satoshi: ['Satoshi-Regular', 'sans-serif'],
         'satoshi-medium': ['Satoshi-Medium', 'sans-serif'],
