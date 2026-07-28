@@ -6,8 +6,14 @@ import { ErrorState } from '../../components/ui/ErrorState';
 import { LoadingState } from '../../components/ui/LoadingState';
 import { Chip } from '../../components/ui/Chip';
 import { Input } from '../../components/ui/Input';
-import { CATEGORIES, Category, Product, ProductStatus } from '../../mocks/types';
+import { CATEGORIES, Product, ProductStatus } from '../../mocks/types';
+import { ProductPatch } from '../../lib/api';
 import { useInventoryActions } from '../../features/inventory/hooks/useInventoryActions';
+import {
+  filterInventory,
+  recentlyUsedProductIds,
+  useInventoryFilters,
+} from '../../features/inventory/hooks/useInventoryFilters';
 import { FastLogSheet } from '../../features/inventory/components/FastLogSheet';
 import { ItemDetailSheet } from '../../features/inventory/components/ItemDetailSheet';
 import { UsageLogSheet } from '../../features/inventory/components/UsageLogSheet';
@@ -19,10 +25,9 @@ const STATUS_FILTERS: ProductStatus[] = ['unopened', 'in_rotation', 'finished'];
 export default function InventoryTab() {
   const s = inventoryStrings.screen;
 
-  const [statusFilter, setStatusFilter] = useState<ProductStatus | undefined>(undefined);
-  const [categoryFilter, setCategoryFilter] = useState<Category | undefined>(undefined);
-  const [searchQuery, setSearchQuery] = useState('');
+  const filters = useInventoryFilters();
   const [isLogOpen, setIsLogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<Product | null>(null);
   const [detailItem, setDetailItem] = useState<Product | null>(null);
   const [usageLogItem, setUsageLogItem] = useState<Product | null>(null);
 
@@ -32,24 +37,40 @@ export default function InventoryTab() {
     isError,
     isRefetching,
     refetch,
+    allUsageLogs,
     logItem,
     isLogging,
     logUsage,
     isLoggingUsage,
     togglePriority,
     isTogglingPriority,
-  } = useInventoryActions({ status: statusFilter, category: categoryFilter });
+    updateItem,
+    isUpdating,
+    deleteItem,
+    isDeleting,
+  } = useInventoryActions({ status: filters.status, category: filters.category });
+
+  const recentIds = useMemo(() => recentlyUsedProductIds(allUsageLogs), [allUsageLogs]);
 
   const filteredItems = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return items;
-    return items.filter(
-      (item) =>
-        item.brand.toLowerCase().includes(q) ||
-        item.name.toLowerCase().includes(q) ||
-        (item.shade ?? '').toLowerCase().includes(q),
-    );
-  }, [items, searchQuery]);
+    // Status/category are already applied server-side by useInventoryActions
+    // above; filterInventory just re-checks them (harmless — items already
+    // conform) plus the two client-side-only criteria: search and "recently used".
+    const state = {
+      status: filters.status,
+      category: filters.category,
+      search: filters.search,
+      recentlyUsedOnly: filters.recentlyUsedOnly,
+    };
+    return filterInventory(items, state, recentIds);
+  }, [
+    items,
+    filters.status,
+    filters.category,
+    filters.search,
+    filters.recentlyUsedOnly,
+    recentIds,
+  ]);
 
   const handleTogglePriority = (item: Product) =>
     togglePriority({ productId: item.id, isPriority: !item.is_priority }).then((updated) => {
@@ -61,6 +82,17 @@ export default function InventoryTab() {
     if (!usageLogItem) return Promise.reject(new Error('No item selected'));
     return logUsage({ productId: usageLogItem.id, ...args });
   };
+
+  const handleSaveEdit = (patch: ProductPatch) => {
+    if (!editingItem) return Promise.reject(new Error('No item selected'));
+    return updateItem({ productId: editingItem.id, patch }).then((updated) => {
+      // Keep the detail sheet underneath in sync with the freshly saved item.
+      setDetailItem(updated as Product);
+      return updated;
+    });
+  };
+
+  const handleDelete = (item: Product) => deleteItem(item.id);
 
   const renderContent = () => {
     if (isLoading) {
@@ -112,8 +144,8 @@ export default function InventoryTab() {
       {!isLoading && !isError && items.length > 0 && (
         <View className="px-4 mb-2">
           <Input
-            value={searchQuery}
-            onChangeText={setSearchQuery}
+            value={filters.search}
+            onChangeText={filters.setSearch}
             placeholder={s.searchPlaceholder}
             accessibilityLabel={s.searchPlaceholder}
             showLabel={false}
@@ -126,19 +158,26 @@ export default function InventoryTab() {
           <FilterRow
             label={s.filterStatusLabel}
             allLabel={s.filterAllLabel}
-            selected={statusFilter}
+            selected={filters.status}
             options={STATUS_FILTERS}
             optionLabel={(v) => STATUS_LABELS[v]}
-            onSelect={setStatusFilter}
+            onSelect={filters.setStatus}
           />
           <FilterRow
             label={s.filterCategoryLabel}
             allLabel={s.filterAllLabel}
-            selected={categoryFilter}
+            selected={filters.category}
             options={CATEGORIES}
             optionLabel={(v) => CATEGORY_LABELS[v]}
-            onSelect={setCategoryFilter}
+            onSelect={filters.setCategory}
           />
+          <View className="px-4">
+            <Chip
+              label={s.recentlyUsedLabel}
+              selected={filters.recentlyUsedOnly}
+              onPress={() => filters.setRecentlyUsedOnly((prev) => !prev)}
+            />
+          </View>
         </View>
       )}
 
@@ -151,12 +190,23 @@ export default function InventoryTab() {
         isSaving={isLogging}
       />
 
+      <FastLogSheet
+        visible={editingItem != null}
+        editingItem={editingItem}
+        onClose={() => setEditingItem(null)}
+        onSaveEdit={handleSaveEdit}
+        isSaving={isUpdating}
+      />
+
       <ItemDetailSheet
         item={detailItem}
         onClose={() => setDetailItem(null)}
         onOpenUsageLog={(item) => setUsageLogItem(item)}
+        onOpenEdit={(item) => setEditingItem(item)}
         onTogglePriority={handleTogglePriority}
         isTogglingPriority={isTogglingPriority}
+        onDelete={handleDelete}
+        isDeleting={isDeleting}
       />
 
       <UsageLogSheet
