@@ -31,6 +31,8 @@ export function HomeScreen() {
     statusCounts,
     streak,
     readyWishlistItem,
+    recentActivity,
+    loggedDates,
     isLoading,
     isError,
     refetch,
@@ -123,8 +125,8 @@ export function HomeScreen() {
         />
         <StatusDonut statusCounts={statusCounts} />
         <QuickActions />
-        <RecentProgress />
-        <StreakRow currentStreak={streak.current_streak} lastLogDate={streak.last_log_date} />
+        <RecentProgress entries={recentActivity} />
+        <StreakRow currentStreak={streak.current_streak} loggedDates={loggedDates} />
         {readyWishlistItem ? <ReconsiderNudge item={readyWishlistItem} /> : null}
       </ScrollView>
 

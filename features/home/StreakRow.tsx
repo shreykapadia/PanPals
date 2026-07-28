@@ -6,32 +6,27 @@ import { homeStrings } from './strings';
 
 interface StreakRowProps {
   currentStreak: number;
-  lastLogDate: string | null;
+  loggedDates: Set<string>;
 }
 
 const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const DAYS_IN_WEEK = 7;
 
-// The backend only stores a running streak count + the last log date, not a
-// per-day log history, so "logged" days are approximated as the most recent
-// `currentStreak` days up to the anchor date rather than read from real rows.
-function getWeeklyCheckmarks(currentStreak: number, lastLogDate: string | null) {
-  const anchor = lastLogDate ? new Date(lastLogDate) : new Date();
-  const filled = Math.min(DAYS_IN_WEEK, Math.max(0, currentStreak));
-
+export function getWeeklyCheckmarks(loggedDates: Set<string>, today: Date = new Date()) {
   return Array.from({ length: DAYS_IN_WEEK }, (_, index) => {
     const dayOffset = DAYS_IN_WEEK - 1 - index;
-    const date = new Date(anchor);
+    const date = new Date(today);
     date.setDate(date.getDate() - dayOffset);
+    const iso = date.toISOString().slice(0, 10);
     return {
       dayLetter: DAY_LETTERS[date.getDay()],
-      logged: index >= DAYS_IN_WEEK - filled,
+      logged: loggedDates.has(iso),
     };
   });
 }
 
-export function StreakRow({ currentStreak, lastLogDate }: StreakRowProps) {
-  const days = getWeeklyCheckmarks(currentStreak, lastLogDate);
+export function StreakRow({ currentStreak, loggedDates }: StreakRowProps) {
+  const days = getWeeklyCheckmarks(loggedDates);
 
   return (
     <View className="mb-8 rounded-3xl border border-border-warm bg-card-surface p-4">

@@ -5,6 +5,7 @@ import { Product, DashboardData } from '../../../mocks/types';
 
 const mockUseDashboard = jest.fn();
 const mockUseProducts = jest.fn();
+const mockUseUsageLogs = jest.fn();
 const mockTogglePriorityMutate = jest.fn();
 const mockLogUsageMutate = jest.fn();
 const mockLogUsageReset = jest.fn();
@@ -12,6 +13,7 @@ const mockLogUsageReset = jest.fn();
 jest.mock('../../../lib/api', () => ({
   useDashboard: () => mockUseDashboard(),
   useProducts: () => mockUseProducts(),
+  useUsageLogs: () => mockUseUsageLogs(),
   useTogglePriority: () => ({ mutate: mockTogglePriorityMutate, isPending: false }),
   useLogUsage: () => ({
     mutate: mockLogUsageMutate,
@@ -75,6 +77,12 @@ describe('HomeScreen', () => {
   beforeEach(() => {
     mockUseDashboard.mockReset();
     mockUseProducts.mockReset().mockReturnValue({
+      data: [],
+      isPending: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+    mockUseUsageLogs.mockReset().mockReturnValue({
       data: [],
       isPending: false,
       isError: false,
@@ -320,5 +328,75 @@ describe('HomeScreen', () => {
     expect(getByLabelText('Search your products (coming soon)')).toBeTruthy();
     expect(queryByLabelText('Log a new item')).toBeNull();
     expect(queryByText('Log Item')).toBeNull();
+  });
+
+  it('shows real usage-log history in Recent Progress, joined to the owning product', () => {
+    const product = makeProduct({ id: 'prod-9', name: 'Gloss Bomb' });
+    mockUseDashboard.mockReturnValue({
+      data: makeDashboard({ focus_products: [] }),
+      isPending: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+    mockUseProducts.mockReturnValue({
+      data: [product],
+      isPending: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+    mockUseUsageLogs.mockReturnValue({
+      data: [
+        {
+          id: 'log-1',
+          product_id: 'prod-9',
+          percent_after: 30,
+          note: null,
+          photo_url: null,
+          logged_at: new Date().toISOString(),
+        },
+      ],
+      isPending: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+
+    const { getByText } = render(<HomeScreen />);
+
+    expect(getByText('Rare Beauty Gloss Bomb')).toBeTruthy();
+    expect(getByText('30%')).toBeTruthy();
+  });
+
+  it('drops a usage log whose product no longer exists rather than crashing', () => {
+    mockUseDashboard.mockReturnValue({
+      data: makeDashboard({ focus_products: [] }),
+      isPending: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+    mockUseProducts.mockReturnValue({
+      data: [],
+      isPending: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+    mockUseUsageLogs.mockReturnValue({
+      data: [
+        {
+          id: 'log-orphan',
+          product_id: 'deleted-product',
+          percent_after: 10,
+          note: null,
+          photo_url: null,
+          logged_at: new Date().toISOString(),
+        },
+      ],
+      isPending: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+
+    const { getByText } = render(<HomeScreen />);
+
+    expect(getByText('No updates yet')).toBeTruthy();
   });
 });

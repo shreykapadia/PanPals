@@ -55,6 +55,17 @@ export const homeStrings = {
   recentProgressEmptyMessage: 'Tap a ring in Today’s Focus to log your first use.',
   recentProgressEmptyAccessibilityLabel:
     'No recent updates yet. Tap a ring in Today’s Focus to log your first use.',
+  recentProgressWhen: (days: number) => {
+    if (days <= 0) return 'Today';
+    if (days === 1) return 'Yesterday';
+    return `${days} days ago`;
+  },
+  recentProgressEntryAccessibilityLabel: (
+    brand: string,
+    name: string,
+    percent: number,
+    when: string,
+  ) => `${brand} ${name}: ${percent}% remaining, logged ${when}`,
 
   streakTitle: (count: number) => `${count}-day streak`,
   streakAccessibilityLabel: (count: number) => `${count}-day logging streak`,
