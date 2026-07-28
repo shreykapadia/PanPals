@@ -9,6 +9,10 @@ export const queryKeys = {
     detail: (id: string) => [...queryKeys.products.details(), id] as const,
     similar: (category: Category, excludeId?: string) =>
       [...queryKeys.products.all, 'similar', { category, excludeId }] as const,
+    // Nested under products.all on purpose: every product mutation already
+    // invalidates that prefix, so usage history refetches for free.
+    usageLogs: (productId?: string, limit?: number) =>
+      [...queryKeys.products.all, 'usageLogs', { productId, limit }] as const,
   },
   wishlist: {
     all: ['wishlist'] as const,

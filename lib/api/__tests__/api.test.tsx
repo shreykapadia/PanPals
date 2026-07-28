@@ -4,6 +4,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   useProducts,
   useSimilarOwned,
+  useUsageLogs,
+  useUpdateProduct,
+  useDeleteProduct,
   useWishlist,
   useDashboard,
   useEmpties,
@@ -63,6 +66,103 @@ describe('API Hooks (real Supabase client, mocked)', () => {
       exclude_product_id: undefined,
     });
     expect(result.current.data?.count).toBeGreaterThan(0);
+  });
+
+  it('useUsageLogs returns one product’s history newest-first', async () => {
+    const builder = chainableResult({
+      data: [
+        { id: 'log-2', product_id: 'prod-1', percent_after: 60, logged_at: '2026-07-26T09:00:00Z' },
+        { id: 'log-1', product_id: 'prod-1', percent_after: 80, logged_at: '2026-07-20T09:00:00Z' },
+      ],
+      error: null,
+    });
+    mockFrom.mockReturnValue(builder);
+
+    const { result } = renderHook(() => useUsageLogs('prod-1'), { wrapper: createWrapper() });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(mockFrom).toHaveBeenCalledWith('usage_logs');
+    expect(builder.order).toHaveBeenCalledWith('logged_at', { ascending: false });
+    expect(builder.eq).toHaveBeenCalledWith('product_id', 'prod-1');
+    expect(result.current.data?.[0].id).toBe('log-2');
+  });
+
+  it('useUsageLogs without a product id reads every log the user owns', async () => {
+    const builder = chainableResult({
+      data: [{ id: 'log-9', product_id: 'prod-7', percent_after: 45 }],
+      error: null,
+    });
+    mockFrom.mockReturnValue(builder);
+
+    const { result } = renderHook(() => useUsageLogs(undefined, { limit: 20 }), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    // No owner filter — usage_logs_select_own already scopes the read.
+    expect(builder.eq).not.toHaveBeenCalled();
+    expect(builder.limit).toHaveBeenCalledWith(20);
+    expect(result.current.data?.length).toBe(1);
+  });
+
+  it('useUpdateProduct applies a partial patch, including a direct percent correction', async () => {
+    const builder = chainableResult({
+      data: { id: 'prod-1', name: 'Corrected Name', percent_remaining: 40 },
+      error: null,
+    });
+    mockFrom.mockReturnValue(builder);
+
+    const { result } = renderHook(() => useUpdateProduct(), { wrapper: createWrapper() });
+    await act(async () => {
+      await result.current.mutateAsync({
+        productId: 'prod-1',
+        patch: { name: 'Corrected Name', percent_remaining: 40 },
+      });
+    });
+
+    expect(builder.update).toHaveBeenCalledWith({ name: 'Corrected Name', percent_remaining: 40 });
+    expect(builder.eq).toHaveBeenCalledWith('id', 'prod-1');
+    expect(result.current.data?.percent_remaining).toBe(40);
+  });
+
+  it('useUpdateProduct refuses to finish a product, so the empties archive is never skipped', async () => {
+    mockFrom.mockReturnValue(chainableResult({ data: null, error: null }));
+
+    const { result } = renderHook(() => useUpdateProduct(), { wrapper: createWrapper() });
+    await act(async () => {
+      await expect(
+        result.current.mutateAsync({ productId: 'prod-1', patch: { status: 'finished' } }),
+      ).rejects.toThrow('useFinishProduct');
+    });
+
+    expect(mockFrom).not.toHaveBeenCalledWith('products');
+  });
+
+  it('useUpdateProduct rejects an out-of-range percent before hitting the database', async () => {
+    mockFrom.mockReturnValue(chainableResult({ data: null, error: null }));
+
+    const { result } = renderHook(() => useUpdateProduct(), { wrapper: createWrapper() });
+    await act(async () => {
+      await expect(
+        result.current.mutateAsync({ productId: 'prod-1', patch: { percent_remaining: 140 } }),
+      ).rejects.toThrow('0 to 100');
+    });
+
+    expect(mockFrom).not.toHaveBeenCalledWith('products');
+  });
+
+  it('useDeleteProduct deletes the row by id', async () => {
+    const builder = chainableResult({ data: null, error: null });
+    mockFrom.mockReturnValue(builder);
+
+    const { result } = renderHook(() => useDeleteProduct(), { wrapper: createWrapper() });
+    await act(async () => {
+      await result.current.mutateAsync({ productId: 'prod-1' });
+    });
+
+    expect(mockFrom).toHaveBeenCalledWith('products');
+    expect(builder.delete).toHaveBeenCalled();
+    expect(builder.eq).toHaveBeenCalledWith('id', 'prod-1');
   });
 
   it('useWishlist returns items including one that is ready', async () => {

@@ -13,7 +13,7 @@
 - `RecentProgress` renders nothing (`useHomeData.ts` hardcodes `recentActivity: []`).
 - `StreakRow`'s 7-day checkmarks are approximated from `last_log_date`, not real per-day history.
 
-Both need one `useUsageLogs()` hook. **File §6-G now if it isn't already in the channel** — Matt is blocked on the identical hook, so it's one PR for Shrey that fixes four things. Don't build a workaround.
+Both need one `useUsageLogs()` hook — **merged 2026-07-27** (§6-G is answered). Call `useUsageLogs()` with no product id for the user's full log history, newest first. Don't build a workaround.
 
 **After Phase 5:** Phase 4 (user testing) — not a coding task.
 
@@ -38,9 +38,9 @@ Both need one `useUsageLogs()` hook. **File §6-G now if it isn't already in the
 >
 > Do NOT add any track() calls — useTogglePriority and useLogUsage already fire
 > focus_product_set and usage_logged from inside lib/api, and firing them again
-> double-counts. Do NOT try to fix the empty RecentProgress section or the
-> approximated StreakRow checkmarks: both need a useUsageLogs() hook that does not
-> exist yet and is Shrey's to build.
+> double-counts. Leave the empty RecentProgress section and the approximated
+> StreakRow checkmarks alone in THIS session — useUsageLogs() now exists in
+> lib/api, but Phase 5 is the critical path and ships first.
 >
 > Confirm the plan and the exact files you'll touch before writing any code. Only
 > edit files in my lane (app/(tabs)/index.tsx, features/home/*,
@@ -67,11 +67,11 @@ Both need one `useUsageLogs()` hook. **File §6-G now if it isn't already in the
 
 **You got the analytics call right and it's worth saying why:** Phase 3 below tells you to fire `focus_product_set` and `usage_logged` via `track()`. **Both already fire inside the `lib/api` hooks**, so calling them would have double-counted. You didn't. Matt's and Joon's plans had the same trap and have now been corrected — don't let a future agent "helpfully" add the calls back.
 
-**Two stubs blocked on Shrey (cross-lane request §6-G, file it if it isn't already in the channel):**
+**Two stubs, unblocked 2026-07-27 (cross-lane request §6-G is answered — `useUsageLogs` is merged). Still do Phase 5 first; these come after:**
 
 - `features/home/useHomeData.ts` returns `recentActivity: [] as never[]` — your **"Recent progress" section renders nothing**, because no hook reads `usage_logs`.
 - `features/home/StreakRow.tsx` **approximates** the 7-day checkmark row from `last_log_date`, for the same reason. It's a reasonable stand-in, but it is not real per-day history.
-  Both are fixed by one `useUsageLogs()` hook. **Matt is blocked on the identical hook** for his usage-history list and "recently used" filter — file it jointly, it's one PR for Shrey.
+  Both are fixed by one `useUsageLogs()` hook, **merged 2026-07-27** — the same one Matt uses for his usage-history list and "recently used" filter. Replace the `recentActivity` stub and the `last_log_date` approximation with real per-day history.
 
 **Phase 5 is now the critical path for someone else.** Once Shrey sets `href: null` on the You tab, the profile is unreachable until your header button ships. Your PR must merge **first** in the footer chain (you → Talbia → Shrey → Talbia's shim deletion).
 
@@ -188,13 +188,13 @@ You read/write these only through Shrey's `lib/api` hooks — never SQL, never s
 
 **Hooks — CORRECTED 7/27.** The shapes originally written here never existed: `useDashboard()` returns **snake_case** fields, and `useProducts` has no methods on it (every mutation is its own top-level hook). Your shipped code already uses the real shapes; this table is here so nobody "fixes" it back.
 
-| Hook                    | Real shape                                                                                                                                                                    |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `useDashboard()`        | read query → `DashboardData` = `{ profile, focus_products, status_counts, streak: { current_streak, longest_streak, last_log_date }, category_counts, ready_wishlist_items }` |
-| `useProducts(filters?)` | read query → `Product[]`. **No methods.** Filters: `{status?, category?, is_priority?}`                                                                                       |
-| `useTogglePriority()`   | mutation `{productId, isPriority}` — this is pin/unpin, **not** `update(id, {is_priority})`. The 6th pin is rejected by the DB trigger, so catch and show a calm message      |
-| `useLogUsage()`         | mutation `{productId, percentAfter, note?, photoUrl?}` — the same hook Matt calls from his item detail                                                                        |
-| `useUsageLogs(...)`     | ❌ **does not exist** — this is what blocks `RecentProgress` and the real weekly checkmark row (§0, §6-G)                                                                     |
+| Hook                                 | Real shape                                                                                                                                                                                                                                                           |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `useDashboard()`                     | read query → `DashboardData` = `{ profile, focus_products, status_counts, streak: { current_streak, longest_streak, last_log_date }, category_counts, ready_wishlist_items }`                                                                                        |
+| `useProducts(filters?)`              | read query → `Product[]`. **No methods.** Filters: `{status?, category?, is_priority?}`                                                                                                                                                                              |
+| `useTogglePriority()`                | mutation `{productId, isPriority}` — this is pin/unpin, **not** `update(id, {is_priority})`. The 6th pin is rejected by the DB trigger, so catch and show a calm message                                                                                             |
+| `useLogUsage()`                      | mutation `{productId, percentAfter, note?, photoUrl?}` — the same hook Matt calls from his item detail                                                                                                                                                               |
+| `useUsageLogs(productId?, {limit?})` | ✅ **merged 2026-07-27** — read query → `UsageLog[]` (`percent_after, note, photo_url, logged_at`), newest first. Omit `productId` for all of the user's logs, which is what `RecentProgress` and the real weekly checkmark row need (§0, §6-G). RLS scopes the read |
 
 `track()` lives in **`lib/analytics.ts`**, not `lib/api` — and you should not call it: `useTogglePriority` and `useLogUsage` already fire `focus_product_set` and `usage_logged`.
 
