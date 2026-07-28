@@ -59,6 +59,9 @@ function makeDashboard(overrides: Partial<DashboardData>): DashboardData {
       age_range: null,
       location: null,
       selected_goals: [],
+      // Added with profiles.reminders_enabled (You tab reminder opt-in) — see
+      // AI-CONTEXT §4. Cross-lane one-liner, approved by Shrey.
+      reminders_enabled: false,
       current_streak: 3,
       longest_streak: 5,
       last_log_date: '2026-07-22',

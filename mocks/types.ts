@@ -27,6 +27,8 @@ export interface Profile {
   age_range: string | null;
   location: string | null;
   selected_goals: string[];
+  /** In-app reminder opt-in (You tab). Off by default — privacy by default. */
+  reminders_enabled: boolean;
   current_streak: number;
   longest_streak: number;
   last_log_date: string | null;

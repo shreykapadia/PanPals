@@ -28,11 +28,20 @@
 /features/empties/              @talbiaa @shreykapadia
 
 # Shared platform — Shrey only
+# NOTE on ordering: GitHub applies the LAST matching rule, so these must stay
+# below the four feature-lane blocks above. /features/auth/ and /features/you/
+# are platform copy for Shrey's own screens — /features/ is not a feature lane
+# by itself (AI-CONTEXT §3, "Shared seams").
 /app/_layout.tsx                @shreykapadia
+/app/index.tsx                  @shreykapadia
 /app/(tabs)/_layout.tsx         @shreykapadia
 /app/(tabs)/you.tsx             @shreykapadia
 /app/(auth)/                    @shreykapadia
 /components/ui/                 @shreykapadia
+/components/onboarding/         @shreykapadia
+/components/you/                @shreykapadia
+/features/auth/                 @shreykapadia
+/features/you/                  @shreykapadia
 /lib/                           @shreykapadia
 /theme/                         @shreykapadia
 /mocks/                         @shreykapadia

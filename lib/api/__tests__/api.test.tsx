@@ -12,9 +12,11 @@ import {
   useEmpties,
   useFinishProduct,
   useCatalogSearch,
+  useProfile,
+  useUpdateProfile,
   type ProductPatch,
 } from '../index';
-import type { Product } from '../../../mocks/types';
+import type { Product, Profile } from '../../../mocks/types';
 import {
   mockFrom,
   mockRpc,
@@ -267,5 +269,35 @@ describe('API Hooks (real Supabase client, mocked)', () => {
     const { result: emptiesHook } = renderHook(() => useEmpties(), { wrapper: createWrapper() });
     await waitFor(() => expect(emptiesHook.current.isSuccess).toBe(true));
     expect(emptiesHook.current.data?.some((e) => e.product_id === 'prod-1')).toBe(true);
+  });
+
+  it('useUpdateProfile updates existing profile row without requiring username', async () => {
+    const builder = chainableResult({
+      data: { id: 'user-1', username: 'maya', selected_goals: ['Reduce waste'] },
+      error: null,
+    });
+    mockFrom.mockReturnValue(builder);
+
+    const { result } = renderHook(() => useUpdateProfile(), { wrapper: createWrapper() });
+    let updated: Profile | undefined;
+    await act(async () => {
+      updated = await result.current.mutateAsync({ selected_goals: ['Reduce waste'] });
+    });
+
+    expect(builder.update).toHaveBeenCalledWith({ selected_goals: ['Reduce waste'] });
+    expect(updated?.selected_goals).toEqual(['Reduce waste']);
+  });
+
+  it('useProfile fetches the user profile', async () => {
+    mockFrom.mockReturnValue(
+      chainableResult({
+        data: { id: 'user-1', username: 'maya', selected_goals: [] },
+        error: null,
+      }),
+    );
+
+    const { result } = renderHook(() => useProfile(), { wrapper: createWrapper() });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data?.username).toBe('maya');
   });
 });

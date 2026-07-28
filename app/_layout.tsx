@@ -8,8 +8,11 @@ import { useAppFonts } from '../theme/fonts';
 import { useAuth } from '../lib/auth/useAuth';
 import '../global.css';
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync().catch(() => {});
+try {
+  SplashScreen.preventAutoHideAsync().catch(() => {});
+} catch {
+  // Native splash screen already hidden or not registered
+}
 
 const queryClient = new QueryClient();
 

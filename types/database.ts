@@ -244,6 +244,7 @@ export type Database = {
           last_log_date: string | null;
           location: string | null;
           longest_streak: number;
+          reminders_enabled: boolean;
           selected_goals: string[];
           username: string;
         };
@@ -256,6 +257,7 @@ export type Database = {
           last_log_date?: string | null;
           location?: string | null;
           longest_streak?: number;
+          reminders_enabled?: boolean;
           selected_goals: string[];
           username: string;
         };
@@ -268,6 +270,7 @@ export type Database = {
           last_log_date?: string | null;
           location?: string | null;
           longest_streak?: number;
+          reminders_enabled?: boolean;
           selected_goals?: string[];
           username?: string;
         };
