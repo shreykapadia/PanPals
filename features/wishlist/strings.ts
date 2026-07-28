@@ -47,6 +47,8 @@ export const wishlistStrings = {
   undo: {
     message: 'Removed from your wishlist.',
     action: 'Undo',
+    errorRemove: "We couldn't remove that item. Please try again.",
+    errorRestore: "We couldn't restore that item. Please try again.",
   },
   addSheet: {
     addTitle: 'Add to your wishlist',

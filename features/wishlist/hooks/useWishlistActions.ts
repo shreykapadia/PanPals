@@ -36,7 +36,10 @@ export function useWishlistActions(filters?: { status?: WishlistStatus }) {
     ) =>
       updateMutation.mutateAsync({
         id,
-        reflectionResponse: patch.reflectionResponse ?? undefined,
+        // useUpdateWishlistItem only writes a field when it isn't `undefined`,
+        // so an explicit "clear this" (null) has to become '' rather than
+        // undefined — otherwise the clear silently no-ops.
+        reflectionResponse: patch.reflectionResponse === null ? '' : patch.reflectionResponse,
         priority: patch.priority,
       }),
     isEditing: updateMutation.isPending,
