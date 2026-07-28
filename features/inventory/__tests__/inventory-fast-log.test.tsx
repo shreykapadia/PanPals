@@ -3,6 +3,7 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { InventoryItemCard } from '../components/InventoryItemCard';
 import { FastLogSheet } from '../components/FastLogSheet';
+import { ItemDetailSheet } from '../components/ItemDetailSheet';
 import { UsageLogSheet } from '../components/UsageLogSheet';
 import { Product } from '../../../mocks/types';
 
@@ -10,6 +11,11 @@ import { Product } from '../../../mocks/types';
 // — mock it so the client's env-var check doesn't throw in tests.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 jest.mock('../../../lib/supabase', () => require('../../../lib/testUtils/supabaseMock'));
+
+const mockPush = jest.fn();
+jest.mock('expo-router', () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
 
 const baseItem: Product = {
   id: 'prod-1',
@@ -119,6 +125,66 @@ describe('FastLogSheet', () => {
       <FastLogSheet visible={false} onClose={() => {}} onSave={jest.fn()} isSaving={false} />,
     );
     expect(queryByText('Log New Item')).toBeNull();
+  });
+});
+
+describe('ItemDetailSheet', () => {
+  beforeEach(() => {
+    mockPush.mockReset();
+  });
+
+  it('navigates to the finish seam without rendering any finish/celebration UI itself', () => {
+    const onClose = jest.fn();
+    const { getByLabelText, queryByText } = render(
+      <ItemDetailSheet
+        item={baseItem}
+        onClose={onClose}
+        onOpenUsageLog={() => {}}
+        onTogglePriority={() => Promise.resolve()}
+        isTogglingPriority={false}
+      />,
+    );
+
+    fireEvent.press(getByLabelText('Mark as Finished'));
+
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/(tabs)/progress',
+      params: { finishProductId: 'prod-1' },
+    });
+    expect(onClose).toHaveBeenCalledTimes(1);
+    // This lane never implements finishing — it only navigates to Talbia's screen.
+    expect(queryByText('Repurchase')).toBeNull();
+    expect(queryByText('Congratulations')).toBeNull();
+  });
+
+  it('hides "Mark as Finished" once the item is already finished', () => {
+    const { queryByLabelText } = render(
+      <ItemDetailSheet
+        item={{ ...baseItem, status: 'finished' }}
+        onClose={() => {}}
+        onOpenUsageLog={() => {}}
+        onTogglePriority={() => Promise.resolve()}
+        isTogglingPriority={false}
+      />,
+    );
+
+    expect(queryByLabelText('Mark as Finished')).toBeNull();
+  });
+
+  it('shows the Focus Pot error inline when the toggle rejects (e.g. the 6th pin)', async () => {
+    const { getByLabelText, findByText } = render(
+      <ItemDetailSheet
+        item={baseItem}
+        onClose={() => {}}
+        onOpenUsageLog={() => {}}
+        onTogglePriority={() => Promise.reject(new Error('focus pot full'))}
+        isTogglingPriority={false}
+      />,
+    );
+
+    fireEvent.press(getByLabelText('Remove from Focus Pot'));
+
+    expect(await findByText('Your Focus Pot is full — remove a pinned item first.')).toBeTruthy();
   });
 });
 
