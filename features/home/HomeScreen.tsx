@@ -9,6 +9,7 @@ import { Product } from '../../mocks/types';
 import { AddToFocusRow } from './AddToFocusRow';
 import { FocusCard } from './FocusCard';
 import { HomeSkeleton } from './HomeSkeleton';
+import { ProfileButton } from './ProfileButton';
 import { StatusDonut } from './StatusDonut';
 import { QuickActions } from './QuickActions';
 import { RecentProgress } from './RecentProgress';
@@ -26,6 +27,7 @@ export function HomeScreen() {
     isFocusFull,
     unpinnedProducts,
     hasAnyActiveProducts,
+    profile,
     statusCounts,
     streak,
     readyWishlistItem,
@@ -79,8 +81,11 @@ export function HomeScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-surface">
-      <View className="h-14 items-center justify-center border-b border-border-warm bg-surface">
+      <View className="h-14 flex-row items-center justify-center border-b border-border-warm bg-surface px-4">
         <Text className="text-2xl font-caslon-bold text-dark-neutral">{homeStrings.wordmark}</Text>
+        <View className="absolute right-4">
+          <ProfileButton username={profile?.username} />
+        </View>
       </View>
       <ScrollView contentContainerClassName="flex-grow px-4 pb-8 pt-6">
         <Text className="mb-3 text-lg font-caslon-bold text-dark-neutral">
