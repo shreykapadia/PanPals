@@ -290,7 +290,7 @@ describe('HomeScreen', () => {
     expect(mockRouterPush).toHaveBeenCalledWith('/(tabs)/inventory');
   });
 
-  it('navigates to Inventory from the Log Item quick-action pill', () => {
+  it('shows a profile button that navigates to /you', () => {
     mockUseDashboard.mockReturnValue({
       data: makeDashboard({ focus_products: [] }),
       isPending: false,
@@ -300,8 +300,25 @@ describe('HomeScreen', () => {
 
     const { getByLabelText } = render(<HomeScreen />);
 
-    fireEvent.press(getByLabelText('Log a new item'));
+    fireEvent.press(getByLabelText('Your profile and settings'));
 
-    expect(mockRouterPush).toHaveBeenCalledWith('/(tabs)/inventory');
+    expect(mockRouterPush).toHaveBeenCalledWith('/you');
+  });
+
+  it('renders exactly two quick-action pills, neither a log/add action', () => {
+    const focusProduct = makeProduct({ id: 'focus-1', is_priority: true });
+    mockUseDashboard.mockReturnValue({
+      data: makeDashboard({ focus_products: [focusProduct] }),
+      isPending: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+
+    const { getByLabelText, queryByLabelText, queryByText } = render(<HomeScreen />);
+
+    expect(getByLabelText('Scan a product (coming soon)')).toBeTruthy();
+    expect(getByLabelText('Search your products (coming soon)')).toBeTruthy();
+    expect(queryByLabelText('Log a new item')).toBeNull();
+    expect(queryByText('Log Item')).toBeNull();
   });
 });

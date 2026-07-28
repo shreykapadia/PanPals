@@ -1,5 +1,6 @@
 export const homeStrings = {
   wordmark: 'PanPal',
+  profileButtonAccessibilityLabel: 'Your profile and settings',
 
   loadingAccessibilityLabel: 'Loading your Home dashboard',
   errorTitle: 'Your dashboard needs another moment',
@@ -48,8 +49,6 @@ export const homeStrings = {
   quickActionScanAccessibilityLabel: 'Scan a product (coming soon)',
   quickActionSearch: 'Search',
   quickActionSearchAccessibilityLabel: 'Search your products (coming soon)',
-  quickActionLogItem: 'Log Item',
-  quickActionLogItemAccessibilityLabel: 'Log a new item',
 
   recentProgressTitle: 'Recent progress',
   recentProgressEmptyTitle: 'No updates yet',

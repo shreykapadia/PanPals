@@ -18,6 +18,7 @@ export function useHomeData() {
     isFocusFull: focusProducts.length >= MAX_FOCUS_PRODUCTS,
     unpinnedProducts,
     hasAnyActiveProducts: activeProducts.length > 0,
+    profile: dashboard?.profile,
     statusCounts: dashboard?.status_counts,
     streak: dashboard?.streak,
     readyWishlistItem: dashboard?.ready_wishlist_items[0],
