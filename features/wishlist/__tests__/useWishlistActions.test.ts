@@ -14,6 +14,7 @@ jest.mock('../../../lib/api', () => ({
   useAddWishlistItem: () => ({ mutateAsync: jest.fn(), isPending: false }),
   useUpdateWishlistItem: () => ({ mutateAsync: mockUpdateMutateAsync, isPending: false }),
   useRemoveWishlistItem: () => ({ mutateAsync: jest.fn(), isPending: false }),
+  useCreateFromWishlist: () => ({ mutateAsync: jest.fn(), isPending: false }),
 }));
 
 describe('useWishlistActions.editItem', () => {

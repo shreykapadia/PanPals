@@ -31,6 +31,13 @@ interface AddWishlistItemSheetProps {
   onClose: () => void;
   onSave: (item: NewWishlistItem) => Promise<unknown>;
   isSaving: boolean;
+  existingItems: WishlistItem[];
+}
+
+const ACTIVE_STATUSES = new Set(['cooling', 'ready']);
+
+function normalize(value: string): string {
+  return value.trim().toLowerCase();
 }
 
 const PRIORITIES: WishlistPriority[] = ['high', 'medium', 'low'];
@@ -47,6 +54,7 @@ const AddWishlistItemSheetContent: React.FC<AddWishlistItemSheetProps> = ({
   onClose,
   onSave,
   isSaving,
+  existingItems,
 }) => {
   const s = wishlistStrings.addSheet;
   const [mode, setMode] = useState<CaptureMode>('search');
@@ -60,7 +68,9 @@ const AddWishlistItemSheetContent: React.FC<AddWishlistItemSheetProps> = ({
   const [productUrl, setProductUrl] = useState('');
   const [priority, setPriority] = useState<WishlistPriority>('medium');
   const [reflectionResponse, setReflectionResponse] = useState('');
+  const [reminderEnabled, setReminderEnabled] = useState(false);
   const [error, setError] = useState<string | undefined>();
+  const [pendingDuplicate, setPendingDuplicate] = useState<WishlistItem | null>(null);
 
   const resetForm = () => {
     setMode('search');
@@ -73,7 +83,9 @@ const AddWishlistItemSheetContent: React.FC<AddWishlistItemSheetProps> = ({
     setProductUrl('');
     setPriority('medium');
     setReflectionResponse('');
+    setReminderEnabled(false);
     setError(undefined);
+    setPendingDuplicate(null);
   };
 
   const handleClose = () => {
@@ -100,15 +112,18 @@ const AddWishlistItemSheetContent: React.FC<AddWishlistItemSheetProps> = ({
   // on" before the user has typed anything.
   const showIntercept = canSave && intercept.shouldIntercept;
 
-  const handleSave = async () => {
-    if (!canSave) {
-      setError(
-        mode === 'link' && productUrl.trim().length === 0
-          ? s.errorRequiredLink
-          : s.errorRequiredManual,
-      );
-      return;
-    }
+  // Row 17 — a close match against an EXISTING wishlist entry, distinct from
+  // the intercept (which compares against owned inventory). Never blocks —
+  // just confirms before creating a near-duplicate wishlist row.
+  const findDuplicateWishlistEntry = (): WishlistItem | undefined =>
+    existingItems.find(
+      (item) =>
+        ACTIVE_STATUSES.has(item.status) &&
+        normalize(item.brand) === normalize(brand) &&
+        normalize(item.name) === normalize(name),
+    );
+
+  const performSave = async () => {
     setError(undefined);
     try {
       await onSave({
@@ -123,13 +138,42 @@ const AddWishlistItemSheetContent: React.FC<AddWishlistItemSheetProps> = ({
         priority,
         rank_position: null,
         reflection_response: reflectionResponse.trim() || null,
-        reminder_at: null,
+        reminder_at: reminderEnabled
+          ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+          : null,
         last_reviewed_at: null,
       });
       handleClose();
     } catch {
       setError(s.errorSave);
     }
+  };
+
+  const handleSave = async () => {
+    if (!canSave) {
+      setError(
+        mode === 'link' && productUrl.trim().length === 0
+          ? s.errorRequiredLink
+          : s.errorRequiredManual,
+      );
+      return;
+    }
+    const duplicate = findDuplicateWishlistEntry();
+    if (duplicate) {
+      setError(undefined);
+      setPendingDuplicate(duplicate);
+      return;
+    }
+    await performSave();
+  };
+
+  const handleKeepBothDuplicates = async () => {
+    setPendingDuplicate(null);
+    await performSave();
+  };
+
+  const handleCancelDuplicate = () => {
+    setPendingDuplicate(null);
   };
 
   const handleKeepOnWishlist = () => {
@@ -286,13 +330,48 @@ const AddWishlistItemSheetContent: React.FC<AddWishlistItemSheetProps> = ({
             accessibilityLabel={s.reflectionLabel}
           />
 
+          <View className="mb-4">
+            <Chip
+              label={s.reminderLabel}
+              selected={reminderEnabled}
+              onPress={() => setReminderEnabled((prev) => !prev)}
+              accessibilityLabel={`${s.reminderLabel}${reminderEnabled ? ', on' : ', off'}`}
+            />
+          </View>
+
           {error && (
             <Text accessibilityRole="alert" className="text-xs text-error font-satoshi mb-2 px-2">
               {error}
             </Text>
           )}
 
-          {showIntercept ? (
+          {pendingDuplicate ? (
+            <Card className="mb-2">
+              <Text className="text-sm font-semibold font-satoshi text-dark-neutral mb-1">
+                {wishlistStrings.duplicate.title}
+              </Text>
+              <Text className="text-xs font-satoshi text-muted-text mb-3">
+                {wishlistStrings.duplicate.message(pendingDuplicate.brand, pendingDuplicate.name)}
+              </Text>
+              <Button
+                label={wishlistStrings.duplicate.keepBothAction}
+                onPress={handleKeepBothDuplicates}
+                loading={isSaving}
+                accessibilityLabel={wishlistStrings.duplicate.keepBothAction}
+                className="mb-2"
+              />
+              <Pressable
+                onPress={handleCancelDuplicate}
+                accessibilityRole="button"
+                accessibilityLabel={wishlistStrings.duplicate.cancelAction}
+                className="items-center py-2"
+              >
+                <Text className="text-xs font-semibold font-satoshi text-dark-neutral">
+                  {wishlistStrings.duplicate.cancelAction}
+                </Text>
+              </Pressable>
+            </Card>
+          ) : showIntercept ? (
             <InterceptBanner
               category={category}
               count={intercept.count}

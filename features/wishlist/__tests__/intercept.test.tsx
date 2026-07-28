@@ -121,7 +121,13 @@ function renderSheetWithClient() {
   const onSave = jest.fn().mockResolvedValue(undefined);
   const utils = render(
     <QueryClientProvider client={queryClient}>
-      <AddWishlistItemSheet visible onClose={() => {}} onSave={onSave} isSaving={false} />
+      <AddWishlistItemSheet
+        visible
+        onClose={() => {}}
+        onSave={onSave}
+        isSaving={false}
+        existingItems={[]}
+      />
     </QueryClientProvider>,
   );
   return { ...utils, onSave };
