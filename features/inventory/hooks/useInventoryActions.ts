@@ -1,4 +1,13 @@
-import { useProducts, useCreateProduct, useLogUsage, useTogglePriority } from '../../../lib/api';
+import {
+  useProducts,
+  useCreateProduct,
+  useLogUsage,
+  useTogglePriority,
+  useUpdateProduct,
+  useDeleteProduct,
+  useUsageLogs,
+  ProductPatch,
+} from '../../../lib/api';
 import { Category, Product, ProductStatus } from '../../../mocks/types';
 
 type NewProduct = Omit<Product, 'id' | 'user_id' | 'created_at'>;
@@ -8,6 +17,11 @@ export function useInventoryActions(filters?: { status?: ProductStatus; category
   const createMutation = useCreateProduct();
   const logUsageMutation = useLogUsage();
   const togglePriorityMutation = useTogglePriority();
+  const updateMutation = useUpdateProduct();
+  const deleteMutation = useDeleteProduct();
+  // No productId — every log the signed-in user owns, for the "recently
+  // used" filter. Item detail asks useUsageLogs(productId) directly instead.
+  const allUsageLogsQuery = useUsageLogs();
 
   return {
     items: productsQuery.data ?? [],
@@ -15,6 +29,8 @@ export function useInventoryActions(filters?: { status?: ProductStatus; category
     isError: productsQuery.isError,
     isRefetching: productsQuery.isRefetching,
     refetch: productsQuery.refetch,
+
+    allUsageLogs: allUsageLogsQuery.data ?? [],
 
     logItem: (item: NewProduct) => createMutation.mutateAsync(item),
     isLogging: createMutation.isPending,
@@ -28,5 +44,14 @@ export function useInventoryActions(filters?: { status?: ProductStatus; category
     togglePriority: (args: { productId: string; isPriority: boolean }) =>
       togglePriorityMutation.mutateAsync(args),
     isTogglingPriority: togglePriorityMutation.isPending,
+
+    updateItem: (args: { productId: string; patch: ProductPatch }) =>
+      updateMutation.mutateAsync(args),
+    isUpdating: updateMutation.isPending,
+
+    // Cascades to usage_logs and any empties row — see useDeleteProduct's doc
+    // comment in lib/api. Confirmation copy must stay honest about that.
+    deleteItem: (productId: string) => deleteMutation.mutateAsync({ productId }),
+    isDeleting: deleteMutation.isPending,
   };
 }

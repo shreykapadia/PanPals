@@ -35,6 +35,7 @@ export const inventoryStrings = {
     filterAllLabel: 'All',
     filterStatusLabel: 'Status',
     filterCategoryLabel: 'Category',
+    recentlyUsedLabel: 'Recently used',
     focusPotFullTitle: 'Your Focus Pot is full',
     focusPotFullMessage: 'You can pin up to 5 products at a time. Unpin one to add this.',
   },
@@ -75,13 +76,33 @@ export const inventoryStrings = {
     saving: 'Saving…',
     errorSave: "We couldn't save that. Please try again.",
     errorRequired: 'Add a brand and product name first.',
+    percentRemainingLabel: 'Percent remaining',
+    decreaseHint: 'Decrease by 5 percent',
+    increaseHint: 'Increase by 5 percent',
   },
   detailSheet: {
     editAction: 'Edit',
     logUsageAction: 'Log usage',
     finishAction: 'Mark as Finished',
+    deleteAction: 'Delete item',
     close: 'Close',
     errorFocusFull: 'Your Focus Pot is full — remove a pinned item first.',
+    errorDelete: "We couldn't delete that. Please try again.",
+    deleteConfirmTitle: 'Delete this item?',
+    // Honest about the cascade (usage_logs + empties both `on delete cascade`)
+    // — never promise history survives when it doesn't.
+    deleteConfirmMessage: (name: string) =>
+      `This removes ${name} and its full usage history. If you already finished it, that record is deleted too. This can't be undone.`,
+    deleteConfirmConfirm: 'Delete',
+    deleteConfirmCancel: 'Cancel',
+  },
+  history: {
+    title: 'Usage history',
+    emptyTitle: 'No uses logged yet',
+    emptyMessage: 'Usage updates you log for this item will show up here.',
+    errorMessage: "We couldn't load usage history right now.",
+    entryWhen: (days: number) =>
+      days <= 0 ? 'Logged today' : `Logged ${days} day${days === 1 ? '' : 's'} ago`,
   },
   usageSheet: {
     title: 'Log usage',
