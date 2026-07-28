@@ -1,0 +1,29 @@
+# F1 fast-log (Matt's lane, log-modal.png ground truth). Update appId if
+# you're running against a custom dev client instead of Expo Go.
+appId: host.exp.Exponent
+---
+- launchApp
+- assertVisible: 'PanPals'
+- tapOn: 'I already have an account'
+- assertVisible: 'Welcome back'
+- tapOn: 'Email address'
+- inputText: 'maya@panpals.app'
+- tapOn: 'Password'
+- inputText: 'password123'
+- tapOn: 'Sign in'
+- assertVisible: 'Home Dashboard'
+
+- tapOn: 'Inventory Tab'
+- tapOn: 'Log a product'
+- assertVisible: 'Log New Item'
+
+# Manual entry — brand + name only is enough to save (F1: ≤6 fields, most optional).
+- tapOn: 'Manual'
+- tapOn: 'Brand'
+- inputText: 'Fenty Beauty'
+- tapOn: 'Product Name'
+- inputText: 'Gloss Bomb Universal Lip Luminizer'
+- tapOn: 'Log item'
+
+# Back on the list, the new item's card is visible.
+- assertVisible: 'Fenty Beauty · Gloss Bomb Universal Lip Luminizer'
