@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useSimilarOwned } from '../../../lib/api';
+import { track } from '../../../lib/analytics';
 import { Category, Product } from '../../../mocks/types';
 import { CATEGORY_LABELS } from '../strings';
 
@@ -60,15 +61,34 @@ export function useIntercept(
 
   const count = data?.count ?? 0;
   const shouldIntercept = count >= INTERCEPT_THRESHOLD;
+  const topConfidence = matches[0]?.confidence ?? 'low';
 
-  // Mocked per JOON-PLAN.md Phase 1b — Phase 3 wires this through the
-  // shared track() helper (duplicate_warning_shown / warning_decision).
+  // Pseudonymous props only (category, count, confidence tier) — never
+  // product names or reflection text (AI-CONTEXT §5).
   const recordDecision = (decision: InterceptDecision) => {
-    if (__DEV__) {
-      // eslint-disable-next-line no-console
-      console.log('[intercept] decision recorded (mock):', decision);
-    }
+    track('warning_decision', {
+      decision,
+      category,
+      similar_owned_count: count,
+      top_confidence: topConfidence,
+    });
   };
 
-  return { shouldIntercept, count, matches, isLoading, isError, recordDecision };
+  const recordWarningShown = () => {
+    track('duplicate_warning_shown', {
+      category,
+      similar_owned_count: count,
+      top_confidence: topConfidence,
+    });
+  };
+
+  return {
+    shouldIntercept,
+    count,
+    matches,
+    isLoading,
+    isError,
+    recordDecision,
+    recordWarningShown,
+  };
 }

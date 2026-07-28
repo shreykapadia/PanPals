@@ -123,7 +123,7 @@ const ReconsiderDetailContent: React.FC<ContentProps> = ({
 
           <Card className="mb-4">
             <Text className="text-sm font-satoshi text-dark-neutral">
-              {isSimilarLoading ? '…' : s.similarOwnedLabel(similarCount)}
+              {isSimilarLoading ? s.similarOwnedLoading : s.similarOwnedLabel(similarCount)}
             </Text>
           </Card>
 

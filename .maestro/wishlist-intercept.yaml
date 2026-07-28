@@ -1,0 +1,42 @@
+# F5 impulse intercept (Joon's lane, wishlist-intercept.png ground truth).
+#
+# Assumes the seeded test account (maya@panpals.app) owns >= 3 active 'face'
+# products, so adding a 4th face item trips the intercept threshold
+# (INTERCEPT_THRESHOLD = 3 in features/wishlist/hooks/useIntercept.ts). If
+# Shrey's seed data changes, adjust the category here rather than the banner.
+#
+# Update appId if you're running against a custom dev client instead of Expo Go.
+appId: host.exp.Exponent
+---
+- launchApp
+- assertVisible: 'PanPals'
+- tapOn: 'I already have an account'
+- assertVisible: 'Welcome back'
+- tapOn: 'Email address'
+- inputText: 'maya@panpals.app'
+- tapOn: 'Password'
+- inputText: 'password123'
+- tapOn: 'Sign in'
+
+- tapOn: 'Wishlist Tab'
+- tapOn: 'Add to wishlist'
+- assertVisible: 'Add to your wishlist'
+
+# Manual entry of a 4th same-category (face) item.
+- tapOn: 'Manual'
+- tapOn: 'Brand'
+- inputText: 'Rare Beauty'
+- tapOn: 'Product name'
+- inputText: 'Soft Pinch Liquid Blush'
+- tapOn: 'Face'
+
+# The "Hold on" banner replaces the plain save button: count + owned items,
+# retailer action present (deprioritized, never disabled).
+- assertVisible: 'Hold on — take a breath.'
+- assertVisible: 'Similar items you own.*'
+- assertVisible: 'Continue to Retailer'
+
+# Take the cooling-off CTA -> item saved, back on the list as Cooling off.
+- tapOn: 'Add to 14-Day Cooling-Off Wishlist'
+- assertVisible: 'Rare Beauty · Soft Pinch Liquid Blush'
+- assertVisible: 'COOLING OFF'
