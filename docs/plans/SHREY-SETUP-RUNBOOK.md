@@ -96,7 +96,38 @@ Then repo → **Settings → General → Pull Requests**:
 > temporarily allow yourself to bypass, or have a teammate approve. Re-tighten
 > once the repo is seeded.
 
-### 1.6 Verify Part 1
+### 1.6 Turn on the shared pre-commit hook
+
+Because status checks are off (§1.5), `prettier --check .` in `npm run verify` is
+the only thing standing between the repo and formatting drift — and it covers
+**every** file, markdown included. That means one person's unformatted doc fails
+`npm run verify` for whoever runs it next, on work they didn't touch. The hook in
+`.githooks/pre-commit` formats staged files at commit time so that can't happen.
+
+Git never clones hooks, so **each person runs this once per clone** — you here,
+and the four teammates via GETTING-STARTED.md §6:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Confirm it took (`.githooks` should come back):
+
+```bash
+git config core.hooksPath
+```
+
+What to tell people when they ask:
+
+- It only ever changes **spacing and punctuation**, never logic. It prints the
+  files it rewrote, so nothing changes silently.
+- If a file is staged **and** then edited again, the hook stops with an
+  explanation rather than sweeping the newer edits into the commit. Stage or
+  stash them and commit again.
+- `git commit --no-verify` skips it for one commit.
+- `npm run format` does the same thing to the whole repo by hand.
+
+### 1.7 Verify Part 1
 
 Try to push a change directly to `main` — it should be **rejected**. Confirm all
 four invitations show as accepted under Collaborators.
@@ -313,6 +344,8 @@ database.
 - [ ] CODEOWNERS handles filled in
 - [ ] Four teammates invited (Write) and accepted
 - [ ] `main` protected (PR + Code Owner review, no force push, squash-only, auto-delete branches)
+- [ ] `git config core.hooksPath .githooks` set locally, and the same line passed
+      to the four teammates (it isn't cloned — each person sets it themselves)
 - [ ] Direct push to `main` is rejected (tested)
 - [ ] Supabase project created; URL/anon/service keys + project-ref saved
 - [ ] Supabase CLI linked; `supabase start` runs locally

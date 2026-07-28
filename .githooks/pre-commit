@@ -1,0 +1,66 @@
+#!/bin/sh
+#
+# Formats staged files with Prettier so formatting drift never reaches a branch.
+#
+# Why this exists: there is no CI (AI-CONTEXT.md §2), so `npm run verify` is the
+# only gate — and `prettier --check .` covers the whole repo, markdown included.
+# One unformatted file therefore fails the chain for whoever runs it next, on
+# work that has nothing to do with them. Catching it at commit keeps that from
+# ever becoming someone else's problem.
+#
+# Enable once per clone (hooks aren't cloned, so this is not automatic):
+#   git config core.hooksPath .githooks
+#
+# Skip for one commit:
+#   git commit --no-verify
+
+set -eu
+
+cd "$(git rev-parse --show-toplevel)"
+
+PRETTIER="./node_modules/.bin/prettier"
+if [ ! -x "$PRETTIER" ]; then
+  echo "pre-commit: $PRETTIER not found — run 'npm install'. Skipping format." >&2
+  exit 0
+fi
+
+tmpdir=$(mktemp -d)
+trap 'rm -rf "$tmpdir"' EXIT INT TERM
+
+# ACMR: added/copied/modified/renamed. A deleted path has nothing to format and
+# would just make Prettier error.
+git diff --cached --name-only --diff-filter=ACMR >"$tmpdir/staged"
+[ -s "$tmpdir/staged" ] || exit 0
+
+# A file that is staged AND has further unstaged edits cannot be formatted
+# safely: Prettier writes the working-tree copy, so re-adding it would sweep
+# those unstaged edits into the commit. Refuse rather than quietly commit work
+# the author didn't choose. (lint-staged handles this case by stashing; stopping
+# is the honest version of that in a few lines.)
+git diff --name-only --diff-filter=ACMR >"$tmpdir/unstaged"
+if [ -s "$tmpdir/unstaged" ] && grep -qxFf "$tmpdir/unstaged" "$tmpdir/staged"; then
+  echo "pre-commit: staged, but with further unstaged edits:" >&2
+  grep -xFf "$tmpdir/unstaged" "$tmpdir/staged" | sed 's/^/  /' >&2
+  echo >&2
+  echo "Formatting these would pull the unstaged edits into this commit." >&2
+  echo "Stage them ('git add') or set them aside ('git stash -k'), then retry." >&2
+  exit 1
+fi
+
+# --ignore-unknown skips what Prettier has no parser for (fonts, the .jpg in
+# assets/) instead of failing the commit on it. --list-different makes it print
+# only the paths it actually rewrote, which is both the re-stage list and the
+# report — the author should know the commit's contents changed under them.
+#
+# Do NOT add --log-level warn here: it silences --list-different too, so the
+# re-stage list comes back empty while the files have already been rewritten,
+# and the hook leaves unformatted content in the commit without a word.
+tr '\n' '\0' <"$tmpdir/staged" |
+  xargs -0 "$PRETTIER" --write --list-different --ignore-unknown >"$tmpdir/changed"
+
+[ -s "$tmpdir/changed" ] || exit 0
+
+tr '\n' '\0' <"$tmpdir/changed" | xargs -0 git add --
+
+echo "pre-commit: Prettier reformatted and re-staged:"
+sed 's/^/  /' "$tmpdir/changed"
