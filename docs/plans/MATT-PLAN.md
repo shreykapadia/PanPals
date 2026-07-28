@@ -10,7 +10,7 @@
 
 1. **A one-line copy fix.** `strings.ts` currently promises barcode scanning, which is a banned feature (§0 item 1). Two minutes.
 2. **Finish Phase 3** (§6) — the accessibility sweep and the finish-button navigation test.
-3. **Phase 5** (§6) — extract `FastLogForm` so Shrey's new ⊕ Log tab can render your form.
+3. **Phase 5** (§6) — **revised 7/27 and now much smaller.** Open your existing `FastLogSheet` from a route param so Shrey's ⊕ Log tab can reach it, and repoint the finish seam to `/(tabs)/empties`. The earlier "extract a `FastLogForm`" version is **cancelled** — do not do it.
 
 **Unblocked 2026-07-27:** `useUpdateProduct()`, `useDeleteProduct()`, and `useUsageLogs()` are merged (§7-F and §7-G are answered). Phase 1b's edit, delete, usage-history, and "recently used" work is now yours to build — see the hook table in §8 for exact shapes, and read the delete-cascade note there before writing any delete copy.
 
@@ -35,12 +35,17 @@
 >    touchable, >=44px targets, status never conveyed by colour alone) and an RTL
 >    test asserting "Mark as Finished" calls router.push with
 >    { pathname: '/(tabs)/progress', params: { finishProductId: <id> } }.
+>    (That pathname becomes '/(tabs)/empties' in Phase 5 — write the test so the
+>    path is easy to update, and expect to change it once.)
 >    Do NOT add any track() calls — the lib/api hooks already fire
 >    inventory_item_added, usage_logged, and focus_product_set, and firing them
 >    again double-counts.
-> 3. Phase 5 (§6): extract FastLogForm out of FastLogSheet so Shrey's app/log.tsx
->    can render it, with FastLogSheet becoming a thin wrapper and the Inventory
->    screen behaving identically.
+> 3. Phase 5 (§6) — READ THE PHASE, it was rewritten on 7/27 and shrank. Do NOT
+>    extract a FastLogForm and do NOT create app/log.tsx; both are cancelled.
+>    It is now two small changes: (a) open the existing FastLogSheet when
+>    app/(tabs)/inventory.tsx receives the route param action=log, clearing the
+>    param on close; (b) change ItemDetailSheet's "Mark as Finished" push from
+>    '/(tabs)/progress' to '/(tabs)/empties'.
 >
 > The edit, delete, and usage-history work is UNBLOCKED as of 2026-07-27 —
 > useUpdateProduct, useDeleteProduct, and useUsageLogs are merged in lib/api.
@@ -445,67 +450,94 @@ needed output a CROSS-LANE REQUEST and stop.
 
 ---
 
-### Phase 5 — Footer realignment: your fast-log becomes the ⊕ Log destination (NEW, 7/27)
+### Phase 5 — Footer realignment: your fast-log becomes the ⊕ Log destination (NEW, 7/27 — **revised 7/27, read this version**)
+
+> **⚠️ This phase was rewritten and got much smaller.** An earlier draft asked you to
+> extract a `FastLogForm` component out of `FastLogSheet` so a new `app/log.tsx` screen
+> could render it. **That is cancelled — do not do it.** Shrey re-audited against `main`
+> and dropped the separate screen: the ⊕ now opens the `FastLogSheet` you already
+> shipped. No extraction, no refactor, no new component. Two small changes instead.
 
 > ### 📥 INBOUND CROSS-LANE REQUEST — from Shrey (2026-07-27), footer audit
 >
 > ```
 > CROSS-LANE REQUEST — from Shrey (navigation/IA) to Matt
 > The bottom nav is becoming: Home | Inventory | ⊕ Log | Wishlist | Empties.
-> The centre ⊕ pushes to /log, which I am scaffolding as app/log.tsx — a
-> placeholder screen in my lane, because the F1 fast-log form is yours.
+> I am NOT building a separate log screen. The centre ⊕ pushes to:
+>     router.push({ pathname: '/(tabs)/inventory', params: { action: 'log' } })
+> so it opens the FastLogSheet you already shipped — same pattern your own
+> ItemDetailSheet already uses to pass finishProductId across a lane boundary.
 >
-> What I need from you: export your fast-log form from features/inventory/* so my
-> thin app/log.tsx shell can render it. My recommendation is that app/log.tsx stays
-> a shell in my lane rendering a <FastLogForm /> you export — that keeps the
-> ownership matrix clean and means neither of us edits the other's files. Tell me
-> if you'd rather own app/log.tsx outright.
+> Two things in app/(tabs)/inventory.tsx, both small:
 >
-> Nothing else in your lane changes. Your existing "+" button on the Inventory
-> screen can stay — a second entry point to logging is fine and probably good.
+>   1. Read the param and open the sheet (~4 lines). You already have isLogOpen
+>      state at line 25:
+>        const { action } = useLocalSearchParams<{ action?: string }>();
+>        useEffect(() => { if (action === 'log') setIsLogOpen(true); }, [action]);
+>      Clear the param when the sheet closes — router.setParams({ action: undefined })
+>      — otherwise tapping ⊕ while already on Inventory won't reopen it.
+>
+>   2. Repoint the finish seam. ItemDetailSheet.tsx:53 pushes to '/(tabs)/progress'.
+>      Talbia is renaming that file to empties.tsx behind a temporary shim, so the
+>      old path works only until she deletes the shim. Change it to '/(tabs)/empties'.
+>      This one is load-bearing: if the shim dies before your change lands, your
+>      "Mark as Finished" button navigates to a dead route and F6 stops working in a
+>      production build.
+>
+> Nothing else changes. Your "Log a product" button on the Inventory screen stays —
+> two entry points to logging is fine and probably good.
 > ```
 
-**Goal:** the fast-log form becomes reachable from anywhere via the centre ⊕ tab, without duplicating the form.
+**Goal:** the fast-log sheet becomes reachable from anywhere via the centre ⊕, and the finish seam survives the tab rename.
 
-**Why this is small for you:** `FastLogSheet` is already a self-contained component driven by `visible` / `onClose` / `onSave` / `isSaving`. The work is extracting the _form body_ so it can render either inside your modal (as today) or full-screen inside Shrey's route.
+**Why this is small for you:** you already built everything. `isLogOpen` exists; `FastLogSheet` works; the param-passing convention is one you introduced. This is roughly six lines across two files.
 
-**Sequencing:** Aaron merges first, then Talbia, then Shrey's nav PR. Your extraction can land any time **before** Shrey's — coordinate in the channel.
+**Sequencing — you are step 4 of 5, and step 5 depends on you.** Aaron → Talbia → Shrey's nav PR → **you** → Talbia deletes the shim. Your PR must land **before** Talbia's shim deletion. Tell the channel when it's up.
 
 **Paste this to your agent:**
 
 ```
 Continue the PanPals inventory feature (Matt's lane). Same rules as before.
 
-Shrey is adding a centre "⊕ Log" tab whose route is app/log.tsx (his lane). It
-needs to render MY fast-log form. Refactor so the form body is reusable without
-duplicating it:
+Shrey shipped a centre "⊕ Log" tab. It does NOT have its own route — it pushes to
+my Inventory tab with a param, and I open my existing sheet. Two changes only.
 
-1. Extract the form body out of features/inventory/components/FastLogSheet.tsx
-   into features/inventory/components/FastLogForm.tsx — every field, the
-   catalog-search / manual toggle, validation, and the save handler. It must NOT
-   render a Modal or a SafeAreaView of its own; it renders form content only, so
-   a parent can host it in either a modal or a full screen.
-   Props: onSaved?: () => void, onCancel?: () => void.
-2. FastLogSheet keeps its current props and behaviour exactly, but now just
-   wraps <FastLogForm /> in the Modal + header it already has. The Inventory
-   screen must behave identically — no visual or behavioural change.
-3. Export FastLogForm from features/inventory (add an index.ts barrel if there
-   isn't one) so app/log.tsx can import it.
-4. Keep every existing test green and add one asserting FastLogForm renders and
-   saves standalone, with no Modal ancestor.
+1. app/(tabs)/inventory.tsx — open FastLogSheet from a route param.
+   Read it with useLocalSearchParams<{ action?: string }>() from expo-router.
+   When action === 'log', set the EXISTING isLogOpen state to true.
+   When the sheet closes, clear the param (router.setParams({ action: undefined }))
+   so tapping ⊕ again from the Inventory tab reopens the sheet instead of doing
+   nothing. Do not add a second piece of state and do not change FastLogSheet.
 
-Do NOT create or edit app/log.tsx, app/(tabs)/_layout.tsx, or anything in
-components/ui — those are Shrey's. Only edit files under my lane
-(app/(tabs)/inventory.tsx, features/inventory/*). If anything else is needed
-output a CROSS-LANE REQUEST and stop. Run `npm run verify` and fix until green.
+2. features/inventory/components/ItemDetailSheet.tsx line ~53 — the "Mark as
+   Finished" push currently targets '/(tabs)/progress'. Talbia renamed that screen
+   to app/(tabs)/empties.tsx. Change the pathname to '/(tabs)/empties'. Keep the
+   params exactly as they are: { finishProductId: item.id }. Do not change the
+   param name — Talbia reads it.
+
+Do NOT extract a FastLogForm component. Do NOT create app/log.tsx. An earlier
+version of this plan asked for both; they are cancelled.
+
+Add tests: navigating to Inventory with action=log opens the sheet; closing it
+clears the param; the Mark as Finished button pushes to '/(tabs)/empties' with
+finishProductId.
+
+Only edit files under my lane (app/(tabs)/inventory.tsx, features/inventory/*).
+Do NOT touch app/(tabs)/_layout.tsx, app/(tabs)/empties.tsx, or components/ui —
+those are Shrey's and Talbia's. If anything else is needed output a CROSS-LANE
+REQUEST and stop. Run `npm run verify` and fix until green.
 ```
+
+**Verify:** sign in (there is no mock data any more), tap the ⊕ from Home — you land on Inventory with the fast-log sheet open. Close it, tap ⊕ again from Inventory — it reopens. Open an item and tap "Mark as Finished" — you land on the Empties tab and Talbia's finish flow starts.
 
 **Done when:**
 
-- [ ] `FastLogForm` exists, renders standalone, and is exported from `features/inventory`.
-- [ ] `FastLogSheet` is now a thin wrapper; the Inventory screen is visually and behaviourally unchanged.
+- [ ] Tapping ⊕ from any tab opens `FastLogSheet` over the Inventory screen.
+- [ ] Tapping ⊕ **while already on Inventory** reopens the sheet (the param is cleared on close).
+- [ ] `ItemDetailSheet` pushes to `/(tabs)/empties` with `finishProductId` unchanged.
+- [ ] No `FastLogForm` was extracted and no `app/log.tsx` was created.
 - [ ] `npm run verify` green; all prior tests still pass; only my-lane files changed.
-- [ ] Shrey told the form is ready so he can wire `app/log.tsx`.
+- [ ] Told the channel the PR is up, so Talbia can delete her shim behind it.
 
 ---
 
@@ -607,7 +639,7 @@ _layout.tsx. (The Progress tab is Talbia's now.)
 
 - **Editing outside your lane.** The #1 project goal is zero merge conflicts. If the agent starts editing `components/ui/*`, `theme/*`, `lib/api/*`, `mocks/*`, or another tab — STOP it and file a CROSS-LANE REQUEST. Check `git diff --name-only main` before every PR.
 - **Building the finish flow yourself.** You NO LONGER own finishing, the empties archive, or the Progress tab (Talbia, D20). Your only touchpoint is a `router.push` button. Never create `features/empties/*`, never edit `app/(tabs)/progress.tsx`, never import `useEmpties`, `finish_product`, `useDashboard`, or `ProgressRing`. If the agent tries to add a celebration, review, months-in-use, or archive — stop it and file a CROSS-LANE REQUEST to Talbia.
-- **Getting the finish route wrong.** ~~The button must match the path + param Talbia registers (§7-B).~~ **Settled 7/27:** you shipped `router.push({ pathname: '/(tabs)/progress', params: { finishProductId: item.id } })` and that is now the agreed contract. Talbia reads `finishProductId` on her side (her Phase 3b). **Do not change your call** — changing it now would break the seam a second time.
+- **Getting the finish route wrong.** ~~The button must match the path + param Talbia registers (§7-B).~~ **Settled 7/27:** you shipped `router.push({ pathname: '/(tabs)/progress', params: { finishProductId: item.id } })` and the **param name `finishProductId` is the agreed contract** — Talbia reads it (her Phase 3b). Never rename it. **The pathname does change exactly once**, in Phase 5: Talbia renames her screen to `app/(tabs)/empties.tsx`, so `'/(tabs)/progress'` becomes `'/(tabs)/empties'`. Her temporary shim keeps the old path alive until she deletes it, so make the change in Phase 5 and not before — and not after, or the seam breaks a second time.
 - **Reintroducing deferred/scanning features.** No barcode, no AI identification — the photo zone only attaches a photo (Wizard-of-Oz). No points, no badges anywhere. **This is currently violated in copy:** `strings.ts` says "Tap to scan barcode or take photo". Fix it (§0).
 - **Hardcoding styles.** Never a raw hex, font name, or pixel radius. Use the NativeWind token classes from `theme/`. If the agent writes `#f2a2a2`, tell it to use **`primary-container`** — there is **no `brand` token**, and `primary` is a completely different colour (`#8c4c4d`, deep mauve).
 - **Calling `track()` yourself.** The `lib/api` hooks already fire `inventory_item_added`, `usage_logged`, and `focus_product_set`. Adding your own call double-counts.

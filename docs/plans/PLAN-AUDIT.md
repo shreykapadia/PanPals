@@ -82,7 +82,9 @@ Matt's strings file already carries `editAction`, `editTitle`, `saveEdit` — de
 - `D23` is referenced by `docs/plans/README.md` and `GEMINI-FOOTER-PLAN.md` but **does not exist in `docs/DECISIONS.md`**. Append it.
 - `components/onboarding/*` and `app/index.tsx` shipped in PR #20 and are **not in the AI-CONTEXT §3 ownership matrix or `.github/CODEOWNERS`**.
 - The **2026-07-26 type-scale revision** in `DESIGN-TOKENS.md` (body 14→16px, muted 12→14px, button 14→16px, badge 11→12px) is **applied in zero files** — every area, including Shrey's own `components/ui` and `(auth)`, still uses the old scale. Either apply it or mark it forward-looking; right now new work builds to a scale nothing else uses.
-- `GEMINI-FOOTER-PLAN.md` §6 says to copy the placeholder house style from "the current `app/(tabs)/inventory.tsx` stub" — that stub is gone, Matt shipped the real screen.
+- ~~`GEMINI-FOOTER-PLAN.md` §6 says to copy the placeholder house style from "the current `app/(tabs)/inventory.tsx` stub" — that stub is gone, Matt shipped the real screen.~~ **✅ RESOLVED 2026-07-27.** The footer plan was re-audited against `ba4c997` and §6 rewritten: `app/log.tsx` is cancelled entirely and the ⊕ now opens Matt's shipped `FastLogSheet` via `/(tabs)/inventory?action=log`. See `GEMINI-FOOTER-PLAN.md` §0 (C1–C5) for the other four corrections found in the same pass, two of which were latent breakages rather than doc drift:
+  - **C2** — the ⊕'s `accessibilityLabel` was `"Log a product"`, which is already `features/inventory/strings.ts:28` and is tapped by `.maestro/log-product.yaml:17`. Once the ⊕ is on every screen that selector matches twice on Inventory. Now `"Quick log a product"`.
+  - **C3** — the footer chain ended with Talbia deleting the `progress.tsx` shim, but `ItemDetailSheet.tsx:53` hardcodes `/(tabs)/progress`. Deleting the shim before Matt repoints it kills F6 in a production build (the same seam as §3-B1, broken a second way). A **Matt step is now step 4 of 5** in the chain, written into his Phase 5.
 
 ---
 
@@ -92,7 +94,7 @@ Matt's strings file already carries `editAction`, `editTitle`, `saveEdit` — de
 
 Done: Phase 0-A→0-E, B1→B6, Phase 2 (real Supabase swap), Phase 3 (polish/a11y/privacy). Plus an unplanned onboarding redesign (#20).
 Left: Phase 4 (standing review/merge + user testing) and the **footer rebuild**, which is fully specced in `GEMINI-FOOTER-PLAN.md` but uncommitted.
-Notes: the footer plan's own sequencing (Aaron → Talbia → Shrey → Talbia follow-up) is sound and holds — Aaron's Phase 5 has not shipped, so nothing is out of order yet. **Matt was never sent the `app/log.tsx` cross-lane request** the footer plan §6 tells you to file; it is now written into his plan as Phase 5. Only 2 of 5 Maestro flows exist (`catalog-search`, `signup`, plus Aaron's `focus-and-ring` and Matt's `log-product` — so 4 of 5; `wishlist-intercept` and `finish-and-archive` are missing, owned by Joon and Talbia).
+Notes: the footer chain is now **five steps, not four** — Aaron → Talbia → Shrey → **Matt** → Talbia's shim deletion (§3-B6, C3). Aaron's Phase 5 has not shipped, so nothing is out of order yet. **Matt was never sent the original `app/log.tsx` cross-lane request**; that request is now obsolete and has been replaced in his Phase 5 by the two-change version (open `FastLogSheet` from `action=log`, repoint the finish seam to `/(tabs)/empties`). Only 2 of 5 Maestro flows exist (`catalog-search`, `signup`, plus Aaron's `focus-and-ring` and Matt's `log-product` — so 4 of 5; `wishlist-intercept` and `finish-and-archive` are missing, owned by Joon and Talbia).
 
 ### Aaron — 🟢
 
@@ -141,5 +143,5 @@ Left:
 3. ~~**Shrey B2 + B3** — the three missing hooks (`useUpdateProduct`, `useDeleteProduct`, `useUsageLogs`). One PR unblocks Matt's M1/M2/M3/M4 and Aaron's two stubs.~~ **Done 2026-07-27.**
 4. **Shrey B4 + B5** — decide photos in/out, decide confidence tiers in/out. Both are scope calls only you can make, and both are currently silent gaps in someone's plan.
 5. **Joon Phase 1b** — the intercept. Longest pole and the highest-risk assumption; it should be in front of testers first, not last.
-6. **The footer chain** — Aaron Phase 5 → Talbia Phase 5 → Shrey's nav PR → Talbia's shim deletion. Do not reorder.
+6. **The footer chain** — Aaron Phase 5 → Talbia Phase 5 → Shrey's nav PR → **Matt Phase 5** → Talbia's shim deletion. Do not reorder; Matt's step is what keeps the finish seam alive when the shim dies.
 7. **Shrey B6** — the doc drift, folded into the footer PR.
