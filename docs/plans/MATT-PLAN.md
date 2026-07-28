@@ -1,8 +1,90 @@
 # Matt's Implementation Plan — Inventory & Logging
 
+## ▶️ RESUME HERE — read this before anything else (updated 2026-07-27)
+
+**Asking your agent "my plan was updated, where do we continue from?" — this is the answer.**
+
+**Where you left off:** PRs #21 and #23 are merged. Phase 1a is done, Phase 1b is half done, `.maestro/log-product.yaml` is in. Phase-by-phase breakdown in §0.
+
+**Do these three now — nothing blocks them:**
+
+1. **A one-line copy fix.** `strings.ts` currently promises barcode scanning, which is a banned feature (§0 item 1). Two minutes.
+2. **Finish Phase 3** (§6) — the accessibility sweep and the finish-button navigation test.
+3. **Phase 5** (§6) — extract `FastLogForm` so Shrey's new ⊕ Log tab can render your form.
+
+**Wait on these — do NOT work around them:** edit, delete, usage history, and the "recently used" filter all need three hooks Shrey hasn't built yet. File §7-F and §7-G if they aren't already in the channel, then come back to Phase 1b when he's merged them.
+
+> **Paste this to your agent to start the session:**
+>
+> ```
+> Read AI-CONTEXT.md in full, then docs/plans/MATT-PLAN.md §0 (STATUS) and §5
+> (the corrected hook table). My plan was re-audited on 2026-07-27 against
+> main @ cdd8e1e. Several phases are already shipped and some instructions later
+> in the file are now wrong — §0 overrides anything that contradicts it.
+>
+> Then run `git log --oneline -5` and read features/inventory/* to see what
+> already exists. Do NOT rebuild anything that is already there.
+>
+> My next three tasks, in this order:
+>
+> 1. In features/inventory/strings.ts, change scanPlaceholder from
+>    'Tap to scan barcode or take photo' to 'Tap to add a photo'. Barcode lookup
+>    is an explicit non-goal (AI-CONTEXT.md §1). Check no other string implies
+>    scanning or product identification.
+> 2. Phase 3 (§6): the accessibility sweep (accessibilityLabel on every
+>    touchable, >=44px targets, status never conveyed by colour alone) and an RTL
+>    test asserting "Mark as Finished" calls router.push with
+>    { pathname: '/(tabs)/progress', params: { finishProductId: <id> } }.
+>    Do NOT add any track() calls — the lib/api hooks already fire
+>    inventory_item_added, usage_logged, and focus_product_set, and firing them
+>    again double-counts.
+> 3. Phase 5 (§6): extract FastLogForm out of FastLogSheet so Shrey's app/log.tsx
+>    can render it, with FastLogSheet becoming a thin wrapper and the Inventory
+>    screen behaving identically.
+>
+> Do NOT start the edit, delete, or usage-history work — useUpdateProduct,
+> useDeleteProduct, and useUsageLogs do not exist yet and are Shrey's to build.
+>
+> Confirm the plan and the exact files you'll touch before writing any code. Only
+> edit files in my lane (app/(tabs)/inventory.tsx, features/inventory/*,
+> .maestro/log-product.yaml); if anything else is needed, stop and output a
+> CROSS-LANE REQUEST. Run `npm run verify` at the end and fix until green.
+> ```
+
 > Your mission: build the **log → track** half of the core loop — fast-log entry, inventory browse/filter/edit, and one-tap usage logging — so Maya can log a product in ≤15s and check her stash in-store in <1s. You own PRD functions **F1** (log a product), **F2** (update usage / % remaining), and **F9** (check stash in-store), plus matrix rows **4, 9, 16**.
 >
 > **Scope narrowed 7/21 (DECISIONS.md D20):** you NO LONGER own the finish/celebration flow, the private empties archive, or the **Progress tab** — those moved to **Talbia** (`features/empties/*`, `app/(tabs)/progress.tsx`). You keep only the **finish seam**: a "Mark as Finished" button on your item detail that _navigates_ (expo-router) to Talbia's finish route. You do NOT implement finishing.
+
+---
+
+## 0. STATUS — updated 2026-07-27 against `main` @ `cdd8e1e`
+
+**You have shipped PR #21 and #23.** `npm run verify` is green. Read this before you paste anything below — several phases are partly done, and two instructions further down are now actively wrong.
+
+| Phase                  | Status                | What's actually on `main`                                                                                                                                                                        |
+| ---------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **1a** Fast-log + list | ✅ **Done** (one gap) | `inventory.tsx` (list, search, status + category filters, loading/empty/error/no-matches), `FastLogSheet`, `InventoryItemCard`, `strings.ts`, 10 tests. **Missing: the "recently used" filter.** |
+| **1b** Detail + usage  | 🟡 **Half done**      | ✅ `ItemDetailSheet` (ring, badges, pin/unpin, Mark as Finished), `UsageLogSheet` (5% steps + note), `useInventoryActions`. ❌ **No edit UI. No delete UI. No usage-history list.**              |
+| **2** Wire real hooks  | ⚪ **Not applicable** | Shrey already flipped `lib/api` to real Supabase before you started. There is no mock phase to graduate from — **skip Phase 2 entirely**.                                                        |
+| **3** Polish           | 🟡 **Started**        | ✅ `.maestro/log-product.yaml` (#23). ❌ a11y sweep, finish-button navigation test. ⚠️ **Do NOT fire analytics — see below.**                                                                    |
+| **4** User testing     | ⬜ Not started        | —                                                                                                                                                                                                |
+| **5** Footer (new)     | ⬜ Not started        | Inbound cross-lane request from Shrey — added at the end of §6.                                                                                                                                  |
+
+**Three corrections to the rest of this document — the world changed under it:**
+
+1. **🔴 Fix this now, it's one line.** `features/inventory/strings.ts` says `scanPlaceholder: 'Tap to scan barcode or take photo'`. **Barcode lookup is a stated non-goal** (AI-CONTEXT §1 lists it under "do not generate code for these, even if asked casually") and §8 below says the zone must never claim to identify a product. Your _implementation_ is correct — it only toggles a flag — but the _copy_ promises a feature we deliberately don't build. Change it to `'Tap to add a photo'`.
+2. **⚠️ Do NOT call `track()`.** Phase 3 below tells you to fire `inventory_item_added` and `usage_logged`. **Both already fire inside the `lib/api` hooks.** Firing them again double-counts every event. Aaron hit this and correctly skipped it. Phase 3's paste block has been corrected.
+3. **The finish route changed.** This plan says `router.push('/empties/finish?productId=…')`. You shipped `router.push({ pathname: '/(tabs)/progress', params: { finishProductId: item.id } })` instead — which is **fine and is now the agreed contract** — but Talbia's screen does not read that param yet, so the button currently goes nowhere. It's on her (Phase 3b in her plan), not you. Don't change your call.
+
+**You are blocked on Shrey for three things** — file these now if they aren't already in the channel (§7-F, §7-G):
+
+- an **update-product** hook (blocks edit — your `editAction`/`editTitle`/`saveEdit` strings are already committed with no UI behind them)
+- a **delete-product** hook (blocks delete)
+- a **`useUsageLogs`** read hook (blocks the usage-history list _and_ the "recently used" filter; Aaron is blocked on the same hook)
+
+**Undeclared overlap worth settling:** you shipped Focus Pot pin/unpin, but **F3 / matrix row 8 is Aaron's**, and he shipped it too. No file conflict — you both call the shared `useTogglePriority` — and two entry points is defensible UX. Just get it ratified rather than leaving it accidental.
+
+**Deviations from this plan that are fine, recorded so nobody "fixes" them:** you used `ProductSearch` directly instead of building a `ProductSearchField` wrapper (better); filtering lives inline in the screen instead of a `useInventoryFilters` hook (extract it when "recently used" lands, so it's unit-testable); your components are named `FastLogSheet`/`ItemDetailSheet`/`UsageLogSheet` rather than `LogModal`/`ProductDetail`/`UsageLogger`.
 
 ---
 
@@ -79,11 +161,22 @@ You never write SQL or call supabase-js. You read/write these shapes **only** th
 
 **`usage_logs` columns (created by the log hook — each log is its own row, never overwrite):** `percent_after` (int 0–100), `note` (text?), `photo_url` (text?), `logged_at` (timestamptz).
 
-**Hooks (import, never edit):**
+**Hooks (import, never edit) — CORRECTED 7/27 to match what actually exists.** The method-bag shape this section originally described (`useProducts().create/.update/.remove/.logUsage`) never existed. `useProducts` is a plain read query and every mutation is its own top-level hook:
 
-- `useProducts()` → `.create(...)`, `.update(...)`, `.remove(...)`, `.logUsage(...)` (the last wraps the shared `log_usage` RPC; deleting a product must NOT wipe `usage_logs`).
-- `useCatalogSearch(q, category)` → type-ahead results for catalog pre-fill (wraps `search_catalog`); `ProductSearch` in `components/ui` already consumes this.
-- `track(event, props)` → analytics; you fire `inventory_item_added` and `usage_logged` (see Phase 3). **Never log raw review text or notes.**
+| Hook                                     | Shape                                                                                                                        | Status                                                                    |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `useProducts(filters?)`                  | read query → `Product[]`; filters `{status?, category?, is_priority?}`                                                       | ✅ you use it                                                             |
+| `useCreateProduct()`                     | mutation; arg is `Omit<Product,'id'\|'user_id'\|'created_at'>` — **every key required**, pass explicit `null`s for optionals | ✅ you use it                                                             |
+| `useLogUsage()`                          | mutation `{productId, percentAfter, note?, photoUrl?}` — the same hook Aaron calls                                           | ✅ you use it                                                             |
+| `useTogglePriority()`                    | mutation `{productId, isPriority}`; the 6th pin is rejected by the DB trigger                                                | ✅ you use it                                                             |
+| `useCatalogSearch(q, category?, limit?)` | read query → `CatalogProduct[]`; `components/ui/ProductSearch` already wraps it                                              | ✅ via `ProductSearch`                                                    |
+| `useUpdateProduct()`                     | —                                                                                                                            | ❌ **does not exist** — blocks your edit UI                               |
+| `useDeleteProduct()`                     | —                                                                                                                            | ❌ **does not exist** — blocks your delete                                |
+| `useUsageLogs(productId)`                | —                                                                                                                            | ❌ **does not exist** — blocks usage history + the "recently used" filter |
+
+**`track()` lives in `lib/analytics.ts`, not `lib/api`** — and you should not call it at all. `useCreateProduct` already fires `inventory_item_added`; `useLogUsage` already fires `usage_logged`; `useTogglePriority` already fires `focus_product_set`. Calling them yourself double-counts.
+
+**Design tokens:** PanPal Rose is the **`primary-container`** token. There is **no `brand` token** — and `primary` is `#8c4c4d`, a deep mauve, so `bg-primary` silently gives you the wrong colour.
 
 > Not yours anymore: `useEmpties`, `finish_product`, `useDashboard`, `ProgressRing` — those belong to Talbia's finish/Progress work. Do not import or call them.
 
@@ -164,9 +257,13 @@ track), mocks/types.ts, and theme/* but NEVER edit them.
 
 ### Phase 1b — Item detail, edit, delete, usage logging + finish-seam button (rows 9, 16 / F2, F9)
 
-**Goal:** Tap a product → see its detail, edit fields, correct % remaining, log usage in one tap (or a 5% slider + optional photo) via the shared `log_usage` hook, view usage history, delete safely — and a "Mark as Finished" button that **navigates** to Talbia's finish flow (you do NOT implement finishing).
+**Goal:** Tap a product → see its detail, edit fields, correct % remaining, log usage in one tap (or a 5% slider) via the shared `log_usage` hook, view usage history, delete safely — and a "Mark as Finished" button that **navigates** to Talbia's finish flow (you do NOT implement finishing).
 
-**Paste this to your agent:**
+> **✅ Already shipped in PR #21:** `ItemDetailSheet.tsx` (ring, status/category/format badges, pin/unpin, "Log usage", "Mark as Finished"), `UsageLogSheet.tsx` (5% steps, optional note, clamped 0–100), `useInventoryActions.ts`, `daysSinceOpened.ts`, and the finish-seam navigation. **Do not rebuild any of it.**
+>
+> **❌ Still to do: edit, delete, usage history.** All three are blocked on hooks that don't exist yet (§7-F, §7-G). Do not build a local workaround — do not call supabase-js, do not add a hook to `lib/api`. Wait for Shrey, then paste the block below.
+
+**Paste this to your agent — ONLY once Shrey has merged `useUpdateProduct`, `useDeleteProduct`, and `useUsageLogs`:**
 
 ```
 Continue the PanPals inventory feature (Matt's lane). Same rules as before:
@@ -174,38 +271,45 @@ NativeWind tokens only, no hardcoded hex/font/radius, no supabase-js, no SQL,
 all copy in features/inventory/strings.ts, all touchables get accessibilityLabel,
 handle loading/empty/error. Import lib/api hooks; never edit them.
 
-Build the item detail, editing, usage logging, and the finish-seam button:
+ALREADY BUILT — read these first and extend them, do NOT recreate them:
+features/inventory/components/ItemDetailSheet.tsx, UsageLogSheet.tsx,
+InventoryItemCard.tsx, FastLogSheet.tsx, hooks/useInventoryActions.ts,
+utils/daysSinceOpened.ts, strings.ts.
 
-1. features/inventory/components/ProductDetail.tsx — shows the product's photo,
-   brand/name/shade/category/format, status, and % remaining. Include a usage
-   history list (each usage_log is its own row — never overwrite history).
-2. Editing: an edit mode (or EditProductForm.tsx) to change any field and to
-   CORRECT % remaining directly. Save via the existing lib/api useProducts().update
-   hook.
-3. features/inventory/components/UsageLogger.tsx — one-tap "Log a use" plus a
-   5% slider (5% steps) and an OPTIONAL progress photo. This MUST call the
-   SHARED lib/api log_usage hook via useProducts().logUsage (the same hook Aaron
-   calls from Home — do not create your own; do not edit it). Logging inserts a
-   new usage_log row and updates percent_remaining.
-4. Delete: a confirmation dialog before deleting a product. The confirmation
-   copy must make clear that deleting does NOT silently remove usage history —
-   i.e. deletion must not silently wipe usage_logs. Use calm, non-judgmental copy.
-5. "Mark as Finished" button on ProductDetail — it ONLY navigates. Use
-   expo-router: router.push('/empties/finish?productId=' + product.id). It does
-   NOT set status=finished, does NOT create an empties row, does NOT show a
-   celebration or review, and does NOT compute months-in-use — Talbia's finish
-   screen (features/empties/*) does all of that. Do NOT import useEmpties,
-   finish_product, useDashboard, or ProgressRing. Do NOT create any file under
-   features/empties/*. If the /empties/finish route is not registered yet, the
-   button still just navigates — that is correct.
-6. features/inventory/hooks/useProductDetail.ts — thin hook composing useProducts
-   (+ its logUsage); keep the screen thin.
+Add the three missing pieces to the EXISTING ItemDetailSheet:
+
+1. Usage history. Call the new useUsageLogs(productId) read hook and render each
+   usage_log as its own row (percent_after + logged_at + note if present),
+   newest first. Each log is a separate row — history is never overwritten.
+   Handle loading / empty ("No uses logged yet") / error inline.
+2. Edit. An edit mode reusing the FastLogSheet form fields, letting the user
+   change brand, name, shade, category, format, status, pao_months, opened_at,
+   and CORRECT percent_remaining directly. Save via the new useUpdateProduct
+   hook. The strings already exist in strings.ts: logSheet.editTitle,
+   logSheet.saveEdit, detailSheet.editAction — use them, they are currently
+   dead keys.
+3. Delete, via the new useDeleteProduct hook, behind a confirmation dialog.
+   Calm, non-judgmental copy. IMPORTANT: only state that usage history is
+   preserved if Shrey has confirmed the usage_logs.product_id FK does not
+   cascade. If he has not confirmed it, write neutral copy that makes no claim
+   either way and ask me to check.
+
+Also add the missing third inventory filter from Phase 1a: "recently used",
+derived from the usage-log data. While you are there, extract the search +
+filter logic out of app/(tabs)/inventory.tsx into
+features/inventory/hooks/useInventoryFilters.ts as pure, unit-testable
+functions, and add tests for it.
+
+Do NOT touch the "Mark as Finished" button — it already navigates correctly to
+Talbia's screen and that contract is agreed. Do NOT import useEmpties,
+useFinishProduct, useDashboard, or ProgressRing. Do NOT create any file under
+features/empties/*. Do NOT call track() — the lib/api hooks already fire
+inventory_item_added, usage_logged, and focus_product_set.
 
 Only edit files under my lane (app/(tabs)/inventory.tsx, features/inventory/*);
-if anything else is needed (including the finish screen or the empties archive)
-output a CROSS-LANE REQUEST and stop. Import components/ui/*, lib/api/*
-(useProducts, useCatalogSearch, track), mocks/types.ts, and theme/* but NEVER
-edit them.
+if anything else is needed output a CROSS-LANE REQUEST and stop. Import
+components/ui/*, lib/api/*, mocks/types.ts, and theme/* but NEVER edit them.
+Run `npm run verify` and fix until green.
 ```
 
 **Files created:** `features/inventory/components/ProductDetail.tsx`, `features/inventory/components/EditProductForm.tsx`, `features/inventory/components/UsageLogger.tsx`, `features/inventory/hooks/useProductDetail.ts`, `features/inventory/__tests__/useProductDetail.test.ts`. (Add detail + finish-button strings to the existing `features/inventory/strings.ts`.)
@@ -272,26 +376,34 @@ if anything else is needed output a CROSS-LANE REQUEST and stop.
 
 **Paste this to your agent:**
 
+> **✅ Already shipped:** `.maestro/log-product.yaml` (PR #23) and 10 RTL tests covering the card, the fast-log save path, opened_at, and the 5% usage stepper.
+>
+> **⚠️ The original version of this block told you to fire `track()`. Do not.** `useCreateProduct`, `useLogUsage`, and `useTogglePriority` already fire `inventory_item_added`, `usage_logged`, and `focus_product_set` from inside `lib/api`. Calling `track()` yourself double-counts every event.
+
 ```
-Polish Matt's lane. Fire analytics via the shared lib/api track() helper (never
-log raw review text or notes) on exactly these events: inventory_item_added (on
-fast-log save) and usage_logged (on a usage log). Do NOT fire product_finished —
-that belongs to Talbia's finish flow. Audit every screen for loading/empty/error
-states and for accessibilityLabels; never convey status by color alone. Add the
-Maestro flow below.
+Polish Matt's lane. Do NOT call track() — the lib/api hooks already fire
+inventory_item_added, usage_logged, and focus_product_set internally, and
+firing them again double-counts. product_finished belongs to Talbia.
 
-Create .maestro/log-product.yaml — open the log modal, fill brand+name+category,
-save, assert the item appears in inventory.
+1. FIX FIRST, one line: features/inventory/strings.ts currently reads
+   scanPlaceholder: 'Tap to scan barcode or take photo'. Barcode lookup is an
+   explicit non-goal (AI-CONTEXT.md §1). Change it to 'Tap to add a photo' and
+   check no other string implies scanning or product identification.
+2. Audit every screen in my lane for loading / empty / error states and for
+   accessibilityLabel on every touchable. Status must never be conveyed by
+   colour alone — the badges must carry text. Check tap targets are >= 44px.
+3. Add RTL tests in features/inventory/__tests__ for: the status and category
+   filters narrowing the list, the PAO/status labels rendering, and that
+   "Mark as Finished" calls router.push with
+   { pathname: '/(tabs)/progress', params: { finishProductId: <id> } }
+   (mock expo-router — do NOT test the finish flow itself, that is Talbia's).
+   Mock the lib/api hooks — never hit Supabase in Jest.
 
-Add/expand RTL tests in features/inventory/__tests__ for: filter results,
-PAO/status label, usage log appends a row (history kept), and that the
-"Mark as Finished" button calls router.push to the finish route (mock the
-router — do NOT test the finish flow itself, that is Talbia's). Mock the lib/api
-hooks in tests — never hit Supabase.
+.maestro/log-product.yaml already exists — re-run it, don't rewrite it.
 
 Only edit files under my lane (app/(tabs)/inventory.tsx, features/inventory/*,
 .maestro/log-product.yaml); if anything else is needed output a CROSS-LANE
-REQUEST and stop.
+REQUEST and stop. Run `npm run verify` and fix until green.
 ```
 
 **Files created:** `.maestro/log-product.yaml`, expanded `__tests__` in `features/inventory/`.
@@ -333,6 +445,70 @@ needed output a CROSS-LANE REQUEST and stop.
 
 ---
 
+### Phase 5 — Footer realignment: your fast-log becomes the ⊕ Log destination (NEW, 7/27)
+
+> ### 📥 INBOUND CROSS-LANE REQUEST — from Shrey (2026-07-27), footer audit
+>
+> ```
+> CROSS-LANE REQUEST — from Shrey (navigation/IA) to Matt
+> The bottom nav is becoming: Home | Inventory | ⊕ Log | Wishlist | Empties.
+> The centre ⊕ pushes to /log, which I am scaffolding as app/log.tsx — a
+> placeholder screen in my lane, because the F1 fast-log form is yours.
+>
+> What I need from you: export your fast-log form from features/inventory/* so my
+> thin app/log.tsx shell can render it. My recommendation is that app/log.tsx stays
+> a shell in my lane rendering a <FastLogForm /> you export — that keeps the
+> ownership matrix clean and means neither of us edits the other's files. Tell me
+> if you'd rather own app/log.tsx outright.
+>
+> Nothing else in your lane changes. Your existing "+" button on the Inventory
+> screen can stay — a second entry point to logging is fine and probably good.
+> ```
+
+**Goal:** the fast-log form becomes reachable from anywhere via the centre ⊕ tab, without duplicating the form.
+
+**Why this is small for you:** `FastLogSheet` is already a self-contained component driven by `visible` / `onClose` / `onSave` / `isSaving`. The work is extracting the _form body_ so it can render either inside your modal (as today) or full-screen inside Shrey's route.
+
+**Sequencing:** Aaron merges first, then Talbia, then Shrey's nav PR. Your extraction can land any time **before** Shrey's — coordinate in the channel.
+
+**Paste this to your agent:**
+
+```
+Continue the PanPals inventory feature (Matt's lane). Same rules as before.
+
+Shrey is adding a centre "⊕ Log" tab whose route is app/log.tsx (his lane). It
+needs to render MY fast-log form. Refactor so the form body is reusable without
+duplicating it:
+
+1. Extract the form body out of features/inventory/components/FastLogSheet.tsx
+   into features/inventory/components/FastLogForm.tsx — every field, the
+   catalog-search / manual toggle, validation, and the save handler. It must NOT
+   render a Modal or a SafeAreaView of its own; it renders form content only, so
+   a parent can host it in either a modal or a full screen.
+   Props: onSaved?: () => void, onCancel?: () => void.
+2. FastLogSheet keeps its current props and behaviour exactly, but now just
+   wraps <FastLogForm /> in the Modal + header it already has. The Inventory
+   screen must behave identically — no visual or behavioural change.
+3. Export FastLogForm from features/inventory (add an index.ts barrel if there
+   isn't one) so app/log.tsx can import it.
+4. Keep every existing test green and add one asserting FastLogForm renders and
+   saves standalone, with no Modal ancestor.
+
+Do NOT create or edit app/log.tsx, app/(tabs)/_layout.tsx, or anything in
+components/ui — those are Shrey's. Only edit files under my lane
+(app/(tabs)/inventory.tsx, features/inventory/*). If anything else is needed
+output a CROSS-LANE REQUEST and stop. Run `npm run verify` and fix until green.
+```
+
+**Done when:**
+
+- [ ] `FastLogForm` exists, renders standalone, and is exported from `features/inventory`.
+- [ ] `FastLogSheet` is now a thin wrapper; the Inventory screen is visually and behaviourally unchanged.
+- [ ] `npm run verify` green; all prior tests still pass; only my-lane files changed.
+- [ ] Shrey told the form is ready so he can wire `app/log.tsx`.
+
+---
+
 ## 7. Cross-lane requests you'll likely need (pre-written)
 
 Copy the relevant block into Slack and tag the named owner. Do NOT implement these yourself.
@@ -357,6 +533,41 @@ router.push('/empties/finish?productId=<uuid>'). Please confirm the path segment
 and the param name (productId?), and that your screen reads it to load the right
 product and run finish_product. I own ONLY the button + navigation; you own the
 finish/celebration/review/archive screen. Neither of us edits the other's files.
+```
+
+**F. Update + delete product hooks (Shrey — `lib/api/*`) — BLOCKING Phase 1b, file this now**
+
+```
+CROSS-LANE REQUEST — to Shrey (lib/api)
+Need two mutations that don't exist yet, blocking the edit and delete halves of
+my Phase 1b:
+  1. useUpdateProduct() — takes a product id + a PARTIAL patch over brand, name,
+     shade, category, format, status, percent_remaining, photo_url, pao_months,
+     opened_at. I need percent_remaining editable directly so users can correct a
+     bad number without logging a fake use.
+  2. useDeleteProduct() — deletes a product row.
+Also please confirm the ON DELETE behaviour of the usage_logs.product_id FK. My
+plan tells me to write delete-confirmation copy saying usage history is not
+silently removed, and I don't want to ship a promise the schema doesn't keep.
+My strings.ts already has editAction/editTitle/saveEdit committed as dead keys
+waiting on this.
+```
+
+**G. Usage-log read hook (Shrey — `lib/api/*`) — BLOCKING, and Aaron needs it too**
+
+```
+CROSS-LANE REQUEST — to Shrey (lib/api)
+Need a useUsageLogs(productId) read hook returning that product's usage_logs
+(percent_after, note, photo_url, logged_at), newest first. The RLS select policy
+usage_logs_select_own already exists, so this should just be a query.
+It blocks three things:
+  - the usage-history list on my item detail (Phase 1b item 1)
+  - the "recently used" inventory filter (Phase 1a item 4, still missing)
+  - Aaron's "Recent progress" section and his weekly checkmark row — his
+    useHomeData.ts currently hardcodes recentActivity: [] with a TODO pointing
+    at this exact hook, and StreakRow approximates logged days from
+    last_log_date because there's no per-day history.
+Worth building once for both of us.
 ```
 
 **C. `log_usage` hook shape (Shrey — `lib/api/*`)**
@@ -396,9 +607,11 @@ _layout.tsx. (The Progress tab is Talbia's now.)
 
 - **Editing outside your lane.** The #1 project goal is zero merge conflicts. If the agent starts editing `components/ui/*`, `theme/*`, `lib/api/*`, `mocks/*`, or another tab — STOP it and file a CROSS-LANE REQUEST. Check `git diff --name-only main` before every PR.
 - **Building the finish flow yourself.** You NO LONGER own finishing, the empties archive, or the Progress tab (Talbia, D20). Your only touchpoint is a `router.push` button. Never create `features/empties/*`, never edit `app/(tabs)/progress.tsx`, never import `useEmpties`, `finish_product`, `useDashboard`, or `ProgressRing`. If the agent tries to add a celebration, review, months-in-use, or archive — stop it and file a CROSS-LANE REQUEST to Talbia.
-- **Getting the finish route wrong.** The button must match the path + param Talbia registers (§7-B). Agree it in Slack before Phase 1b. Hardcoding a guessed path that doesn't match her screen breaks the seam.
-- **Reintroducing deferred/scanning features.** No barcode, no AI identification — "Tap to scan" only attaches a photo (Wizard-of-Oz). No points, no badges anywhere.
-- **Hardcoding styles.** Never a raw hex, font name, or pixel radius. Use the NativeWind token classes from `theme/`. If the agent writes `#f2a2a2`, tell it to use the `brand` token.
+- **Getting the finish route wrong.** ~~The button must match the path + param Talbia registers (§7-B).~~ **Settled 7/27:** you shipped `router.push({ pathname: '/(tabs)/progress', params: { finishProductId: item.id } })` and that is now the agreed contract. Talbia reads `finishProductId` on her side (her Phase 3b). **Do not change your call** — changing it now would break the seam a second time.
+- **Reintroducing deferred/scanning features.** No barcode, no AI identification — the photo zone only attaches a photo (Wizard-of-Oz). No points, no badges anywhere. **This is currently violated in copy:** `strings.ts` says "Tap to scan barcode or take photo". Fix it (§0).
+- **Hardcoding styles.** Never a raw hex, font name, or pixel radius. Use the NativeWind token classes from `theme/`. If the agent writes `#f2a2a2`, tell it to use **`primary-container`** — there is **no `brand` token**, and `primary` is a completely different colour (`#8c4c4d`, deep mauve).
+- **Calling `track()` yourself.** The `lib/api` hooks already fire `inventory_item_added`, `usage_logged`, and `focus_product_set`. Adding your own call double-counts.
+- **Rebuilding what's already shipped.** Phase 1a and half of 1b are on `main`. Read §0 before pasting any block, and read the existing components before adding to them.
 - **Inline strings.** All user-visible copy goes in `features/inventory/strings.ts`. Copy must be calm and non-judgmental — never shame the user.
 - **Writing SQL or calling supabase-js.** You never do either. All data goes through `lib/api/*` hooks. If the agent reaches for supabase-js, stop it.
 - **Duplicating the usage-logging endpoint.** There is ONE shared `log_usage` hook (you and Aaron both import it). Do not create a second one.

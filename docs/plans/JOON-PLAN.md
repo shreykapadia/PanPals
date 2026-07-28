@@ -1,9 +1,87 @@
 # Joon's Implementation Plan — Wishlist & Impulse Intercept
 
+## ▶️ RESUME HERE — read this before anything else (updated 2026-07-27)
+
+**Asking your agent "my plan was updated, where do we continue from?" — this is the answer.**
+
+**Where you left off:** PR #17 is merged and #24 hardened it. **Phase 1a is done. Everything after it is not started.** Phase-by-phase breakdown in §0.
+
+**Resume at Phase 1b — the impulse intercept (§5).** This is F5, the riskiest assumption in the product and the thing Phase 4's success metric is actually measured on ("≥1 tester says it would change a real purchase decision; **zero** testers say 'judged'"). None of it exists yet, and it can't be tested on testers if it isn't built. It should be your whole next session.
+
+**Three things that changed and make Phase 1b different from how it's written:**
+
+- **Skip Phase 2 entirely.** You built straight onto real Supabase hooks; there are no mock wrappers to remove.
+- **`useSimilarOwned` exists** — `{ count, products }` — so rows 6 and 7 are unblocked and you do **not** need the local mock wrapper the phase describes.
+- **But it has no `matchReason` and no `confidence`,** so row 22's tiered language can only honestly say _"in the same category."_ File §6-A, and until it lands, build the low-confidence wording only. Never invent a confidence value client-side — a false "very similar" is exactly the shaming failure Claire churns on.
+
+**After 1b:** Phase 1c (§5). Note row 18 is much easier than written — `useCreateFromWishlist` already does the whole purchase→inventory conversion (§6-B is resolved, don't send it).
+
+> **Paste this to your agent to start the session:**
+>
+> ```
+> Read AI-CONTEXT.md in full, plus docs/PRD.md (F5) and docs/PERSONAS.md (Claire).
+> Then read docs/plans/JOON-PLAN.md §0 (STATUS) and the corrected hook table in
+> §4. My plan was re-audited on 2026-07-27 against main @ cdd8e1e — Phase 1a is
+> shipped and some instructions later in the file are now wrong, so §0 overrides
+> anything that contradicts it.
+>
+> Then read app/(tabs)/wishlist.tsx and features/wishlist/* to see what already
+> exists. Do NOT rebuild any of it.
+>
+> Build Phase 1b — the impulse intercept — following that phase's paste block in
+> §5, with these corrections:
+>   - useSimilarOwned(category, excludeId?) ALREADY EXISTS in lib/api and returns
+>     { count, products }. Import it. Do NOT create the local mock wrapper the
+>     phase describes.
+>   - It returns NO matchReason and NO confidence field. So for now every match is
+>     category-only: use the low-confidence wording ("in the same category") for
+>     all of them. Do NOT infer or fake a confidence tier client-side, and never
+>     use the word "duplicate". Structure the component so a real confidence field
+>     can be dropped in later without a rewrite.
+>   - docs/mockups/wishlist-intercept.png is the layout ground truth. Blush /
+>     warning-peach tones, never error red. The retailer action stays visible and
+>     tappable, just visually deprioritised — never disabled.
+>   - track() is imported from lib/analytics.ts, NOT lib/api. Fire only
+>     duplicate_warning_shown and warning_decision here. Do NOT fire
+>     wishlist_item_added / wishlist_item_removed / wishlist_item_purchased —
+>     the lib/api hooks already fire those and doing it again double-counts.
+>
+> Read every banner string aloud before you finish: it must sound like a
+> supportive friend stating facts about the user's own shelf, never a scold.
+>
+> Confirm the plan and the exact files you'll touch before writing any code. Only
+> edit files in my lane (app/(tabs)/wishlist.tsx, features/wishlist/*); if
+> anything else is needed, stop and output a CROSS-LANE REQUEST. Run
+> `npm run verify` at the end and fix until green.
+> ```
+
 > **Mission:** Build the calm, non-shaming Wishlist tab that intercepts impulse buys with the user's _own_ inventory, holds items in a 14-day cooling-off, and lets them reconsider, manage, and convert purchases into inventory — never policing, never blocking.
 >
 > **PRD functions owned:** **F5** (Intercept an impulse) and **F7** (Reconsider a wishlist item).
 > **Feature-matrix rows owned:** 2 (capture), 3 (prioritize + reflection), 6 (duplicate detection), 7 (impulse pause decision), 13 (reconsideration), 17 (browse & manage), 18 (purchase → inventory conversion), 19 (in-app reminders), 22 (confidence-tiered language).
+
+---
+
+## 0. STATUS — updated 2026-07-27 against `main` @ `cdd8e1e`
+
+**You shipped PR #17, hardened by #24.** `npm run verify` is green. Phase 1a is done — but **your biggest and riskiest feature hasn't been started**, and everyone else's lane is further along. F5, the impulse intercept, is the single riskiest assumption in the whole product, and none of it exists yet.
+
+| Phase                                                 | Status                | What's on `main`                                                                                                                                                                                                                                                                                                               |
+| ----------------------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **1a** List + capture                                 | ✅ **Done**           | `app/(tabs)/wishlist.tsx` (list, status filters, undo window), `WishlistItemCard`, `AddWishlistItemSheet` (catalog / link / manual), `EditWishlistItemSheet`, `useWishlistActions` (add/update/remove/**restore**), `daysOnList`, `strings.ts`, 2 test files. #24 added error handling on remove/undo and reflection clearing. |
+| **1b** Intercept + confidence tiers                   | 🔴 **Not started**    | `InterceptBanner`, `useIntercept` — **nothing exists.** This is F5 / matrix rows 6, 7, 22.                                                                                                                                                                                                                                     |
+| **1c** Cooling-off, reconsider, conversion, reminders | ⬜ Not started        | `ReconsiderDetail`, cooling-off helper, duplicate-entry prompt, mark-purchased, reminders — none exist. Note `daysOnList` is a useful start.                                                                                                                                                                                   |
+| **2** Wire real hooks                                 | ⚪ **Not applicable** | Shrey flipped `lib/api` to real Supabase before you started; you built straight onto real hooks. **Skip Phase 2 entirely** — you have no mock wrappers to remove.                                                                                                                                                              |
+| **3** Polish / a11y / analytics / Maestro             | ⬜ Not started        | `.maestro/wishlist-intercept.yaml` missing. ⚠️ **Do NOT fire analytics** — see below.                                                                                                                                                                                                                                          |
+| **4** User testing                                    | ⬜ Not started        | —                                                                                                                                                                                                                                                                                                                              |
+
+**Three corrections before you paste anything below:**
+
+1. **⚠️ Do NOT call `track()`.** Phase 3 tells you to fire five events. **Two of them already fire inside `lib/api`** — `useAddWishlistItem` fires `wishlist_item_added`, `useRemoveWishlistItem` fires `wishlist_item_removed`, and `useCreateFromWishlist` fires `wishlist_item_purchased`. Adding your own calls double-counts. The only events still genuinely unfired are `duplicate_warning_shown` and `warning_decision`, which are yours to add in Phase 1b — and `track` is imported from **`lib/analytics.ts`**, not `lib/api`.
+2. **🟢 Row 18 is easier than this plan says.** `useCreateFromWishlist({ wishlistItemId })` **already exists** and already does the whole job: flips the wishlist item to `purchased`, creates the `products` row, and sets `source_wishlist_item_id`. No local mock, no cross-lane request needed (§6-B is satisfied). Just call it.
+3. **🟠 Row 22 is partly blocked.** `useSimilarOwned(category, excludeId?)` **exists** and returns `{ count, products }` — enough for the banner's count and the list of the user's own matching items. But it returns **no `matchReason` and no `confidence` tier**, so you cannot scale the language high/medium/low as row 22 requires. File §6-A (rewritten below) and, until it lands, **build to the low-confidence tier only** — "in the same category" — which is the safe wording anyway. Never invent a confidence value client-side; a false "very similar" is exactly the shaming failure Claire churns on.
+
+**Where you should spend your next session:** Phase 1b. The intercept is the longest pole and the highest-risk assumption in the product, and Phase 4's success metric ("≥1 tester says it would change a real purchase decision; **zero** testers say 'judged'") can't be measured on something that doesn't exist. It should reach testers first, not last.
 
 ---
 
@@ -60,11 +138,21 @@ You will not write code. You paste prompts into your AI coding agent (Claude Cod
 
 You read/write these only through Shrey's `lib/api` hooks — never SQL, never supabase-js.
 
-**Hooks**
+**Hooks — CORRECTED 7/27.** There is no `useWishlist()` method bag. `useWishlist` is a plain read query and each mutation is its own top-level hook — which is why your `useWishlistActions.ts` composes them itself (that was the right call; keep doing it).
 
-- `useWishlist()` → `{ data: WishlistItem[], add(w), update(id, patch), remove(id), restore(id), markPurchased(id), createFromWishlist(id) }`.
-- `useSimilarOwned(category, excludeProductId?)` → `{ count, items: Product[] }` (wraps `find_similar_owned` — powers the intercept + confidence-tiered language).
-- `useCatalogSearch(q, category?)` → `{ data: CatalogProduct[] }` (wraps `search_catalog`, for pre-fill).
+| Hook                                     | Real shape                                                                                                     | Notes                                                                                                                                  |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `useWishlist(filters?)`                  | read query → `WishlistItem[]`; filters `{status?}`                                                             | —                                                                                                                                      |
+| `useAddWishlistItem()`                   | mutation; `cooling_off_ends_at` and `status` come from **DB defaults** (now + 14d, `cooling`) — don't set them | fires `wishlist_item_added`                                                                                                            |
+| `useUpdateWishlistItem()`                | mutation `{id, …patch, status?}`                                                                               | this is what your `restoreItem` composes                                                                                               |
+| `useRemoveWishlistItem()`                | mutation `{id}` — soft-deletes to `status='removed'`                                                           | fires `wishlist_item_removed`                                                                                                          |
+| `useCreateFromWishlist()`                | mutation `{wishlistItemId}`                                                                                    | **row 18, already done for you** — sets `purchased` + creates the product + `source_wishlist_item_id`; fires `wishlist_item_purchased` |
+| `useSimilarOwned(category, excludeId?)`  | read query → `{ count, products }`                                                                             | ⚠️ **no `matchReason`, no `confidence`** — caps row 22, see §0 and §6-A                                                                |
+| `useCatalogSearch(q, category?, limit?)` | read query → `CatalogProduct[]`                                                                                | `components/ui/ProductSearch` already wraps it                                                                                         |
+
+`track()` is imported from **`lib/analytics.ts`**, not `lib/api`. Signature: `track(eventName, properties?, entityId?, sourceView?)`. It throws on an unknown event name or on a `review_text` prop, by design.
+
+**Design tokens:** the intercept banner's blush/amber is **`warning-peach`**; PanPal Rose is **`primary-container`**. There is no `brand` token, and `primary` is `#8c4c4d` (deep mauve). Error red (`error`) is only for real failures — never the banner.
 
 **Columns you touch**
 
@@ -434,27 +522,29 @@ REQUEST and stop.
 
 Copy the relevant block, fill the brackets, and post it in the team channel for Shrey to route. Do NOT make the change yourself.
 
-**A. Similar-owned hook (needed for Phase 1b):**
+**A. Confidence tiers on the similar-owned hook (needed for row 22) — REWRITTEN 7/27.** The hook itself now exists; what's missing is the match metadata.
 
 ```
-CROSS-LANE REQUEST — to Shrey (lib/api)
-Need: a useSimilarOwned() hook in lib/api that wraps the find_similar_owned RPC.
-Expected return: { count: number, items: Array<{ id, brand, name, shade,
-category, matchReason: string, confidence: 'high'|'medium'|'low' }> }, keyed by
-category (+ optional exclude id). Blocking: the Wishlist impulse intercept (F5,
-rows 6/7/22). I'm mocking this shape locally until it lands.
+CROSS-LANE REQUEST — to Shrey (lib/api + supabase)
+useSimilarOwned(category, excludeId?) exists and returns { count, products } —
+that covers the banner's count and the list of the user's own matching items, so
+rows 6 and 7 are unblocked. Thanks.
+
+What's still missing is matrix row 22, confidence-tiered language. To scale the
+wording I need, per returned product, a matchReason: string (e.g. "same category:
+blush", "same shade family") and a confidence: 'high' | 'medium' | 'low'. Right
+now every match is category-only with no signal, so the strongest thing I can
+honestly say is "in the same category" — and row 22 exists specifically so we
+never overstate a match to Claire.
+
+Can find_similar_owned return those two fields additively? If that's out of scope
+before the fair, tell me and I'll ship the low-confidence wording only and we
+record it as a known limitation — but I don't want to infer a confidence tier
+client-side, because a wrong "very similar" is exactly the shaming failure this
+row is meant to prevent.
 ```
 
-**B. Wishlist → inventory conversion hook (needed for Phase 1c):**
-
-```
-CROSS-LANE REQUEST — to Shrey (lib/api)
-Need: a shared hook to convert a purchased wishlist item into an inventory product
-without re-entry, e.g. useProducts().createFromWishlist(wishlistItem). It must set
-the new product's source_wishlist_item_id and let me set the wishlist item's
-status=purchased. This keeps the conversion out of Matt's inventory files.
-Blocking: row 18. I'm mocking it locally until it lands.
-```
+**B. Wishlist → inventory conversion — ✅ RESOLVED, do not send.** `useCreateFromWishlist({ wishlistItemId })` already exists in `lib/api` and does everything row 18 needs: sets the wishlist item to `purchased`, inserts the `products` row, sets `source_wishlist_item_id`, and fires `wishlist_item_purchased`. Import it and call it — no local mock, no request.
 
 **C. New shared UI primitive:**
 

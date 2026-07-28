@@ -1,22 +1,128 @@
 # Talbia's Implementation Plan — Finish, Empties & Progress
 
+## ▶️ RESUME HERE — read this before anything else (updated 2026-07-27)
+
+**Asking your agent "my plan was updated, where do we continue from?" — this is the answer.**
+
+**Where you left off:** PR #19 is merged. Phases 1 and 2 are built and most of Phase 3 is done. Phase-by-phase breakdown in §0.
+
+**Start with Phase 3b. It is the most urgent thing in the whole project right now.** Your finish flow — the celebration, the repurchase review, everything you built in Phase 2 — is **unreachable in a production build**. Matt's "Mark as Finished" button navigates to your tab with a `finishProductId` param, and your screen never reads it. So F6 does not work end to end in the app we would demo. It is roughly ten lines in your own file.
+
+**Then, in order:**
+
+1. **Phase 3b** (§6) — wire the finish seam. 🔴 Do this first.
+2. **Phase 3c** (§6) — swap in Aaron's real `ProgressRing` and delete your stub. His shipped in PR #22.
+3. **Phase 3d** (§6) — write `.maestro/finish-and-archive.yaml`. It can't pass until 3b lands, so it goes after.
+4. **Phase 5** (§6) — the footer rename + trim. You merge **second** in that chain, after Aaron.
+
+> **Paste this to your agent to start the session:**
+>
+> ```
+> Read AI-CONTEXT.md in full, then docs/plans/TALBIA-PLAN.md §0 (STATUS) and §5
+> (the corrected hook table). My plan was re-audited on 2026-07-27 against
+> main @ cdd8e1e. Phases 1 and 2 are already shipped and some instructions later
+> in the file are now wrong — §0 overrides anything that contradicts it. In
+> particular the finish route is NOT /empties/finish?productId= as older sections
+> say; that route was never created.
+>
+> Then run `git log --oneline -5` and read app/(tabs)/progress.tsx plus
+> features/empties/* to see what already exists. Do NOT rebuild any of it.
+>
+> Start with Phase 3b in §6 — the finish seam is broken and my whole finish flow
+> is currently dead code outside __DEV__. Follow that phase's paste block exactly.
+>
+> After 3b passes verify, continue to Phase 3c (swap in Aaron's
+> components/ProgressRing.tsx and delete my ProgressRingStub) and then Phase 3d
+> (the Maestro flow). Do not start Phase 5 until I tell you Aaron's footer PR has
+> merged.
+>
+> Do NOT add any track() calls — useFinishProduct already fires product_finished
+> from inside lib/api.
+>
+> Confirm the plan and the exact files you'll touch before writing any code. Only
+> edit files in my lane (app/(tabs)/progress.tsx, features/empties/*,
+> .maestro/finish-and-archive.yaml); if anything else is needed — especially
+> anything in features/inventory/* — stop and output a CROSS-LANE REQUEST. Run
+> `npm run verify` at the end and fix until green.
+> ```
+
 > **Mission:** Build Maya's payoff moment — "I used it all up." When a product hits empty, Talbia's flow turns it into a gratifying, **private** finish: a ring-close/confetti celebration, a months-in-use chip, a quick repurchase verdict, and a permanent entry in the user's **private empties archive** on the Progress tab. No feed, no likes, no points, no badges — this is a personal shelf, not a social post. **PRD function owned:** F6 (finish a product — gratifying, private). **Matrix rows owned:** 11 (finish/celebration flow), 12 (repurchase review), and the **Progress-tab side** of rows 10/14 (My Progress summary hosting the archive).
 >
 > **Role note (D20, 7/21):** Talbia is a **front-end feature owner**. She does **not** own the backend, schema, RPCs, or data hooks — Shrey owns all of that. Talbia consumes Shrey's hooks (`useEmpties`, `useDashboard`, `useProducts`) and builds the screens on top of them.
 
 ---
 
+## 0. STATUS — updated 2026-07-27 against `main` @ `cdd8e1e`
+
+**You shipped PR #19 — Phases 1, 2, and most of 3 are done.** `npm run verify` is green. But there is one problem you need to fix before anything else, and it's serious.
+
+> ### 🔴 Your finish flow is currently unreachable in a production build
+>
+> Matt's "Mark as Finished" button ships and works. It calls:
+>
+> ```ts
+> router.push({ pathname: '/(tabs)/progress', params: { finishProductId: item.id } });
+> ```
+>
+> Your `app/(tabs)/progress.tsx` **never reads `finishProductId`**. It only opens `FinishFlow` from its own `__DEV__` preview buttons. So today, tapping "Mark as Finished" navigates to your tab and **nothing happens** — and once `__DEV__` is false, `FinishFlow`, `CelebrationState`, `RepurchaseReview`, and the whole `finish_product` path become **dead code**. F6 does not work end to end in the app we'd demo.
+>
+> **This is a ~10-line fix in your file (Phase 3b below). Do it first.** Note the route is NOT the `/empties/finish?productId=` that §4 and §7-A of this plan proposed — that route was never created, Matt shipped the param-on-the-tab approach instead, and **that is now the agreed contract**. Read `finishProductId`; don't ask Matt to change his call.
+
+| Phase                           | Status                     | What's on `main`                                                                                                                                                        |
+| ------------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1** Archive + Progress tab    | ✅ **Done**                | `EmptiesArchive`, `EmptyCard`, `ProgressSummary`, `EmptiesEmptyState`, `useEmptiesArchive`, `strings.ts`, tests. No likes / author / feed — D13 respected.              |
+| **2** Finish flow               | ✅ **Built**, ❌ not wired | `FinishFlow`, `CelebrationState`, `RepurchaseReview`, `useFinishProduct`. Reachable only via `__DEV__` preview — see the box above.                                     |
+| **3** States / a11y / analytics | 🟡 **Mostly done**         | ✅ `EmptiesLoadingState`, `EmptiesErrorState`, `useReducedMotion`, `product_finished` fires from the hook. ❌ **`.maestro/finish-and-archive.yaml` was never written.** |
+| **3b** Wire the finish seam     | 🔴 **NEW — do first**      | See below.                                                                                                                                                              |
+| **3c** Swap in Aaron's ring     | ⬜ Not started             | Your `ProgressRingStub` was the right call when Aaron's ring didn't exist. **It exists now.**                                                                           |
+| **4** User testing              | ⬜ Not started             | —                                                                                                                                                                       |
+| **5** Footer (rename + trim)    | ⬜ Not started             | Inbound request in §1. Merges **second** in the footer chain, after Aaron.                                                                                              |
+
+**On the ring (Phase 3c):** `features/empties/components/ProgressRingStub.tsx` carries your own TODO saying to delete it when Aaron's lands. Aaron shipped `components/ProgressRing.tsx` in PR #22. The swap is **not drop-in** — his ring requires an `accessibilityLabel` prop and accepts `strokeWidth`; yours takes neither and animates the fill internally. So: pass `accessibilityLabel` at every call site, decide whether you still need the entry animation (if yes, keep it in a small local wrapper around his ring rather than a whole second ring), then delete `ProgressRingStub.tsx` and the adapter.
+
+**Don't re-fire analytics.** `useFinishProduct` already calls `track('product_finished', …)` inside `lib/api`. Phase 3 below reads as though you must add it — you don't, and you correctly didn't.
+
+---
+
 ## 1. Your lane
 
-| ✅ OWN & edit                                                        | 📥 Import but NEVER edit                                                                    | 🚫 Forbidden (other lanes / not in scope)                                                                                                                          |
-| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `app/(tabs)/progress.tsx` (Progress tab screen)                      | `components/ui/*` (Shrey — Card, Button, Chip, and any shared empty/error primitives)       | `app/(tabs)/inventory.tsx`, `features/inventory/*` (Matt — incl. the "Mark as Finished" button)                                                                    |
-| `features/empties/*` (components, hooks, `strings.ts`, `__tests__/`) | `components/ProgressRing.tsx` (Aaron — you import it for the celebration + summary)         | `app/(tabs)/index.tsx`, `features/home/*` (Aaron)                                                                                                                  |
-| `.maestro/finish-and-archive.yaml` (your flow)                       | `lib/api/*` hooks — esp. `useEmpties`, `useDashboard`, `useProducts`, and `track()` (Shrey) | `app/(tabs)/wishlist.tsx`, `features/wishlist/*` (Joon)                                                                                                            |
-|                                                                      | `mocks/types.ts` + `mocks/*` fixtures (Shrey)                                               | `app/_layout.tsx`, `app/(tabs)/_layout.tsx`, `app/(auth)/*`, `app/(tabs)/you.tsx`, `lib/*`, `theme/*`, `mocks/*`, `components/ui/*`, `docs/*`, `scripts/*` (Shrey) |
-|                                                                      | `theme/*` NativeWind token config (Shrey)                                                   | `supabase/*`, `types/database.ts` (Shrey)                                                                                                                          |
+| ✅ OWN & edit                                                                          | 📥 Import but NEVER edit                                                                    | 🚫 Forbidden (other lanes / not in scope)                                                                                                                          |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `app/(tabs)/empties.tsx` (the tab screen — **renamed from `progress.tsx` in Phase 5**) | `components/ui/*` (Shrey — Card, Button, Chip, and any shared empty/error primitives)       | `app/(tabs)/inventory.tsx`, `features/inventory/*` (Matt — incl. the "Mark as Finished" button)                                                                    |
+| `features/empties/*` (components, hooks, `strings.ts`, `__tests__/`)                   | `components/ProgressRing.tsx` (Aaron — you import it for the celebration + summary)         | `app/(tabs)/index.tsx`, `features/home/*` (Aaron)                                                                                                                  |
+| `.maestro/finish-and-archive.yaml` (your flow)                                         | `lib/api/*` hooks — esp. `useEmpties`, `useDashboard`, `useProducts`, and `track()` (Shrey) | `app/(tabs)/wishlist.tsx`, `features/wishlist/*` (Joon)                                                                                                            |
+|                                                                                        | `mocks/types.ts` + `mocks/*` fixtures (Shrey)                                               | `app/_layout.tsx`, `app/(tabs)/_layout.tsx`, `app/(auth)/*`, `app/(tabs)/you.tsx`, `lib/*`, `theme/*`, `mocks/*`, `components/ui/*`, `docs/*`, `scripts/*` (Shrey) |
+|                                                                                        | `theme/*` NativeWind token config (Shrey)                                                   | `supabase/*`, `types/database.ts` (Shrey)                                                                                                                          |
 
 **The #1 rule of this project is: never edit a file outside your lane.** If a task seems to need it, you stop and file a CROSS-LANE REQUEST (see §7). Merge conflicts are the enemy; staying in your lane is how five people ship in parallel.
+
+> ### 📥 INBOUND CROSS-LANE REQUEST — from Shrey (2026-07-27), footer audit
+>
+> ```
+> CROSS-LANE REQUEST — from Shrey (navigation/IA) to Talbia
+> A footer audit against docs/PERSONAS.md + docs/PRD.md is changing the bottom nav
+> to: Home | Inventory | ⊕ Log | Wishlist | Empties  (You moves off the tab bar).
+>
+> Two things I need from your lane, because I must not edit your files:
+>   1. Rename app/(tabs)/progress.tsx -> app/(tabs)/empties.tsx and retitle the
+>      screen "Your Empties". My Tabs.Screen will reference name="empties".
+>   2. Remove the streak line and the in_rotation/unopened status badges from
+>      ProgressSummary. PRD F4 and F8 both put the donut and the streak on Home,
+>      home-dashboard.png already draws them there, and your summary currently
+>      renders the same two facts a tab away. Aaron keeps them; you drop them.
+>
+> This is Phase 5 below, written out in full. Merge order matters — read it.
+> Nothing else in your lane changes; the archive, finish flow, and celebration
+> are all untouched.
+> ```
+>
+> **Why (so you can defend it at the fair):** D13 deleted the Community sub-tab, so
+> the only content on that tab that isn't duplicated on Home is the **private
+> empties archive**. That archive is the direct answer to a pain point named in two
+> personas — Maya: competitor apps "lose history when products finish"; Sam:
+> decluttered items "vanish into the void." Calling the tab "Progress" hides your
+> differentiator behind a word that already describes Home. The North Star metric
+> is literally **empties/user/month** — the nav should say the word.
 
 **Two seams you depend on but never edit:**
 
@@ -103,13 +209,16 @@ You never write SQL or edit these — this is just so you know the exact shapes 
 | `photo_url`     | text \| null                   | optional                                                  |
 | `created_at`    | timestamptz                    | when it was finished                                      |
 
-**The finish hook (Shrey's — you consume it):**
+**The finish hook (Shrey's — you consume it). CORRECTED 7/27:** there is no `useEmpties().finish(...)` method. The real hooks are two separate top-level exports, which is what your shipped code already uses:
 
-```
-useEmpties().finish(product_id, review_text?, repurchase, photo_url?)
+```ts
+useEmpties(); // read query -> Empty[]
+useFinishProduct(); // mutation { productId, reviewText?, repurchase, photoUrl? }
 ```
 
-This wraps the `finish_product` RPC, which: sets `products.status = 'finished'`, sets `is_priority = false` (removes it from the Focus Pot), creates the `empties` row, and computes `months_in_use` from `opened_at`. **No badge/points logic.** `useEmpties()` also gives you the list of the current user's empties for the archive (owner-only).
+`useFinishProduct` already fires `track('product_finished', { repurchase }, productId)` internally — **do not fire it again.** Likewise `useDashboard()` returns **snake_case** fields: `{ profile, focus_products, status_counts, streak: { current_streak, longest_streak, last_log_date }, category_counts, ready_wishlist_items }`.
+
+The mutation wraps the `finish_product` RPC, which: sets `products.status = 'finished'`, sets `is_priority = false` (removes it from the Focus Pot), creates the `empties` row, and computes `months_in_use` from `opened_at`. **No badge/points logic.** `useEmpties()` also gives you the list of the current user's empties for the archive (owner-only).
 
 **`products.status` transition:** the finish flow moves a product from `in_rotation` (or `unopened`) → `finished`. You don't set this field yourself — `finish()` does it via the RPC.
 
@@ -308,6 +417,101 @@ Click: with the mock set to "loading," the Progress tab shows skeletons; with "n
 
 ---
 
+### Phase 3b — Wire the finish seam (NEW, 7/27) — 🔴 DO THIS FIRST
+
+**Goal:** make the finish flow actually reachable. Right now it is dead code in a production build (§0).
+
+**Context you need before pasting:** Matt's button already ships and already navigates. It pushes to your tab with a `finishProductId` route param. Your screen has to read that param and open `FinishFlow` for that product. You are **not** changing Matt's file, and he is **not** changing his call — this contract is settled.
+
+> **Paste this to your agent:**
+>
+> ```
+> Continue in the PanPals repo, my lane only (app/(tabs)/progress.tsx,
+> features/empties/*). Re-read AI-CONTEXT.md first.
+>
+> BUG: my finish flow is unreachable in a production build. Matt's inventory item
+> detail navigates with:
+>   router.push({ pathname: '/(tabs)/progress', params: { finishProductId: item.id } })
+> but app/(tabs)/progress.tsx never reads finishProductId — it only opens FinishFlow
+> from its own __DEV__ preview buttons. So the button goes nowhere, and once __DEV__
+> is false FinishFlow / CelebrationState / RepurchaseReview are dead code.
+>
+> Fix it in app/(tabs)/progress.tsx:
+> 1. Read the param with useLocalSearchParams() from expo-router. Handle it being
+>    a string, a string[], or undefined — expo-router can hand back an array.
+> 2. When finishProductId is present, render <FinishFlow productId={...} /> instead
+>    of the archive, in ALL builds — not behind __DEV__.
+> 3. On complete or cancel, clear the param (router.setParams({ finishProductId:
+>    undefined }) or an equivalent replace) so the tab returns to the archive and
+>    doesn't re-open the flow when the user taps the tab again. Verify that
+>    navigating away and back does not reopen it.
+> 4. If the id doesn't match a product the user owns, FinishFlow already renders its
+>    calm finishNotFound error state — confirm that path still works.
+> 5. Leave the existing __DEV__ preview buttons alone; they're useful for testing.
+>
+> Add a test in features/empties/__tests__/ asserting that a finishProductId param
+> renders FinishFlow for that product, and that no param renders the archive. Mock
+> expo-router and the lib/api hooks — never hit Supabase in Jest.
+>
+> Only edit files under my lane. If anything else is needed output a CROSS-LANE
+> REQUEST and stop. Run `npm run verify` and fix until green.
+> ```
+
+**Verify:** `npm run verify` green. Then `npx expo start`, sign in, go to **Inventory** → tap a product → **Mark as Finished** → you should land in _your_ celebration, not on a static archive. Complete the review, confirm the new empty appears in the archive, then tap the tab again and confirm the flow does **not** reopen.
+
+**Done when:**
+
+- [ ] Tapping Matt's "Mark as Finished" opens the celebration in a normal (non-`__DEV__`) run.
+- [ ] Completing or cancelling clears the param and returns to the archive; re-tapping the tab doesn't reopen the flow.
+- [ ] An unknown/foreign `finishProductId` shows the calm not-found state, not a crash.
+- [ ] Test covers param-present and param-absent. `npm run verify` green; only my-lane files changed.
+
+---
+
+### Phase 3c — Swap in Aaron's ProgressRing, delete the stub (NEW, 7/27)
+
+**Goal:** retire `ProgressRingStub`. Aaron's `components/ProgressRing.tsx` shipped in PR #22 and your own adapter says to do this.
+
+> **Paste this to your agent:**
+>
+> ```
+> Continue in the PanPals repo, my lane only. Aaron's shared ring now exists at
+> components/ProgressRing.tsx (PR #22). Its props are:
+>   percent: number; size?: number; strokeWidth?: number; label?: string;
+>   accessibilityLabel: string  // REQUIRED
+>
+> Replace my local stub with it:
+> 1. Update every call site in features/empties/* to import ProgressRing from
+>    components/ProgressRing (import only — NEVER edit that file, it is Aaron's)
+>    and pass a meaningful accessibilityLabel from features/empties/strings.ts.
+> 2. My stub animates the fill on mount and respects reduce-motion; Aaron's does
+>    not. If the celebration still needs that ring-close animation, keep it in a
+>    SMALL local wrapper in features/empties/ that animates the `percent` value it
+>    passes down to Aaron's ring — do not keep a second ring implementation, and
+>    keep respecting useReducedMotion.
+> 3. Delete features/empties/components/ProgressRingStub.tsx and
+>    features/empties/components/ProgressRing.tsx (the adapter re-export).
+> 4. Keep every existing test green.
+>
+> Only edit files under my lane. If Aaron's ring is missing something I need,
+> output a CROSS-LANE REQUEST (§7-D) instead of editing his file. Run
+> `npm run verify` and fix until green.
+> ```
+
+**Done when:**
+
+- [ ] No file under `features/empties/` draws its own SVG ring.
+- [ ] The celebration still animates (or degrades statically under reduce-motion).
+- [ ] Both stub files deleted; `npm run verify` green; only my-lane files changed.
+
+---
+
+### Phase 3d — The missing Maestro flow
+
+`.maestro/finish-and-archive.yaml` was specified in Phase 3 item 4 and never written. Do it **after 3b** — it can't pass until the seam works. Model it on `.maestro/log-product.yaml` and `.maestro/focus-and-ring.yaml`, which are both on `main` and show the house style for signing in as the seeded `maya@panpals.app` account. Assert: Inventory → tap a product → Mark as Finished → celebration shows → pick a verdict → save → land on the archive with the new empty and its verdict visible.
+
+---
+
 ### Phase 4 — User-testing support (design fair)
 
 **Goal:** Help the moderated sessions (5–8 MBA testers) hit the PRD metric: the finish moment is described as **"motivating," not "restrictive."** No new features — just fixes surfaced by testing.
@@ -334,6 +538,121 @@ Click: with the mock set to "loading," the Progress tab shows skeletons; with "n
 - [ ] The finish moment still reads as motivating, with no gamification and empties still private.
 - [ ] `npm run verify` passes; Maestro flow still green.
 - [ ] Only my-lane files changed.
+
+---
+
+### Phase 5 — Footer realignment: the Progress tab becomes the **Empties** tab
+
+**This phase is an inbound cross-lane request from Shrey (§1).** It is a rename plus
+a subtraction — you are not building anything new. Roughly 30–60 minutes of agent time.
+
+**Goal:** Your tab stops competing with Home. The screen becomes unambiguously "the
+place my finished products live," and the two facts that Home already owns (the
+status donut and the streak) stop being rendered twice in the app.
+
+> **⚠️ Merge order — read this before you start.** Shrey's navigation PR will point
+> a tab at `name="empties"`, and your file is currently `progress.tsx`. If those two
+> land out of order, `main` breaks for all five of you. The fix is a **one-line
+> shim**, and it is part of the paste box below:
+>
+> 1. **You go first.** Your PR creates `app/(tabs)/empties.tsx` (the real screen) and
+>    leaves `app/(tabs)/progress.tsx` behind as a single re-export line. Both routes
+>    resolve, so `main` keeps working with the old nav.
+> 2. **Shrey merges his nav PR** pointing at `empties`.
+> 3. **You open a 2-line follow-up PR** deleting the `progress.tsx` shim. Ask Shrey
+>    to confirm his PR is merged before you do.
+
+> **Paste this to your agent:**
+>
+> ```
+> Continue in the PanPals repo, my lane only. Re-read AI-CONTEXT.md, docs/PRD.md
+> (functions F4, F6, F8) and docs/PERSONAS.md (Maya + Sam) first.
+>
+> This is a rename-and-subtract task from a navigation audit. Do NOT add features.
+> The bottom nav is becoming: Home | Inventory | (+) Log | Wishlist | Empties.
+> My tab is the last one and is being renamed from "Progress" to "Empties".
+>
+> (1) RENAME THE SCREEN, WITH A SHIM.
+>   - Use `git mv app/(tabs)/progress.tsx app/(tabs)/empties.tsx` so history is kept.
+>   - Then recreate app/(tabs)/progress.tsx containing exactly one line:
+>       export { default } from './empties';
+>     This shim exists ONLY so Shrey's navigation PR can merge independently of mine.
+>     Add a one-line comment above it saying it is a temporary shim to be deleted
+>     once Shrey's nav PR lands. Do not put any other logic in it.
+>
+> (2) RETITLE. The screen heading becomes "Your Empties" (not "My Progress").
+>   Update the ScrollView accessibilityLabel to match. All copy stays in
+>   features/empties/strings.ts — no inline strings in JSX.
+>
+> (3) SUBTRACT THE DUPLICATED STATS. Rename features/empties/ProgressSummary.tsx to
+>   features/empties/EmptiesSummary.tsx and change what it renders:
+>     REMOVE: the streak line. PRD F8 puts the streak on Home, display-only, and
+>             Aaron already renders it there. Do not read dashboard.streak at all.
+>     REMOVE: the "in rotation" and "unopened" count badges. PRD F4 puts the status
+>             donut on Home and docs/mockups/home-dashboard.png already draws it as
+>             "At a Glance". Those two numbers are Home's job, not mine.
+>     KEEP:   the ring showing percent finished, and the finished count.
+>     ADD:    a repurchase-verdict split — the count of Yes / Maybe / No across the
+>             archive. Compute it client-side from the entries I already have out of
+>             useEmptiesArchive(); do NOT ask for a new lib/api hook and do NOT call
+>             supabase-js. Render each as a low-contrast pill with the WORD in it
+>             (Yes / Maybe / No), never colour alone. This is the one stat that is
+>             genuinely mine — Home cannot show it, because only the archive knows it.
+>   Keep using Aaron's components/ProgressRing.tsx by import. Do not edit it.
+>
+> (4) UPDATE THE FINISH REDIRECT. Anywhere the finish flow routes back to /progress
+>   on success, change it to /empties.
+>
+> (5) UPDATE .maestro/finish-and-archive.yaml for the new route/tab label ("Empties").
+>
+> (6) UPDATE TESTS under features/empties/__tests__/: rename ProgressSummary tests to
+>   EmptiesSummary, assert the streak is NOT rendered, assert the in-rotation and
+>   unopened badges are NOT rendered, and assert the Yes/Maybe/No verdict counts are.
+>
+> Everything else stays exactly as it is: the archive is still PRIVATE (no feed, no
+> likes, no author), the celebration still has no points or badges, tone stays calm
+> and second person, tokens only — never a hardcoded hex, font, or radius.
+>
+> Only edit files under my lane: app/(tabs)/empties.tsx, app/(tabs)/progress.tsx
+> (shim only), features/empties/*, .maestro/finish-and-archive.yaml. Do NOT edit
+> app/(tabs)/_layout.tsx — the tab bar is Shrey's. Do NOT edit components/ProgressRing.tsx
+> — it is Aaron's. If anything else is needed, output a CROSS-LANE REQUEST and stop.
+>
+> Run `npm run verify` and fix until it passes with zero errors.
+> ```
+
+**Files created / changed:**
+
+- `app/(tabs)/empties.tsx` (renamed from `progress.tsx`, `git mv`)
+- `app/(tabs)/progress.tsx` (temporary one-line re-export shim — deleted in the follow-up PR)
+- `features/empties/EmptiesSummary.tsx` (renamed from `ProgressSummary.tsx`; streak + status badges removed, verdict split added)
+- Updates to `strings.ts`, `FinishFlow.tsx` (success redirect), `__tests__/`, `.maestro/finish-and-archive.yaml`
+
+**Verify:**
+
+```bash
+npm run verify
+npx expo start        # press w for web
+```
+
+Click through: the last tab now reads **Empties** and opens a screen headed "Your
+Empties." The summary shows a ring, a finished count, and a Yes/Maybe/No split — and
+**no streak, no "in rotation," no "unopened."** Open Home in the same session and
+confirm the streak and the At-a-Glance donut still appear there exactly once. Finish a
+product and confirm you land back on the Empties tab with the new card in place.
+
+**Done when:**
+
+- [ ] `npm run verify` passes with zero errors.
+- [ ] `app/(tabs)/empties.tsx` exists (via `git mv`, history preserved) and `progress.tsx` is a one-line shim with a comment explaining it is temporary.
+- [ ] Screen is headed "Your Empties"; the ScrollView accessibility label matches.
+- [ ] The streak, the "in rotation" badge, and the "unopened" badge are **gone** from my tab — each of those facts now appears exactly once in the app, on Home.
+- [ ] A Yes / Maybe / No repurchase-verdict split renders, computed client-side from the existing archive entries, with the word in each pill (never colour alone).
+- [ ] The finish flow redirects to `/empties` on success.
+- [ ] Archive is still private: no likes, no author, no feed, no points, no badges.
+- [ ] `.maestro/finish-and-archive.yaml` updated and green.
+- [ ] Only my-lane files changed (`git diff --name-only main`); `app/(tabs)/_layout.tsx` is **not** in the list.
+- [ ] **After Shrey confirms his nav PR merged:** follow-up PR deletes the `progress.tsx` shim.
 
 ---
 
