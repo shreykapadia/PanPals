@@ -1,27 +1,34 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 import { Badge } from '../../components/ui/Badge';
-import { DashboardData } from '../../mocks/types';
+import { DashboardData, RepurchaseVerdict } from '../../mocks/types';
 import { ProgressRing } from './components/ProgressRing';
 import { emptiesStrings } from './strings';
+import { ArchiveEntry } from './useEmptiesArchive';
 
-interface ProgressSummaryProps {
+interface EmptiesSummaryProps {
   dashboard: DashboardData;
+  entries: ArchiveEntry[];
 }
 
-export function ProgressSummary({ dashboard }: ProgressSummaryProps) {
+export function EmptiesSummary({ dashboard, entries }: EmptiesSummaryProps) {
   const { status_counts: statusCounts } = dashboard;
   const totalProducts = Object.values(statusCounts).reduce((total, count) => total + count, 0);
   const finishedCount = statusCounts.finished ?? 0;
-  const inRotationCount = statusCounts.in_rotation ?? 0;
-  const unopenedCount = statusCounts.unopened ?? 0;
   const percentFinished =
     totalProducts === 0 ? 0 : Math.round((finishedCount / totalProducts) * 100);
+  const verdictCounts = entries.reduce(
+    (counts, { empty }) => {
+      counts[empty.repurchase] += 1;
+      return counts;
+    },
+    { yes: 0, maybe: 0, no: 0 } satisfies Record<RepurchaseVerdict, number>,
+  );
 
   return (
     <View className="mb-8 rounded-3xl bg-card-surface p-5 shadow-sm">
       <Text className="text-2xl font-caslon-bold text-dark-neutral">
-        {emptiesStrings.progressTitle}
+        {emptiesStrings.emptiesTitle}
       </Text>
       <View className="mt-5 flex-row items-center gap-5">
         <ProgressRing
@@ -31,24 +38,20 @@ export function ProgressSummary({ dashboard }: ProgressSummaryProps) {
         />
         <View className="flex-1">
           <Text className="text-base font-satoshi-bold text-dark-neutral">
-            {emptiesStrings.progressFinishedCount(finishedCount)}
-          </Text>
-          <Text className="mt-2 text-sm font-satoshi text-muted-text">
-            {emptiesStrings.progressStreak(dashboard.streak.current_streak)}
+            {emptiesStrings.emptiesFinishedCount(finishedCount)}
           </Text>
         </View>
       </View>
       <View
-        accessibilityLabel={emptiesStrings.progressStatusAccessibilityLabel(
-          inRotationCount,
-          unopenedCount,
-          finishedCount,
-        )}
+        accessibilityLabel={emptiesStrings.emptiesVerdictAccessibilityLabel(verdictCounts)}
         className="mt-5 flex-row flex-wrap gap-2"
       >
-        <Badge label={emptiesStrings.progressInRotationCount(inRotationCount)} variant="success" />
-        <Badge label={emptiesStrings.progressUnopenedCount(unopenedCount)} />
-        <Badge label={emptiesStrings.progressFinishedCount(finishedCount)} />
+        {(['yes', 'maybe', 'no'] as const).map((verdict) => (
+          <Badge
+            key={verdict}
+            label={emptiesStrings.emptiesVerdictCount(verdict, verdictCounts[verdict])}
+          />
+        ))}
       </View>
     </View>
   );
