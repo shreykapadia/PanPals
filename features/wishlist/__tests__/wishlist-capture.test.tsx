@@ -80,7 +80,13 @@ describe('AddWishlistItemSheet', () => {
   it('defaults priority to Medium and saves it unchanged', async () => {
     const onSave = jest.fn().mockResolvedValue(undefined);
     const { getByLabelText, getByText } = renderWithClient(
-      <AddWishlistItemSheet visible onClose={() => {}} onSave={onSave} isSaving={false} />,
+      <AddWishlistItemSheet
+        visible
+        onClose={() => {}}
+        onSave={onSave}
+        isSaving={false}
+        existingItems={[]}
+      />,
     );
 
     await flushMicrotasks();
@@ -94,7 +100,13 @@ describe('AddWishlistItemSheet', () => {
   it('stores the selected priority and reflection when changed', async () => {
     const onSave = jest.fn().mockResolvedValue(undefined);
     const { getByLabelText, getByText } = renderWithClient(
-      <AddWishlistItemSheet visible onClose={() => {}} onSave={onSave} isSaving={false} />,
+      <AddWishlistItemSheet
+        visible
+        onClose={() => {}}
+        onSave={onSave}
+        isSaving={false}
+        existingItems={[]}
+      />,
     );
 
     await flushMicrotasks();
@@ -120,7 +132,13 @@ describe('AddWishlistItemSheet', () => {
   it('keeps the save button disabled when brand and name are missing', async () => {
     const onSave = jest.fn();
     const { getByText, getByLabelText } = renderWithClient(
-      <AddWishlistItemSheet visible onClose={() => {}} onSave={onSave} isSaving={false} />,
+      <AddWishlistItemSheet
+        visible
+        onClose={() => {}}
+        onSave={onSave}
+        isSaving={false}
+        existingItems={[]}
+      />,
     );
 
     await flushMicrotasks();
@@ -138,6 +156,7 @@ describe('AddWishlistItemSheet', () => {
         onClose={() => {}}
         onSave={jest.fn()}
         isSaving={false}
+        existingItems={[]}
       />,
     );
     expect(queryByText('Add to your wishlist')).toBeNull();

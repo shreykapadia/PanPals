@@ -3,6 +3,7 @@ import {
   useAddWishlistItem,
   useUpdateWishlistItem,
   useRemoveWishlistItem,
+  useCreateFromWishlist,
 } from '../../../lib/api';
 import { WishlistItem, WishlistStatus } from '../../../mocks/types';
 
@@ -16,6 +17,7 @@ export function useWishlistActions(filters?: { status?: WishlistStatus }) {
   const addMutation = useAddWishlistItem();
   const updateMutation = useUpdateWishlistItem();
   const removeMutation = useRemoveWishlistItem();
+  const purchaseMutation = useCreateFromWishlist();
 
   return {
     items: wishlistQuery.data ?? [],
@@ -57,5 +59,12 @@ export function useWishlistActions(filters?: { status?: WishlistStatus }) {
         status: stillCooling ? 'cooling' : 'ready',
       });
     },
+
+    // Row 18 — already fully handled by the shared hook: flips the wishlist
+    // item to purchased, creates the linked product, sets
+    // source_wishlist_item_id, and fires wishlist_item_purchased. No local
+    // re-entry, no inventory files touched.
+    markPurchased: (wishlistItemId: string) => purchaseMutation.mutateAsync({ wishlistItemId }),
+    isMarkingPurchased: purchaseMutation.isPending,
   };
 }

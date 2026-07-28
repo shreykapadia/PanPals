@@ -15,6 +15,7 @@ import {
 import { useWishlistActions } from '../../features/wishlist/hooks/useWishlistActions';
 import { AddWishlistItemSheet } from '../../features/wishlist/components/AddWishlistItemSheet';
 import { EditWishlistItemSheet } from '../../features/wishlist/components/EditWishlistItemSheet';
+import { ReconsiderDetail } from '../../features/wishlist/components/ReconsiderDetail';
 import { WishlistItemCard } from '../../features/wishlist/components/WishlistItemCard';
 import {
   CATEGORY_LABELS,
@@ -22,6 +23,7 @@ import {
   STATUS_LABELS,
   wishlistStrings,
 } from '../../features/wishlist/strings';
+import { effectiveWishlistStatus } from '../../features/wishlist/utils/coolingOff';
 
 const STATUS_FILTERS: WishlistStatus[] = ['cooling', 'ready', 'purchased', 'removed'];
 const PRIORITY_FILTERS: WishlistPriority[] = ['high', 'medium', 'low'];
@@ -36,6 +38,7 @@ export default function WishlistTab() {
   const [priorityFilter, setPriorityFilter] = useState<WishlistPriority | undefined>(undefined);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<WishlistItem | null>(null);
+  const [reconsideringItem, setReconsideringItem] = useState<WishlistItem | null>(null);
   const [lastRemoved, setLastRemoved] = useState<WishlistItem | null>(null);
   const [actionError, setActionError] = useState<string | undefined>();
 
@@ -53,8 +56,19 @@ export default function WishlistTab() {
     editItem,
     isEditing,
     removeItem,
+    isRemoving,
     restoreItem,
+    markPurchased,
+    isMarkingPurchased,
   } = useWishlistActions(statusFilter ? { status: statusFilter } : undefined);
+
+  const handleCardPress = (item: WishlistItem) => {
+    if (effectiveWishlistStatus(item) === 'ready') {
+      setReconsideringItem(item);
+    } else {
+      setEditingItem(item);
+    }
+  };
 
   useEffect(() => {
     return () => {
@@ -133,7 +147,7 @@ export default function WishlistTab() {
         renderItem={({ item }) => (
           <WishlistItemCard
             item={item}
-            onPress={() => setEditingItem(item)}
+            onPress={() => handleCardPress(item)}
             onRemove={() => handleRemove(item)}
           />
         )}
@@ -214,6 +228,7 @@ export default function WishlistTab() {
         onClose={() => setIsAddOpen(false)}
         onSave={(item) => addItem(item)}
         isSaving={isAdding}
+        existingItems={items}
       />
 
       <EditWishlistItemSheet
@@ -221,6 +236,15 @@ export default function WishlistTab() {
         onClose={() => setEditingItem(null)}
         onSave={(id, patch) => editItem(id, patch)}
         isSaving={isEditing}
+      />
+
+      <ReconsiderDetail
+        item={reconsideringItem}
+        onClose={() => setReconsideringItem(null)}
+        onRemove={(item) => removeItem(item.id)}
+        onMarkPurchased={(item) => markPurchased(item.id)}
+        isRemoving={isRemoving}
+        isMarkingPurchased={isMarkingPurchased}
       />
     </SafeAreaView>
   );

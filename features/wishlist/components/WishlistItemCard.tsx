@@ -7,6 +7,7 @@ import { colors } from '../../../theme/tokens';
 import { WishlistItem } from '../../../mocks/types';
 import { CATEGORY_LABELS, PRIORITY_LABELS, STATUS_LABELS, wishlistStrings } from '../strings';
 import { daysOnList } from '../utils/daysOnList';
+import { effectiveWishlistStatus } from '../utils/coolingOff';
 
 interface WishlistItemCardProps {
   item: WishlistItem;
@@ -23,6 +24,7 @@ export const WishlistItemCard: React.FC<WishlistItemCardProps> = ({
   similarOwnedCount,
 }) => {
   const days = daysOnList(item.created_at);
+  const effectiveStatus = effectiveWishlistStatus(item);
   const subtitle = [CATEGORY_LABELS[item.category], item.shade].filter(Boolean).join(' · ');
   const label = `${item.brand} ${item.name}${item.shade ? `, ${item.shade}` : ''}, ${PRIORITY_LABELS[item.priority]}, ${wishlistStrings.card.daysOnList(days)}`;
 
@@ -31,7 +33,11 @@ export const WishlistItemCard: React.FC<WishlistItemCardProps> = ({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityHint={wishlistStrings.card.editAction}
+      accessibilityHint={
+        effectiveStatus === 'ready'
+          ? wishlistStrings.card.reconsiderAction
+          : wishlistStrings.card.editAction
+      }
     >
       <Card className="mb-3">
         <View className="flex-row items-start justify-between">
@@ -61,7 +67,10 @@ export const WishlistItemCard: React.FC<WishlistItemCardProps> = ({
 
         <View className="flex-row flex-wrap items-center gap-2 mt-3">
           <Badge label={PRIORITY_LABELS[item.priority]} />
-          <Badge label={STATUS_LABELS[item.status]} />
+          <Badge
+            label={STATUS_LABELS[effectiveStatus]}
+            variant={effectiveStatus === 'ready' ? 'success' : 'default'}
+          />
           {typeof similarOwnedCount === 'number' && similarOwnedCount > 0 && (
             <Badge label={`${similarOwnedCount} similar owned`} />
           )}

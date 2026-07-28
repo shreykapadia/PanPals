@@ -43,6 +43,7 @@ export const wishlistStrings = {
       days <= 0 ? 'Added today' : `${days} day${days === 1 ? '' : 's'} on your list`,
     removeAction: 'Remove from wishlist',
     editAction: 'Edit wishlist item',
+    reconsiderAction: 'Reconsider this item',
   },
   undo: {
     message: 'Removed from your wishlist.',
@@ -81,6 +82,7 @@ export const wishlistStrings = {
     priorityLabel: 'How much do you want this?',
     reflectionLabel: 'Would you still want this in 30 days? (optional)',
     reflectionPlaceholder: 'Jot down your honest thought…',
+    reminderLabel: 'Remind me to check back in 14 days',
     changeSelection: 'Choose a different product',
     cancel: 'Cancel',
     save: 'Add to wishlist',
@@ -89,5 +91,30 @@ export const wishlistStrings = {
     errorSave: "We couldn't save that. Please try again.",
     errorRequiredManual: 'Add a brand and product name first.',
     errorRequiredLink: 'Paste a link first.',
+  },
+  duplicate: {
+    title: 'Looks like this may already be on your list.',
+    message: (brand: string, name: string) =>
+      `You already have "${brand} ${name}" on your wishlist. Keep both?`,
+    keepBothAction: 'Keep both',
+    cancelAction: 'Cancel',
+  },
+  reconsider: {
+    title: 'Reconsider this item',
+    readyBanner: "It's been 14 days — take a moment to reconsider.",
+    coolingBanner: (days: number) =>
+      `${days} day${days === 1 ? '' : 's'} left in your cooling-off period.`,
+    similarOwnedLabel: (count: number) =>
+      count === 0
+        ? "You don't own anything similar in this category yet."
+        : `You own ${count} similar item${count === 1 ? '' : 's'} in this category.`,
+    buyExternallyAction: 'Buy externally',
+    buyExternallyNoLink: "This item doesn't have a saved link.",
+    markPurchasedAction: 'I bought this',
+    markPurchasedHelp: 'Moves it into your inventory — no need to log it again.',
+    keepWaitingAction: 'Keep waiting',
+    removeAction: 'Remove from wishlist',
+    errorPurchase: "We couldn't complete that. Please try again.",
+    close: 'Close',
   },
 };
