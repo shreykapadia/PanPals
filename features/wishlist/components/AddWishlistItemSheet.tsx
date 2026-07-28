@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Modal, View, Text, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../../components/ui/Button';
@@ -111,6 +111,19 @@ const AddWishlistItemSheetContent: React.FC<AddWishlistItemSheetProps> = ({
   // otherwise category's default ('other') could trigger a premature "hold
   // on" before the user has typed anything.
   const showIntercept = canSave && intercept.shouldIntercept;
+
+  // Fire duplicate_warning_shown once per category per sheet-open. A banner
+  // for a different category is genuinely new warning content; re-showing the
+  // same category (field edits, the query flicker on a category switch) is
+  // not. The ref resets naturally because the sheet unmounts on close.
+  const warnedCategoriesRef = useRef<Set<Category>>(new Set());
+  const { recordWarningShown } = intercept;
+  useEffect(() => {
+    if (showIntercept && !warnedCategoriesRef.current.has(category)) {
+      warnedCategoriesRef.current.add(category);
+      recordWarningShown();
+    }
+  }, [showIntercept, category, recordWarningShown]);
 
   // Row 17 — a close match against an EXISTING wishlist entry, distinct from
   // the intercept (which compares against owned inventory). Never blocks —

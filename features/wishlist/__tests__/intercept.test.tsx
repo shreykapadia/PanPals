@@ -10,6 +10,9 @@ import { mockRpc } from '../../../lib/testUtils/supabaseMock';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 jest.mock('../../../lib/supabase', () => require('../../../lib/testUtils/supabaseMock'));
+// recordDecision/recordWarningShown now really call track() (Phase 3) —
+// stub it so those calls don't hit the unconfigured supabase mock.
+jest.mock('../../../lib/analytics', () => ({ track: jest.fn() }));
 
 function makeProduct(overrides: Partial<Product>): Product {
   return {

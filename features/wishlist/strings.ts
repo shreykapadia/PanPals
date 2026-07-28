@@ -104,6 +104,7 @@ export const wishlistStrings = {
     readyBanner: "It's been 14 days — take a moment to reconsider.",
     coolingBanner: (days: number) =>
       `${days} day${days === 1 ? '' : 's'} left in your cooling-off period.`,
+    similarOwnedLoading: 'Checking what you already own…',
     similarOwnedLabel: (count: number) =>
       count === 0
         ? "You don't own anything similar in this category yet."
