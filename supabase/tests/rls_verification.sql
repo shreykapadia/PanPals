@@ -174,6 +174,100 @@ begin
   end;
 end $$;
 
+-- A finished product must never hold a Focus Pot slot: get_dashboard() filters
+-- finished products out of focus_products, so a pinned-and-finished row would
+-- be invisible on Home while inventory showed it as focused.
+do $$
+declare finished_id uuid;
+begin
+  insert into public.products (user_id, brand, name, category, format, status, is_priority)
+  values ('a0000000-0000-0000-0000-00000000000a', 'Brand', 'A Finished', 'lip', 'full', 'finished', false)
+  returning id into finished_id;
+
+  begin
+    update public.products set is_priority = true where id = finished_id;
+    perform pg_temp._assert('trigger blocks pinning a finished product', false);
+  exception when others then
+    perform pg_temp._assert('trigger blocks pinning a finished product', true);
+  end;
+
+  perform pg_temp._assert(
+    'the finished product stayed unpinned',
+    (select not is_priority from public.products where id = finished_id)
+  );
+end $$;
+
+-- The other direction: finishing by plain UPDATE while still pinned. The app
+-- finishes through finish_product(), which clears is_priority in the same
+-- UPDATE — asserted below so that path stays unaffected by the guard.
+do $$
+declare pinned_id uuid;
+begin
+  select id into pinned_id
+  from public.products
+  where user_id = 'a0000000-0000-0000-0000-00000000000a' and is_priority = true
+  limit 1;
+
+  begin
+    update public.products set status = 'finished' where id = pinned_id;
+    perform pg_temp._assert('trigger blocks finishing a product that is still pinned', false);
+  exception when others then
+    perform pg_temp._assert('trigger blocks finishing a product that is still pinned', true);
+  end;
+
+  update public.products set status = 'finished', is_priority = false where id = pinned_id;
+  perform pg_temp._assert(
+    'finishing and unpinning in one UPDATE (what finish_product does) is allowed',
+    (select status = 'finished' and not is_priority from public.products where id = pinned_id)
+  );
+end $$;
+
+-- log_usage() must not record a new use of a finished product — that is how a
+-- finished item ended up reading back at 90% remaining with a usage log dated
+-- after its empties archive row.
+do $$
+declare
+  finished_id uuid;
+  active_id uuid;
+  logs_before int;
+begin
+  insert into public.products (user_id, brand, name, category, format, status, percent_remaining)
+  values ('a0000000-0000-0000-0000-00000000000a', 'Brand', 'A Finished For Log', 'lip', 'full', 'finished', 20)
+  returning id into finished_id;
+
+  select count(*) into logs_before from public.usage_logs where product_id = finished_id;
+
+  begin
+    perform public.log_usage(finished_id, 90, null, null);
+    perform pg_temp._assert('log_usage rejects a finished product', false);
+  exception when others then
+    perform pg_temp._assert('log_usage rejects a finished product', true);
+  end;
+
+  perform pg_temp._assert(
+    'the rejected log_usage left percent_remaining alone',
+    (select percent_remaining = 20 from public.products where id = finished_id)
+  );
+
+  perform pg_temp._assert(
+    'the rejected log_usage wrote no usage_logs row',
+    (select count(*) from public.usage_logs where product_id = finished_id) = logs_before
+  );
+
+  -- Regression guard: the normal path still works.
+  insert into public.products (user_id, brand, name, category, format, status, percent_remaining)
+  values ('a0000000-0000-0000-0000-00000000000a', 'Brand', 'A In Rotation', 'lip', 'full', 'in_rotation', 100)
+  returning id into active_id;
+
+  perform public.log_usage(active_id, 70, null, null);
+
+  perform pg_temp._assert(
+    'log_usage still records a use of an in_rotation product',
+    (select percent_remaining = 70 from public.products where id = active_id)
+      and (select count(*) from public.usage_logs where product_id = active_id) = 1
+  );
+end $$;
+
 -- ============================================================================
 -- Act as B — confirm catalog_products is readable by BOTH users, not just A.
 -- ============================================================================

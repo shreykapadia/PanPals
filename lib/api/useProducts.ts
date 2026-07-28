@@ -79,6 +79,17 @@ export function useSimilarOwned(category: Category, excludeId?: string) {
   });
 }
 
+/**
+ * Records a use: writes a `usage_logs` row, sets `percent_remaining`, and bumps
+ * the streak on the day's first log.
+ *
+ * The RPC rejects a product whose `status` is already `'finished'` — logging a
+ * use after the finish left the product reading back above 0% with a log dated
+ * after its empties archive row. Callers must handle the error, and shouldn't
+ * offer a log-usage control for a finished product in the first place.
+ *
+ * Correcting a wrong percentage without recording a use is `useUpdateProduct()`.
+ */
 export function useLogUsage() {
   const queryClient = useQueryClient();
 
@@ -228,13 +239,21 @@ export function useDeleteProduct() {
   });
 }
 
+/**
+ * Pins or unpins a product to the Focus Pot. Two database triggers can reject a
+ * pin, so callers must handle the error rather than assume success:
+ * - `enforce_focus_pot_max` — the 6th priority product.
+ * - `enforce_focus_pot_not_finished` — a finished product. `get_dashboard`
+ *   leaves finished products out of `focus_products`, so a pin that landed here
+ *   would read back as priority in inventory yet never show up on Home. Don't
+ *   offer a pin control for a product whose `status` is `'finished'`.
+ */
 export function useTogglePriority() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ productId, isPriority }: { productId: string; isPriority: boolean }) => {
-      // No client-side max-5 check needed — enforce_focus_pot_max (B2)
-      // rejects the 6th priority product at the database level.
+      // No client-side checks needed — both guards run at the database level.
       const { data, error } = await supabase
         .from('products')
         .update({ is_priority: isPriority })
