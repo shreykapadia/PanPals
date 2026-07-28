@@ -78,7 +78,10 @@ are in [`GEMINI-FOOTER-PLAN.md`](./GEMINI-FOOTER-PLAN.md) (Shrey's lane).
 2. **Talbia** — Phase 5 in her plan: rename the tab screen to `empties.tsx` behind a
    one-line shim, drop the streak and status badges that duplicate Home.
 3. **Shrey** — the nav itself, the centre ⊕ button, and the doc updates.
-4. **Talbia** — a 2-line follow-up deleting the shim.
+4. **Matt** — Phase 5 in his plan: open his existing `FastLogSheet` from the ⊕'s
+   `action=log` param, and repoint the finish seam to `/(tabs)/empties`.
+5. **Talbia** — a 2-line follow-up deleting the shim. **Must come after step 4**, or
+   Matt's "Mark as Finished" button navigates to a dead route.
 
 Ownership does not change. Nobody edits anyone else's files.
 

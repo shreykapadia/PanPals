@@ -11,6 +11,31 @@
 
 ---
 
+## 0. Re-audited against `main` @ `ba4c997` — 2026-07-27
+
+This plan was first written when most lanes were still stubs. **Four lanes have shipped
+since**, and five things in the original draft were wrong against the real code. They
+are corrected below; this section exists so you know what changed and do not "restore"
+the old advice.
+
+| #      | Was                                                                       | Now                                                                                                                                      |
+| ------ | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **C1** | ⊕ pushes to a new placeholder screen `app/log.tsx`                        | ⊕ opens **Matt's shipped `FastLogSheet`** via `/(tabs)/inventory?action=log`. Task 3 is rewritten; no `app/log.tsx` is created.          |
+| **C2** | ⊕ `accessibilityLabel` = `"Log a product"`                                | **Collides** with `features/inventory/strings.ts:28`, which `.maestro/log-product.yaml` taps. Changed to `"Quick log a product"` (§5.7). |
+| **C3** | Chain ends at Talbia deleting the `progress.tsx` shim                     | `ItemDetailSheet.tsx:53` hardcodes `/(tabs)/progress`. **Matt must repoint it before the shim dies** or F6 breaks — new step 4 in §3.    |
+| **C4** | Placeholder house style copied from "the `app/(tabs)/inventory.tsx` stub" | That stub is gone; Matt shipped the real screen. Moot — C1 removes the placeholder entirely. (`PLAN-AUDIT.md` §3-B6 caught this.)        |
+| **C5** | Tests live in `app/__tests__/`; `LogTabButton` is just a file             | No `app/__tests__/` exists — tab tests live in `app/(tabs)/__tests__/`. Also export the new component from `components/ui/index.ts`.     |
+
+**Two facts from `PLAN-AUDIT.md` that constrain this PR:**
+
+- **There is no mock phase left.** `lib/api/*` hits real Supabase and RLS returns `[]`
+  when signed out. To click through the footer you need a signed-in session.
+- **`track()` lives in `lib/analytics.ts` and throws on an unknown event name.**
+  Do **not** add an analytics call to the ⊕ button — there is no allow-listed event for
+  it, and inventing one fails at runtime, not at compile time.
+
+---
+
 ## 1. What changes and why
 
 | Before                                               | After                                                           |
@@ -49,24 +74,34 @@ else**, and in particular do not touch `app/(tabs)/index.tsx`, `features/home/*`
 (Talbia). If you believe you need one of those, stop and print a `CROSS-LANE REQUEST`.
 
 - `app/(tabs)/_layout.tsx` — the tab bar
-- `app/(tabs)/you.tsx` — remove from the bar, keep as a route
-- `app/log.tsx` — **new**, the log destination
+- `app/(tabs)/you.tsx` + `app/(tabs)/you.strings.ts` — remove from the bar, keep as a route
 - `components/ui/LogTabButton.tsx` — **new**, the centre button
+- `components/ui/index.ts` — export the new component from the barrel
 - `components/ui/Icon.tsx` — two icon names
 - `theme/tokens.ts` + `tailwind.config.js` — footer height
 - `docs/DESIGN-TOKENS.md`, `docs/PRD.md`, `docs/DECISIONS.md` — record the change
-- `components/ui/__tests__/*`, `app/__tests__/*` — tests
+- `components/ui/__tests__/`, `app/(tabs)/__tests__/` — tests
+
+**No `app/log.tsx`.** The original draft created one; C1 removed it. See §6.
 
 ## 3. Sequencing — do not merge out of order
 
-Two other lanes are moving in parallel and `main` breaks if this lands first.
+Three other lanes are involved and `main` breaks if this lands first.
 
-1. **Aaron merges first.** His Home top app bar gains the profile button. Until it
-   exists, `href: null` on the You tab makes the profile unreachable.
+1. **Aaron merges first.** His Home top app bar gains the profile button (his Phase 5).
+   Until it exists, `href: null` on the You tab makes the profile unreachable anywhere
+   in the app. **As of `ba4c997` this has not shipped** — `features/home/QuickActions.tsx`
+   still has the three-pill row including "Log Item".
 2. **Talbia merges second.** Her PR creates `app/(tabs)/empties.tsx` and leaves a
    one-line re-export shim at `app/(tabs)/progress.tsx`, so both routes resolve.
 3. **You merge third** — this plan.
-4. **Talbia merges a 2-line follow-up** deleting the shim.
+4. **Matt merges fourth** — `ItemDetailSheet.tsx:53` currently pushes to
+   `/(tabs)/progress`; he repoints it to `/(tabs)/empties` and adds the `action=log`
+   param handling from §6. **This step did not exist in the original chain and it is
+   load-bearing** (see C3).
+5. **Talbia merges last** — the 2-line follow-up deleting the shim. If this jumps ahead
+   of step 4, Matt's "Mark as Finished" button navigates to a dead route and F6 stops
+   working in a production build.
 
 **Before you start, verify step 2 has landed:**
 
@@ -210,54 +245,89 @@ On Android also pass `android_ripple={{ color: colors['on-primary-container'], b
 
 ```
 accessibilityRole="button"
-accessibilityLabel="Log a product"
+accessibilityLabel="Quick log a product"
 ```
 
 `accessibilityRole="button"`, not `tab` — it opens a flow, it does not select a
 destination, and announcing it as a tab would be a lie to a screen-reader user.
+
+**The label must not be `"Log a product"` (C2).** That exact string is already
+`features/inventory/strings.ts:28`, the label on Matt's add button, and
+`.maestro/log-product.yaml:17` taps it by name. Since the ⊕ is on _every_ screen
+including Inventory, reusing the string gives that selector two matches and Matt's
+flow starts failing intermittently. `"Quick log a product"` is distinct under Maestro's
+case-sensitive matching, and it tells a screen-reader user what is different about this
+control. Verify after you ship:
+
+```bash
+grep -rn "Log a product" features/ components/ app/ .maestro/
+```
+
+Exactly one non-Maestro hit, in `features/inventory/strings.ts`.
 
 ### 5.8 Props
 
 ```ts
 interface LogTabButtonProps {
   onPress: () => void;
-  accessibilityLabel?: string; // defaults to "Log a product"
+  accessibilityLabel?: string; // defaults to "Quick log a product"
 }
 ```
 
-Keep the component presentational. Navigation lives in the layout.
+Keep the component presentational. Navigation lives in the layout. Export it from
+`components/ui/index.ts` alongside the other primitives — the barrel is how every other
+lane imports shared UI.
 
-## 6. Task 3 — `app/log.tsx` (the destination)
+## 6. Task 3 — the ⊕ destination (**rewritten — C1**)
 
-The ⊕ needs somewhere to go, and F1's fast-log modal is **Matt's** feature. Scaffold
-the route; do not build the form.
+**Do not create `app/log.tsx`.** The original draft did, and it was wrong: Matt has
+since shipped the whole F1 fast-log as `FastLogSheet`, a modal rendered _inside_
+`app/(tabs)/inventory.tsx` and driven by an `isLogOpen` state that already exists at
+line 25. A separate `/log` screen would either duplicate that form or dead-end on a
+placeholder at the design fair — for the one action this entire redesign is built
+around.
 
-`app/_layout.tsx` renders `<Slot />`, not a `Stack`, so a true modal presentation is
-not available without restructuring the root layout. **Do not restructure it in this
-PR.** Ship `app/log.tsx` as an ordinary full-screen route with a close control:
+**Route to the sheet instead:**
 
-- `SafeAreaView`, `bg-surface`.
-- A header row: an `X` icon button on the left (`Icon name="close"`,
-  `accessibilityLabel="Close"`, `router.back()`), and "Log a product" as an H2
-  (Libre Caslon Text 18, weight 600, via the existing type classes).
-- Body: the shared `EmptyState` primitive from `components/ui/`, explaining that the
-  fast-log form lands here. Same placeholder register as the current
-  `app/(tabs)/inventory.tsx` stub — read that file for the house style.
-- A `// PLACEHOLDER — F1 fast-log form is Matt's lane (features/inventory/*).` comment
-  at the top, matching the convention in the existing tab stubs.
+```ts
+router.push({ pathname: '/(tabs)/inventory', params: { action: 'log' } });
+```
 
-Then include this in your PR description verbatim so Shrey can route it:
+Three reasons this is the right call and not a shortcut:
+
+- **It reuses shipped, tested code.** `FastLogSheet` already does catalog search,
+  manual entry, and `useCreateProduct`. Nothing is rebuilt.
+- **It matches the codebase's existing convention.** `ItemDetailSheet.tsx:53` already
+  passes `params: { finishProductId }` across a lane boundary exactly this way. You are
+  following a precedent, not inventing one.
+- **It keeps the tab bar visible.** A pushed route outside the tab group would cover
+  it; landing on Inventory with a sheet over it does not.
+
+The param handling is **~4 lines in Matt's file**, so it is his to write. Put this in
+your PR description verbatim so Shrey can route it — and note that `PLAN-AUDIT.md` §4
+records that Matt was **never sent** the original version of this request, so confirm
+it actually reaches him:
 
 ```
 CROSS-LANE REQUEST — to Matt (+ Shrey to route)
-The new centre ⊕ Log tab pushes to /log (app/log.tsx), which I have scaffolded as a
-placeholder screen in my lane. Matt: your F1 fast-log form should render inside it.
-Do you want to own app/log.tsx outright, or keep it as a thin shell in my lane that
-renders a <FastLogForm /> exported from features/inventory/*? Second option keeps the
-ownership matrix clean and is my recommendation.
-Follow-up (not this PR): if we want true modal presentation, app/_layout.tsx has to
-move from <Slot /> to <Stack />. Worth doing after the design fair, not before.
+The new centre ⊕ Log tab pushes to:
+    router.push({ pathname: '/(tabs)/inventory', params: { action: 'log' } })
+so it opens your existing FastLogSheet rather than a second log screen. Needed in
+app/(tabs)/inventory.tsx, roughly 4 lines:
+    const { action } = useLocalSearchParams<{ action?: string }>();
+    useEffect(() => { if (action === 'log') setIsLogOpen(true); }, [action]);
+plus clearing the param (router.setParams({ action: undefined })) when the sheet
+closes, so re-tapping ⊕ from Inventory reopens it.
+Same PR, please also repoint the finish seam: ItemDetailSheet.tsx:53 pushes to
+'/(tabs)/progress', which becomes '/(tabs)/empties'. Talbia's shim keeps the old path
+alive only until she deletes it — after that, F6 breaks in a production build.
+Follow-up (not now): true modal presentation would need app/_layout.tsx to move from
+<Slot /> to <Stack />. Post-fair.
 ```
+
+**Until Matt's PR lands**, the ⊕ still does something sensible — it navigates to
+Inventory, where the "Log a product" button is the first thing on screen. Degraded, not
+broken. Say so in your PR description so nobody files it as a bug.
 
 ## 7. Task 4 — `app/(tabs)/_layout.tsx`
 
@@ -265,14 +335,16 @@ Rewrite the tab list. Declaration order is render order.
 
 1. `index` — Home, icon `home`. Unchanged.
 2. `inventory` — Inventory, icon `inventory`. Unchanged.
-3. **`log`** — the centre action:
-   - `options.tabBarButton: () => <LogTabButton onPress={() => router.push('/log')} />`
+3. **the centre action** — this slot has **no route of its own** (C1). It is a button
+   painted into the bar, not a destination:
+   - Render it via `options.tabBarButton` on a `Tabs.Screen`, with
+     `onPress={() => router.push({ pathname: '/(tabs)/inventory', params: { action: 'log' } })}`.
    - `options.tabBarLabel: () => null` — the button draws its own label.
-   - There is **no `app/(tabs)/log.tsx`**. The route lives at `app/log.tsx`, outside the
-     tab group, so the tab bar stays visible behind it and there is no phantom tab
-     screen. If expo-router warns about a `Tabs.Screen` with no matching file, give it
-     `options.href = null` alongside `tabBarButton`; verify which form your
-     expo-router 6.0.24 accepts and keep the one that renders clean with no warning.
+   - Because there is no backing file, expo-router 6.0.24 may warn about a
+     `Tabs.Screen` with no matching route. Two clean ways out: pair `tabBarButton` with
+     `href: null`, or skip the `Tabs.Screen` entirely and inject the button with a
+     custom `tabBar` renderer. **Try the first; if it still warns, use the second.**
+     Do not ship a build that logs a router warning on every mount.
 4. `wishlist` — Wishlist, icon `wishlist`. Unchanged.
 5. **`empties`** — label `Empties`, icon `empties`,
    `tabBarAccessibilityLabel: 'Empties Archive Tab'`. Replaces the `progress` entry.
@@ -293,8 +365,15 @@ Rewrite the tab list. Declaration order is render order.
 
 The screen keeps working; it is simply no longer a tab. It currently assumes a tab
 context, so add a back affordance: a header row with an `arrow-left` icon button
-(`accessibilityLabel="Back"`, `router.back()`) above the existing content. Change
-nothing else about the profile, goals, sign-out, or delete-account flows.
+(`router.back()`) above the existing content. `useRouter` is already imported at line 4.
+
+**Copy goes in `app/(tabs)/you.strings.ts`** — that file exists and the screen imports it
+as `s`; do not inline the label. Add a `backAccessibilityLabel` key and use it.
+
+Change nothing else about the profile, goals, sign-out, or delete-account flows.
+
+`app/(tabs)/__tests__/you.test.tsx` exists with four cases and must stay green. Add a
+fifth asserting the back control renders and calls `router.back()`.
 
 ## 9. Task 6 — Tokens and documentation
 
@@ -302,6 +381,13 @@ Record the change; do not let the docs drift (D11's warning).
 
 **`theme/tokens.ts`** — `spacing['footer-height']: 88`.
 **`tailwind.config.js`** — `'footer-height': '88px'`.
+
+> **Do not touch the type scale while you are in these files.** `DESIGN-TOKENS.md`
+> carries a 2026-07-26 revision (body 14→16, muted 12→14, button 14→16, badge 11→12)
+> that `PLAN-AUDIT.md` §3-B6 found is applied in **zero** files. The tab labels are
+> 11px today and this plan keeps them at 11px so the ⊕ label matches its neighbours.
+> Applying the revision is a separate app-wide sweep — doing half of it here leaves two
+> scales fighting inside one component.
 
 **`docs/DESIGN-TOKENS.md`:**
 
@@ -319,7 +405,9 @@ Record the change; do not let the docs drift (D11's warning).
 the Progress tab is now Empties, that the donut and streak live on Home only (which is
 what F4 and F8 always said), and that the centre ⊕ serves F1. Still no 6th destination.
 
-**`docs/DECISIONS.md`** — append:
+**`docs/DECISIONS.md`** — append. **This is now a correctness fix, not bookkeeping:**
+`docs/plans/README.md` and this plan already cite **D23** as though it exists, and
+`PLAN-AUDIT.md` §3-B6 flags the dangling reference. Do not skip it.
 
 ```
 **D23 — 2026-07-27 — Bottom nav = Home | Inventory | ⊕ Log | Wishlist | Empties.**
@@ -340,19 +428,23 @@ still owns the last tab (renamed empties.tsx), Aaron still owns Home. Footer hei
 
 ## 10. Task 7 — Tests
 
-Add `components/ui/__tests__/LogTabButton.test.tsx`:
+Add `components/ui/__tests__/LogTabButton.test.tsx` (there is an existing
+`components/ui/__tests__/ui.test.tsx` — match its setup style):
 
-- Renders with the default `accessibilityLabel` "Log a product" and
+- Renders with the default `accessibilityLabel` "Quick log a product" and
   `accessibilityRole="button"` (not `tab`).
 - Calls `onPress` once when pressed.
 - Renders the "Log" label.
 - With `useReducedMotion` mocked to `true`, pressing does not start an animation.
 
-Add or extend a tab-layout test:
+Add a tab-layout test in **`app/(tabs)/__tests__/`** — that is where
+`wishlist.test.tsx` and `you.test.tsx` live. **There is no `app/__tests__/` directory**
+(C5); do not create one.
 
 - Exactly four destination tabs render: Home, Inventory, Wishlist, Empties.
 - No tab labelled "You" and none labelled "Progress" appears in the bar.
 - The centre button renders between Inventory and Wishlist.
+- Pressing it routes to `/(tabs)/inventory` with `params.action === 'log'`.
 
 ---
 
@@ -369,6 +461,10 @@ the gate.
 npx expo start     # press w for web, i for iOS simulator, a for Android
 ```
 
+**Sign in first.** There is no mock phase left — `lib/api/*` hits real Supabase and RLS
+returns `[]` when signed out, so an unauthenticated pass tells you nothing about whether
+the tabs load their content.
+
 Check all of these by looking at the app, not by reasoning about the code:
 
 - [ ] Five slots: Home, Inventory, ⊕, Wishlist, Empties. No "You," no "Progress."
@@ -376,13 +472,15 @@ Check all of these by looking at the app, not by reasoning about the code:
 - [ ] It sits **above** the bar's top edge and casts a soft rose shadow, no hard border.
 - [ ] The plus glyph is charcoal, not white.
 - [ ] The "Log" label sits on the same line as the other four labels.
-- [ ] Pressing it scales it down and opens `/log`; the X returns you to where you were.
+- [ ] Pressing it scales it down and lands on Inventory — with `FastLogSheet` open if Matt's PR has merged, otherwise on the plain Inventory list. Either is expected right now.
+- [ ] Tapping ⊕ **while already on Inventory** still opens the sheet (this is the case the param-clearing in §6 exists for — check it once Matt lands).
 - [ ] The tab bar's rounded top corners are intact and nothing is clipped — **check Android specifically**, this is where `overflow: 'visible'` breaks.
 - [ ] The circle is easy to hit with a thumb, including near its top edge.
 - [ ] The Empties tab opens Talbia's archive.
-- [ ] From Home, the profile button reaches `/you`, and you can get back.
+- [ ] From Home, the profile button reaches `/you`, and the new back control returns you.
 - [ ] With reduce-motion on, pressing the ⊕ still works and simply does not animate.
-- [ ] A screen reader announces the ⊕ as a button called "Log a product."
+- [ ] A screen reader announces the ⊕ as a button called "Quick log a product."
+- [ ] `maestro test .maestro/log-product.yaml` still passes — it taps `'Inventory Tab'` then `'Log a product'`, and the ⊕ must not have made that second selector ambiguous (C2).
 
 ---
 
@@ -397,9 +495,13 @@ Check all of these by looking at the app, not by reasoning about the code:
 - **Stay in the lane in §2.** If a change seems to require another lane's file, stop
   and print a `CROSS-LANE REQUEST`. Prove the PR is clean with
   `git diff --name-only main`.
-- **Do not restructure `app/_layout.tsx`.** The `<Slot />` → `<Stack />` migration for
-  modal presentation is a separate, post-fair change.
-- **Do not build the fast-log form.** It is Matt's. `app/log.tsx` is a placeholder.
+- **Do not restructure `app/_layout.tsx`.** It still renders `<Slot />`; the
+  `<Slot />` → `<Stack />` migration for modal presentation is a separate, post-fair change.
+- **Do not build, duplicate, or re-scaffold the fast-log form.** It is Matt's, it is
+  already shipped as `FastLogSheet`, and the ⊕ routes to it (§6). Creating
+  `app/log.tsx` is the single most likely wrong turn in this plan.
+- **Do not add a `track()` call to the ⊕.** `track()` lives in `lib/analytics.ts` and
+  throws on an unknown event name — there is no allow-listed event for this button.
 - **Do not edit `docs/mockups/*.png`.** Note the drift in `DESIGN-TOKENS.md` §6 instead.
 - **Do not add a sixth destination**, and do not add badges, points, counts-as-rewards,
   or a notification bell to the bar (D15, D19).
