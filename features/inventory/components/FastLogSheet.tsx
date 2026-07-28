@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, View, Text, ScrollView, Pressable } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../../components/ui/Button';
 import { Card } from '../../../components/ui/Card';
 import { Input } from '../../../components/ui/Input';
@@ -197,214 +197,216 @@ export const FastLogSheet: React.FC<FastLogSheetProps> = ({
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={handleClose}>
-      <SafeAreaView className="flex-1 bg-surface">
-        <View className="flex-row items-center justify-between px-4 py-3 border-b border-border-warm">
-          <Text className="text-lg font-bold font-caslon text-dark-neutral">
-            {isEditMode ? s.editTitle : s.logTitle}
-          </Text>
-          <Pressable
-            onPress={handleClose}
-            accessibilityRole="button"
-            accessibilityLabel={s.cancel}
-            hitSlop={8}
-            className="min-w-[44px] min-h-[44px] items-center justify-center"
-          >
-            <Icon name="close" size={22} color={colors['inactive-gray']} />
-          </Pressable>
-        </View>
-
-        <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-          {!isEditMode && (
-            <>
-              <Text className="text-sm font-satoshi text-muted-text mb-4">{s.subtitle}</Text>
-
-              <Pressable
-                onPress={() => setPhotoAttached((prev) => !prev)}
-                accessibilityRole="button"
-                accessibilityLabel={photoAttached ? s.scanAttached : s.scanPlaceholder}
-                className="h-28 rounded-3xl border border-border-warm bg-surface-container items-center justify-center mb-4"
-              >
-                <Icon
-                  name={photoAttached ? 'check' : 'info'}
-                  size={24}
-                  color={colors['primary-container']}
-                />
-                <Text className="text-sm font-satoshi text-dark-neutral mt-2">
-                  {photoAttached ? s.scanAttached : s.scanPlaceholder}
-                </Text>
-              </Pressable>
-
-              <View className="flex-row gap-2 mb-4">
-                <Chip
-                  label={s.modeSearch}
-                  selected={mode === 'search'}
-                  onPress={() => setMode('search')}
-                />
-                <Chip
-                  label={s.modeManual}
-                  selected={mode === 'manual'}
-                  onPress={() => setMode('manual')}
-                />
-              </View>
-
-              {mode === 'search' &&
-                (catalogSelection ? (
-                  <Card className="mb-4">
-                    <Text className="text-sm font-semibold font-satoshi text-dark-neutral">
-                      {catalogSelection.brand} · {catalogSelection.name}
-                    </Text>
-                    <Pressable
-                      onPress={() => setCatalogSelection(null)}
-                      accessibilityRole="button"
-                      accessibilityLabel={s.changeSelection}
-                      hitSlop={8}
-                      className="mt-2 py-2 -mx-2 px-2"
-                    >
-                      <Text className="text-xs font-semibold font-satoshi text-primary">
-                        {s.changeSelection}
-                      </Text>
-                    </Pressable>
-                  </Card>
-                ) : (
-                  <View className="mb-4">
-                    <ProductSearch onSelect={handleSelectCatalogItem} allowManual={false} />
-                  </View>
-                ))}
-            </>
-          )}
-
-          <Input
-            label={s.brandLabel}
-            value={brand}
-            onChangeText={setBrand}
-            placeholder={s.brandPlaceholder}
-            accessibilityLabel={s.brandLabel}
-          />
-          <Input
-            label={s.nameLabel}
-            value={name}
-            onChangeText={setName}
-            placeholder={s.namePlaceholder}
-            accessibilityLabel={s.nameLabel}
-          />
-          <Input
-            label={s.shadeLabel}
-            value={shade}
-            onChangeText={setShade}
-            placeholder={s.shadePlaceholder}
-            accessibilityLabel={s.shadeLabel}
-          />
-
-          <Text className="text-xs font-semibold text-muted-text font-satoshi mb-2 px-2 uppercase tracking-wider">
-            {s.categoryLabel}
-          </Text>
-          <View className="flex-row flex-wrap gap-2 px-2 mb-4">
-            {CATEGORIES.map((c) => (
-              <Chip
-                key={c}
-                label={CATEGORY_LABELS[c]}
-                selected={category === c}
-                onPress={() => setCategory(c)}
-                accessibilityLabel={`${CATEGORY_LABELS[c]}${category === c ? ', selected' : ''}`}
-              />
-            ))}
-          </View>
-
-          <Text className="text-xs font-semibold text-muted-text font-satoshi mb-2 px-2 uppercase tracking-wider">
-            {s.formatLabel}
-          </Text>
-          <View className="flex-row flex-wrap gap-2 px-2 mb-4">
-            {FORMATS.map((f) => (
-              <Chip
-                key={f}
-                label={FORMAT_LABELS[f]}
-                selected={format === f}
-                onPress={() => setFormat(f)}
-                accessibilityLabel={`${FORMAT_LABELS[f]}${format === f ? ', selected' : ''}`}
-              />
-            ))}
-          </View>
-
-          <Text className="text-xs font-semibold text-muted-text font-satoshi mb-2 px-2 uppercase tracking-wider">
-            {s.statusLabel}
-          </Text>
-          <View className="flex-row flex-wrap gap-2 px-2 mb-4">
-            {STATUSES.map((st) => (
-              <Chip
-                key={st}
-                label={STATUS_LABELS[st]}
-                selected={status === st}
-                onPress={() => handleStatusChange(st)}
-                accessibilityLabel={`${STATUS_LABELS[st]}${status === st ? ', selected' : ''}`}
-              />
-            ))}
-          </View>
-
-          {isEditMode && (
-            <>
-              <Text className="text-xs font-semibold text-muted-text font-satoshi mb-2 px-2 uppercase tracking-wider">
-                {s.percentRemainingLabel}
-              </Text>
-              <View className="flex-row items-center justify-center gap-6 mb-4">
-                <Pressable
-                  onPress={() => setPercentRemaining((p) => clampPercent(p - PERCENT_STEP))}
-                  accessibilityRole="button"
-                  accessibilityLabel={s.decreaseHint}
-                  className="w-11 h-11 rounded-full border border-border-warm items-center justify-center"
-                >
-                  <Text className="text-lg font-satoshi-medium text-dark-neutral">–</Text>
-                </Pressable>
-                <Text
-                  className="text-2xl font-bold font-caslon text-dark-neutral min-w-[72px] text-center"
-                  accessibilityLabel={`${percentRemaining} percent remaining`}
-                >
-                  {percentRemaining}%
-                </Text>
-                <Pressable
-                  onPress={() => setPercentRemaining((p) => clampPercent(p + PERCENT_STEP))}
-                  accessibilityRole="button"
-                  accessibilityLabel={s.increaseHint}
-                  className="w-11 h-11 rounded-full border border-border-warm items-center justify-center"
-                >
-                  <Text className="text-lg font-satoshi-medium text-dark-neutral">+</Text>
-                </Pressable>
-              </View>
-            </>
-          )}
-
-          <Text className="text-xs font-semibold text-muted-text font-satoshi mb-2 px-2 uppercase tracking-wider">
-            {s.paoLabel}
-          </Text>
-          <View className="flex-row flex-wrap gap-2 px-2 mb-4">
-            {PAO_OPTIONS.map((p) => (
-              <Chip
-                key={p ?? 'none'}
-                label={p === null ? s.paoNone : p === 6 ? s.pao6 : s.pao12}
-                selected={paoMonths === p}
-                onPress={() => setPaoMonths(p)}
-                accessibilityLabel={`${p === null ? s.paoNone : p === 6 ? s.pao6 : s.pao12}${
-                  paoMonths === p ? ', selected' : ''
-                }`}
-              />
-            ))}
-          </View>
-
-          {error && (
-            <Text accessibilityRole="alert" className="text-xs text-error font-satoshi mb-2 px-2">
-              {error}
+      <SafeAreaProvider>
+        <SafeAreaView className="flex-1 bg-surface">
+          <View className="flex-row items-center justify-between px-4 py-3 border-b border-border-warm">
+            <Text className="text-lg font-bold font-caslon text-dark-neutral">
+              {isEditMode ? s.editTitle : s.logTitle}
             </Text>
-          )}
+            <Pressable
+              onPress={handleClose}
+              accessibilityRole="button"
+              accessibilityLabel={s.cancel}
+              hitSlop={8}
+              className="min-w-[44px] min-h-[44px] items-center justify-center"
+            >
+              <Icon name="close" size={22} color={colors['inactive-gray']} />
+            </Pressable>
+          </View>
 
-          <Button
-            label={isSaving ? s.saving : isEditMode ? s.saveEdit : s.save}
-            onPress={handleSave}
-            disabled={!canSave}
-            loading={isSaving}
-            accessibilityLabel={isEditMode ? s.saveEdit : s.save}
-            className="mt-2"
-          />
-        </ScrollView>
-      </SafeAreaView>
+          <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+            {!isEditMode && (
+              <>
+                <Text className="text-sm font-satoshi text-muted-text mb-4">{s.subtitle}</Text>
+
+                <Pressable
+                  onPress={() => setPhotoAttached((prev) => !prev)}
+                  accessibilityRole="button"
+                  accessibilityLabel={photoAttached ? s.scanAttached : s.scanPlaceholder}
+                  className="h-28 rounded-3xl border border-border-warm bg-surface-container items-center justify-center mb-4"
+                >
+                  <Icon
+                    name={photoAttached ? 'check' : 'info'}
+                    size={24}
+                    color={colors['primary-container']}
+                  />
+                  <Text className="text-sm font-satoshi text-dark-neutral mt-2">
+                    {photoAttached ? s.scanAttached : s.scanPlaceholder}
+                  </Text>
+                </Pressable>
+
+                <View className="flex-row gap-2 mb-4">
+                  <Chip
+                    label={s.modeSearch}
+                    selected={mode === 'search'}
+                    onPress={() => setMode('search')}
+                  />
+                  <Chip
+                    label={s.modeManual}
+                    selected={mode === 'manual'}
+                    onPress={() => setMode('manual')}
+                  />
+                </View>
+
+                {mode === 'search' &&
+                  (catalogSelection ? (
+                    <Card className="mb-4">
+                      <Text className="text-sm font-semibold font-satoshi text-dark-neutral">
+                        {catalogSelection.brand} · {catalogSelection.name}
+                      </Text>
+                      <Pressable
+                        onPress={() => setCatalogSelection(null)}
+                        accessibilityRole="button"
+                        accessibilityLabel={s.changeSelection}
+                        hitSlop={8}
+                        className="mt-2 py-2 -mx-2 px-2"
+                      >
+                        <Text className="text-xs font-semibold font-satoshi text-primary">
+                          {s.changeSelection}
+                        </Text>
+                      </Pressable>
+                    </Card>
+                  ) : (
+                    <View className="mb-4">
+                      <ProductSearch onSelect={handleSelectCatalogItem} allowManual={false} />
+                    </View>
+                  ))}
+              </>
+            )}
+
+            <Input
+              label={s.brandLabel}
+              value={brand}
+              onChangeText={setBrand}
+              placeholder={s.brandPlaceholder}
+              accessibilityLabel={s.brandLabel}
+            />
+            <Input
+              label={s.nameLabel}
+              value={name}
+              onChangeText={setName}
+              placeholder={s.namePlaceholder}
+              accessibilityLabel={s.nameLabel}
+            />
+            <Input
+              label={s.shadeLabel}
+              value={shade}
+              onChangeText={setShade}
+              placeholder={s.shadePlaceholder}
+              accessibilityLabel={s.shadeLabel}
+            />
+
+            <Text className="text-xs font-semibold text-muted-text font-satoshi mb-2 px-2 uppercase tracking-wider">
+              {s.categoryLabel}
+            </Text>
+            <View className="flex-row flex-wrap gap-2 px-2 mb-4">
+              {CATEGORIES.map((c) => (
+                <Chip
+                  key={c}
+                  label={CATEGORY_LABELS[c]}
+                  selected={category === c}
+                  onPress={() => setCategory(c)}
+                  accessibilityLabel={`${CATEGORY_LABELS[c]}${category === c ? ', selected' : ''}`}
+                />
+              ))}
+            </View>
+
+            <Text className="text-xs font-semibold text-muted-text font-satoshi mb-2 px-2 uppercase tracking-wider">
+              {s.formatLabel}
+            </Text>
+            <View className="flex-row flex-wrap gap-2 px-2 mb-4">
+              {FORMATS.map((f) => (
+                <Chip
+                  key={f}
+                  label={FORMAT_LABELS[f]}
+                  selected={format === f}
+                  onPress={() => setFormat(f)}
+                  accessibilityLabel={`${FORMAT_LABELS[f]}${format === f ? ', selected' : ''}`}
+                />
+              ))}
+            </View>
+
+            <Text className="text-xs font-semibold text-muted-text font-satoshi mb-2 px-2 uppercase tracking-wider">
+              {s.statusLabel}
+            </Text>
+            <View className="flex-row flex-wrap gap-2 px-2 mb-4">
+              {STATUSES.map((st) => (
+                <Chip
+                  key={st}
+                  label={STATUS_LABELS[st]}
+                  selected={status === st}
+                  onPress={() => handleStatusChange(st)}
+                  accessibilityLabel={`${STATUS_LABELS[st]}${status === st ? ', selected' : ''}`}
+                />
+              ))}
+            </View>
+
+            {isEditMode && (
+              <>
+                <Text className="text-xs font-semibold text-muted-text font-satoshi mb-2 px-2 uppercase tracking-wider">
+                  {s.percentRemainingLabel}
+                </Text>
+                <View className="flex-row items-center justify-center gap-6 mb-4">
+                  <Pressable
+                    onPress={() => setPercentRemaining((p) => clampPercent(p - PERCENT_STEP))}
+                    accessibilityRole="button"
+                    accessibilityLabel={s.decreaseHint}
+                    className="w-11 h-11 rounded-full border border-border-warm items-center justify-center"
+                  >
+                    <Text className="text-lg font-satoshi-medium text-dark-neutral">–</Text>
+                  </Pressable>
+                  <Text
+                    className="text-2xl font-bold font-caslon text-dark-neutral min-w-[72px] text-center"
+                    accessibilityLabel={`${percentRemaining} percent remaining`}
+                  >
+                    {percentRemaining}%
+                  </Text>
+                  <Pressable
+                    onPress={() => setPercentRemaining((p) => clampPercent(p + PERCENT_STEP))}
+                    accessibilityRole="button"
+                    accessibilityLabel={s.increaseHint}
+                    className="w-11 h-11 rounded-full border border-border-warm items-center justify-center"
+                  >
+                    <Text className="text-lg font-satoshi-medium text-dark-neutral">+</Text>
+                  </Pressable>
+                </View>
+              </>
+            )}
+
+            <Text className="text-xs font-semibold text-muted-text font-satoshi mb-2 px-2 uppercase tracking-wider">
+              {s.paoLabel}
+            </Text>
+            <View className="flex-row flex-wrap gap-2 px-2 mb-4">
+              {PAO_OPTIONS.map((p) => (
+                <Chip
+                  key={p ?? 'none'}
+                  label={p === null ? s.paoNone : p === 6 ? s.pao6 : s.pao12}
+                  selected={paoMonths === p}
+                  onPress={() => setPaoMonths(p)}
+                  accessibilityLabel={`${p === null ? s.paoNone : p === 6 ? s.pao6 : s.pao12}${
+                    paoMonths === p ? ', selected' : ''
+                  }`}
+                />
+              ))}
+            </View>
+
+            {error && (
+              <Text accessibilityRole="alert" className="text-xs text-error font-satoshi mb-2 px-2">
+                {error}
+              </Text>
+            )}
+
+            <Button
+              label={isSaving ? s.saving : isEditMode ? s.saveEdit : s.save}
+              onPress={handleSave}
+              disabled={!canSave}
+              loading={isSaving}
+              accessibilityLabel={isEditMode ? s.saveEdit : s.save}
+              className="mt-2"
+            />
+          </ScrollView>
+        </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 };

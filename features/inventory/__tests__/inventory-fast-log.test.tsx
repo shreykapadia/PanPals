@@ -2,6 +2,7 @@ import React from 'react';
 import { Alert } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { InventoryItemCard } from '../components/InventoryItemCard';
 import { FastLogSheet } from '../components/FastLogSheet';
 import { ItemDetailSheet } from '../components/ItemDetailSheet';
@@ -46,9 +47,27 @@ const baseItem: Product = {
   created_at: '2026-01-15T00:00:00.000Z',
 };
 
+// FastLogSheet nests its own SafeAreaProvider inside its <Modal> (bug fix:
+// Modal renders in a separate native tree, so content wouldn't otherwise
+// inherit insets from the app root's SafeAreaProvider). A SafeAreaProvider
+// withholds its children until a native onInsetsChange event fires, which
+// never happens under RNTL — that inner provider falls back to *this* outer
+// provider's context value as its initial state, so giving this one real
+// initialMetrics is enough to unblock rendering without mocking the module
+// (mocking it swaps component identity and breaks NativeWind's className
+// interop for these components).
+const TEST_SAFE_AREA_METRICS = {
+  frame: { x: 0, y: 0, width: 393, height: 852 },
+  insets: { top: 47, left: 0, right: 0, bottom: 34 },
+};
+
 function renderWithClient(ui: React.ReactElement) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
+  return render(
+    <SafeAreaProvider initialMetrics={TEST_SAFE_AREA_METRICS}>
+      <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
+    </SafeAreaProvider>,
+  );
 }
 
 function renderDetailSheet(overrides: Partial<React.ComponentProps<typeof ItemDetailSheet>> = {}) {
