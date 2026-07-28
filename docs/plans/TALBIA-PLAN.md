@@ -1,6 +1,15 @@
 # Talbia's Implementation Plan — Finish, Empties & Progress
 
-## ▶️ RESUME HERE — read this before anything else (updated 2026-07-27)
+## ▶️ RESUME HERE — read this before anything else (updated 2026-07-28)
+
+> **🟡 You are now the blocker on the footer chain.** Aaron's Phase 5 merged on
+> 2026-07-27 (PR #29), which clears step 1 of five. **Step 2 is yours** — the rename to
+> `app/(tabs)/empties.tsx` behind a one-line `progress.tsx` shim — and Shrey's nav PR,
+> Matt's Phase 5, and your own shim deletion all queue behind it. Phase 3b is still
+> more urgent (F6 is broken in production builds), but **do Phase 5 immediately after
+> it**, ahead of 3c and 3d, so three other people stop waiting. The old instruction
+> "do not start Phase 5 until I tell you Aaron's footer PR has merged" is satisfied:
+> it has merged.
 
 **Asking your agent "my plan was updated, where do we continue from?" — this is the answer.**
 
@@ -11,9 +20,9 @@
 **Then, in order:**
 
 1. **Phase 3b** (§6) — wire the finish seam. 🔴 Do this first.
-2. **Phase 3c** (§6) — swap in Aaron's real `ProgressRing` and delete your stub. His shipped in PR #22.
-3. **Phase 3d** (§6) — write `.maestro/finish-and-archive.yaml`. It can't pass until 3b lands, so it goes after.
-4. **Phase 5** (§6) — the footer rename + trim. You merge **second** in that chain, after Aaron.
+2. **Phase 5** (§6) — the footer rename + trim. **Moved up: Aaron merged, so you are step 2 of 5 and three lanes are blocked on you.** Small — a file rename, a one-line shim, and dropping the streak/status duplicates.
+3. **Phase 3c** (§6) — swap in Aaron's real `ProgressRing` and delete your stub. His shipped in PR #22.
+4. **Phase 3d** (§6) — write `.maestro/finish-and-archive.yaml`. It can't pass until 3b lands, so it goes after.
 
 > **Paste this to your agent to start the session:**
 >
@@ -31,10 +40,19 @@
 > Start with Phase 3b in §6 — the finish seam is broken and my whole finish flow
 > is currently dead code outside __DEV__. Follow that phase's paste block exactly.
 >
-> After 3b passes verify, continue to Phase 3c (swap in Aaron's
-> components/ProgressRing.tsx and delete my ProgressRingStub) and then Phase 3d
-> (the Maestro flow). Do not start Phase 5 until I tell you Aaron's footer PR has
-> merged.
+> After 3b passes verify, do Phase 5 next (§6) — the rename to
+> app/(tabs)/empties.tsx behind a one-line progress.tsx re-export shim, plus
+> dropping the streak and status counts that duplicate Home. Aaron's footer PR
+> merged on 2026-07-27, so Phase 5 is unblocked and three other lanes are now
+> waiting on it. Ship it as its own PR before Phase 3c.
+>
+> Then continue to Phase 3c (swap in Aaron's components/ProgressRing.tsx and
+> delete my ProgressRingStub) and Phase 3d (the Maestro flow).
+>
+> Do NOT delete the progress.tsx shim in the same PR that creates empties.tsx.
+> That deletion is a separate 2-line follow-up that must come AFTER Matt repoints
+> features/inventory/components/ItemDetailSheet.tsx off '/(tabs)/progress' — I
+> will tell you when. Deleting it early breaks F6 in a production build.
 >
 > Do NOT add any track() calls — useFinishProduct already fires product_finished
 > from inside lib/api.
@@ -52,7 +70,7 @@
 
 ---
 
-## 0. STATUS — updated 2026-07-27 against `main` @ `cdd8e1e`
+## 0. STATUS — updated 2026-07-28 against `main` @ `bbf7605`
 
 **You shipped PR #19 — Phases 1, 2, and most of 3 are done.** `npm run verify` is green. But there is one problem you need to fix before anything else, and it's serious.
 
@@ -76,7 +94,7 @@
 | **3b** Wire the finish seam     | 🔴 **NEW — do first**      | See below.                                                                                                                                                              |
 | **3c** Swap in Aaron's ring     | ⬜ Not started             | Your `ProgressRingStub` was the right call when Aaron's ring didn't exist. **It exists now.**                                                                           |
 | **4** User testing              | ⬜ Not started             | —                                                                                                                                                                       |
-| **5** Footer (rename + trim)    | ⬜ Not started             | Inbound request in §1. Merges **second** in the footer chain, after Aaron.                                                                                              |
+| **5** Footer (rename + trim)    | 🟡 **Unblocked — do 2nd**  | Inbound request in §1. Merges **second** in the footer chain; **Aaron's step 1 landed 2026-07-27 (PR #29), so this is now what the chain is waiting on.**               |
 
 **On the ring (Phase 3c):** `features/empties/components/ProgressRingStub.tsx` carries your own TODO saying to delete it when Aaron's lands. Aaron shipped `components/ProgressRing.tsx` in PR #22. The swap is **not drop-in** — his ring requires an `accessibilityLabel` prop and accepts `strokeWidth`; yours takes neither and animates the fill internally. So: pass `accessibilityLabel` at every call site, decide whether you still need the entry animation (if yes, keep it in a small local wrapper around his ring rather than a whole second ring), then delete `ProgressRingStub.tsx` and the adapter.
 
@@ -550,17 +568,24 @@ a subtraction — you are not building anything new. Roughly 30–60 minutes of 
 place my finished products live," and the two facts that Home already owns (the
 status donut and the streak) stop being rendered twice in the app.
 
-> **⚠️ Merge order — read this before you start.** Shrey's navigation PR will point
-> a tab at `name="empties"`, and your file is currently `progress.tsx`. If those two
-> land out of order, `main` breaks for all five of you. The fix is a **one-line
-> shim**, and it is part of the paste box below:
+> **⚠️ Merge order — read this before you start. The chain is five steps, not three.**
+> Shrey's navigation PR will point a tab at `name="empties"`, and your file is currently
+> `progress.tsx`. If those two land out of order, `main` breaks for all five of you. The
+> fix is a **one-line shim**, and it is part of the paste box below:
 >
-> 1. **You go first.** Your PR creates `app/(tabs)/empties.tsx` (the real screen) and
->    leaves `app/(tabs)/progress.tsx` behind as a single re-export line. Both routes
->    resolve, so `main` keeps working with the old nav.
-> 2. **Shrey merges his nav PR** pointing at `empties`.
-> 3. **You open a 2-line follow-up PR** deleting the `progress.tsx` shim. Ask Shrey
->    to confirm his PR is merged before you do.
+> 1. ✅ **Aaron went first** — the Home profile button, merged 2026-07-27 (PR #29). Done.
+> 2. 🟡 **You go second — this is where the chain is stalled today.** Your PR creates
+>    `app/(tabs)/empties.tsx` (the real screen) and leaves `app/(tabs)/progress.tsx`
+>    behind as a single re-export line. Both routes resolve, so `main` keeps working with
+>    the old nav.
+> 3. ⬜ **Shrey merges his nav PR** pointing at `empties`.
+> 4. ⬜ **Matt merges his Phase 5** — he repoints
+>    `features/inventory/components/ItemDetailSheet.tsx` from `'/(tabs)/progress'` to
+>    `'/(tabs)/empties'`. **This step is why the shim has to outlive step 3.**
+> 5. ⬜ **You open a 2-line follow-up PR** deleting the `progress.tsx` shim. **Wait for
+>    step 4, not step 3** — if you delete it after Shrey merges but before Matt repoints,
+>    "Mark as Finished" navigates to a dead route and F6 breaks in a production build.
+>    Ask Shrey to confirm Matt's PR is in.
 
 > **Paste this to your agent:**
 >

@@ -4,6 +4,37 @@
 **Gate:** `npm run verify` is **green** — tsc, eslint (0 warnings), prettier, **19 Jest suites / 94 tests**. No raw hex outside `theme/`.
 **Supersedes:** `MATT-PLAN-AUDIT.md` (deleted — it was written against a stale `86992ae` checkout that was missing PRs #21–#24, and it wrongly reported Matt's and Aaron's lanes as unbuilt).
 
+> ## Addendum — 2026-07-28, `main` @ `bbf7605`
+>
+> This audit is a point-in-time snapshot of `cdd8e1e` and is otherwise unchanged. Three
+> PRs merged after it. Where they contradict the body below, this addendum wins.
+>
+> - **PR #29 (`9fba5ab`) — Aaron's Phase 5 shipped.** `features/home/ProfileButton.tsx`
+>   is in the Home top app bar (`router.push('/you')`, label `'Your profile and settings'`)
+>   and the "Log Item" quick-action pill is gone from `QuickActions`.
+>   **Step 1 of the footer chain is cleared, and `href: null` on the You tab is now safe.**
+> - **PR #30 (`ff884d3`) — Aaron's two stubs are gone.** `useHomeData` calls
+>   `useUsageLogs()`, `RecentProgress` renders real log entries, and `StreakRow`'s 7-day
+>   row comes from real per-day history (`features/home/utils/daysSince.ts`). §3-B3's
+>   downstream note and the "Gaps" line under §4 Aaron are resolved. **Aaron's lane has no
+>   open coding work** — Phase 4 plus one queued 1-line follow-up behind Matt.
+> - **PR #31 — Joon's Phase 1c** (cooling-off, reconsideration, duplicate detection,
+>   purchase conversion) and **PR #32** (`SafeAreaProvider` at the app root) also merged.
+>   Joon's 🔴 rating in §1 predates #31.
+> - **The footer chain now stands: ✅ Aaron → 🟡 Talbia → ⬜ Shrey → ⬜ Matt → ⬜ Talbia's
+>   shim deletion.** The blocker is **Talbia's `app/(tabs)/empties.tsx`**; `app/(tabs)/`
+>   still contains only `progress.tsx`. Her plan has been reordered to put Phase 5
+>   immediately after Phase 3b, and Matt's now says explicitly not to start Phase 5 yet.
+> - **New, gap-window risk:** Aaron's pill removal landed _before_ Shrey's ⊕ exists, so
+>   Home currently has **no persistent log entry point**. The only survivor is the
+>   empty-Focus-Pot CTA (`focusEmptyActionLabel: 'Log Item'`), which renders only when the
+>   Focus Pot is empty. F1 is still reachable from the Inventory tab, but this argues for
+>   moving the chain along quickly. Recorded as C6 in `GEMINI-FOOTER-PLAN.md`.
+> - **Follow-up now queued for Aaron (after Matt's step 4):** that same CTA pushes to
+>   `/(tabs)/inventory` with no params, so once `action=log` handling exists it should pass
+>   `params: { action: 'log' }` or Home will have two log paths that behave differently.
+> - **Gate:** `npm run verify` green at `bbf7605` — **27 Jest suites / 139 tests**.
+
 ---
 
 ## 1. Scoreboard
@@ -11,7 +42,7 @@
 | Lane       | Phases done                                      | Phases left                                                                 | Lane health                                                               |
 | ---------- | ------------------------------------------------ | --------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | **Shrey**  | 0-A → 0-E, B1 → B6, Phase 2, Phase 3             | Phase 4 (ongoing review/merge + testing), **footer rebuild (in flight)**    | 🟢 Ahead. Three shared hooks missing and now blocking two lanes — see §3. |
-| **Aaron**  | 1, 2, 3 (PR #22)                                 | Phase 4, **new Phase 5 (footer)**                                           | 🟢 Strongest lane. One stub (`RecentProgress`) blocked on Shrey.          |
+| **Aaron**  | 1, 2, 3 (#22), **5 (#29)**, **history (#30)**    | Phase 4 only (not code)                                                     | 🟢 Code-complete. Off the critical path as of PR #29.                     |
 | **Matt**   | 1a, most of 1b, 2 (n/a), part of 3 (PR #21, #23) | Rest of 1b (**edit, delete, usage history**), rest of 3, 4, **new Phase 5** | 🟡 Real gaps behind a working surface. One spec violation — see §4-M3.    |
 | **Joon**   | 1a (PR #17, hardened in #24)                     | **1b (intercept — the riskiest feature in the app)**, 1c, 2 (n/a), 3, 4     | 🔴 Furthest behind on the highest-risk work. F5 is entirely unbuilt.      |
 | **Talbia** | 1, 2, most of 3 (PR #19)                         | Maestro flow, ring swap, **finish seam**, Phase 4, **new Phase 5 (footer)** | 🟡 Shipped work is **unreachable in production** — see §3-B1.             |
@@ -94,13 +125,13 @@ Matt's strings file already carries `editAction`, `editTitle`, `saveEdit` — de
 
 Done: Phase 0-A→0-E, B1→B6, Phase 2 (real Supabase swap), Phase 3 (polish/a11y/privacy). Plus an unplanned onboarding redesign (#20).
 Left: Phase 4 (standing review/merge + user testing) and the **footer rebuild**, which is fully specced in `GEMINI-FOOTER-PLAN.md` but uncommitted.
-Notes: the footer chain is now **five steps, not four** — Aaron → Talbia → Shrey → **Matt** → Talbia's shim deletion (§3-B6, C3). Aaron's Phase 5 has not shipped, so nothing is out of order yet. **Matt was never sent the original `app/log.tsx` cross-lane request**; that request is now obsolete and has been replaced in his Phase 5 by the two-change version (open `FastLogSheet` from `action=log`, repoint the finish seam to `/(tabs)/empties`). Only 2 of 5 Maestro flows exist (`catalog-search`, `signup`, plus Aaron's `focus-and-ring` and Matt's `log-product` — so 4 of 5; `wishlist-intercept` and `finish-and-archive` are missing, owned by Joon and Talbia).
+Notes: the footer chain is now **five steps, not four** — Aaron → Talbia → Shrey → **Matt** → Talbia's shim deletion (§3-B6, C3). ~~Aaron's Phase 5 has not shipped, so nothing is out of order yet.~~ **Updated 2026-07-28: Aaron's Phase 5 shipped in PR #29; the chain is waiting on Talbia's `empties.tsx`, and nothing is out of order.** **Matt was never sent the original `app/log.tsx` cross-lane request**; that request is now obsolete and has been replaced in his Phase 5 by the two-change version (open `FastLogSheet` from `action=log`, repoint the finish seam to `/(tabs)/empties`). Only 2 of 5 Maestro flows exist (`catalog-search`, `signup`, plus Aaron's `focus-and-ring` and Matt's `log-product` — so 4 of 5; `wishlist-intercept` and `finish-and-archive` are missing, owned by Joon and Talbia).
 
 ### Aaron — 🟢
 
 Done (#22): `components/ProgressRing.tsx` with the exact spec'd props (`percent, size?, strokeWidth?, label?, accessibilityLabel` required, ≥8px stroke, rounded caps, `primary-container` fill on a `border-warm` track); `HomeScreen` with loading skeleton / empty / error; `FocusCard`, `AddToFocusRow`, `StatusDonut`, `QuickActions`, `StreakRow`, `ReconsiderNudge`, `RingSlider` (5% snap, `SLIDER_STEP = 5`); `useHomeData`, `useFocusPot`; 4 test files; `.maestro/focus-and-ring.yaml`.
-Left: Phase 4, and the new **Phase 5** (profile button in the top app bar — _blocking_ for Shrey's nav PR; drop the duplicate "Log item" quick-action pill).
-Gaps: `RecentProgress` renders nothing and `StreakRow`'s weekly checkmarks are approximated — both waiting on **B3**. He correctly did not re-fire analytics.
+Left: Phase 4. **Phase 5 shipped 2026-07-27 in PR #29** — `ProfileButton` in the top app bar plus the duplicate "Log Item" pill removed; it is no longer blocking Shrey's nav PR.
+Gaps: ~~`RecentProgress` renders nothing and `StreakRow`'s weekly checkmarks are approximated — both waiting on **B3**.~~ **Closed 2026-07-28 in PR #30** — both now read real `useUsageLogs()` history. He correctly did not re-fire analytics.
 
 ### Matt — 🟡
 
@@ -143,5 +174,5 @@ Left:
 3. ~~**Shrey B2 + B3** — the three missing hooks (`useUpdateProduct`, `useDeleteProduct`, `useUsageLogs`). One PR unblocks Matt's M1/M2/M3/M4 and Aaron's two stubs.~~ **Done 2026-07-27.**
 4. **Shrey B4 + B5** — decide photos in/out, decide confidence tiers in/out. Both are scope calls only you can make, and both are currently silent gaps in someone's plan.
 5. **Joon Phase 1b** — the intercept. Longest pole and the highest-risk assumption; it should be in front of testers first, not last.
-6. **The footer chain** — Aaron Phase 5 → Talbia Phase 5 → Shrey's nav PR → **Matt Phase 5** → Talbia's shim deletion. Do not reorder; Matt's step is what keeps the finish seam alive when the shim dies.
+6. **The footer chain** — ~~Aaron Phase 5~~ (✅ PR #29) → **Talbia Phase 5** → Shrey's nav PR → **Matt Phase 5** → Talbia's shim deletion. Do not reorder; Matt's step is what keeps the finish seam alive when the shim dies. **As of 2026-07-28 this is waiting on Talbia**, and it now competes with item 1 for her attention — do 3b first, then Phase 5, then the rest of her queue.
 7. **Shrey B6** — the doc drift, folded into the footer PR.

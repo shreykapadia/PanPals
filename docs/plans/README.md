@@ -36,20 +36,22 @@ Full rationale: `docs/DECISIONS.md` (D12–D19). The contract everyone obeys: `A
 Enforced by `.github/CODEOWNERS` and `AI-CONTEXT.md §3`. If you need a change outside
 your lane, **stop and post a `CROSS-LANE REQUEST`** — each plan has pre-written ones.
 
-## Where everyone actually is (2026-07-27, `main` @ `cdd8e1e`)
+## Where everyone actually is (2026-07-28, `main` @ `bbf7605`)
 
 Each plan now opens with a **§0 STATUS** block — read it before pasting anything, because
 several phases are already done and a few instructions further down are now wrong.
 Cross-lane detail, blockers, and the real `lib/api` contract:
 **[`PLAN-AUDIT.md`](./PLAN-AUDIT.md)**.
 
-| Lane       | Done                             | Next up                                                          |
-| ---------- | -------------------------------- | ---------------------------------------------------------------- |
-| **Shrey**  | 0-A→0-E, B1→B6, Phase 2, Phase 3 | **B7: three missing hooks** (blocking Matt + Aaron), then footer |
-| **Aaron**  | Phases 1, 2, 3                   | **Phase 5** (blocking the footer chain)                          |
-| **Matt**   | 1a, half of 1b, part of 3        | Edit / delete / usage history (blocked on B7)                    |
-| **Talbia** | 1, 2, most of 3                  | **Phase 3b — wire the finish seam** 🔴                           |
-| **Joon**   | 1a                               | **Phase 1b — the impulse intercept** (nothing built yet)         |
+| Lane       | Done                                                 | Next up                                                                                     |
+| ---------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| **Shrey**  | 0-A→0-E, B1→B7, Phase 2, Phase 3                     | The footer PR — **queued behind Talbia's Phase 5**                                          |
+| **Aaron**  | Phases 1, 2, 3, **5** (#29), **usage history** (#30) | **Nothing open** — Phase 4 (not code) + a 1-line CTA follow-up queued behind Matt           |
+| **Matt**   | 1a, half of 1b, part of 3                            | Barcode copy fix, rest of Phase 3, then 1b. **Phase 5 not yet — step 4 of 5**               |
+| **Talbia** | 1, 2, most of 3                                      | **Phase 3b — wire the finish seam** 🔴, then **Phase 5 — the whole chain is waiting on it** |
+| **Joon**   | 1a, 1b, **1c** (PRs #28, #31)                        | Phase 3 polish / `.maestro/wishlist-intercept.yaml`                                         |
+
+`npm run verify` is green on `main` at `bbf7605` — 27 suites / 139 tests.
 
 **Two project-wide corrections the plans were written before:**
 
@@ -71,17 +73,24 @@ The footer becomes **`Home │ Inventory │ ⊕ Log │ Wishlist │ Empties`**
 moving to a profile button in the Home top app bar. Rationale and the full build spec
 are in [`GEMINI-FOOTER-PLAN.md`](./GEMINI-FOOTER-PLAN.md) (Shrey's lane).
 
-**It touches three lanes, and merge order matters:**
+**It touches three lanes, and merge order matters. Status as of 2026-07-28:**
 
-1. **Aaron** — Phase 5 in his plan: profile button in the Home header (blocking — the
-   profile is unreachable until it ships), drop the "Log item" quick-action pill.
-2. **Talbia** — Phase 5 in her plan: rename the tab screen to `empties.tsx` behind a
+1. ✅ **Aaron** — profile button in the Home header, "Log item" pill dropped.
+   **Merged 2026-07-27 (PR #29).**
+2. 🟡 **Talbia** — Phase 5 in her plan: rename the tab screen to `empties.tsx` behind a
    one-line shim, drop the streak and status badges that duplicate Home.
-3. **Shrey** — the nav itself, the centre ⊕ button, and the doc updates.
-4. **Matt** — Phase 5 in his plan: open his existing `FastLogSheet` from the ⊕'s
+   **← the chain is stalled here; three lanes are waiting on it.**
+3. ⬜ **Shrey** — the nav itself, the centre ⊕ button, and the doc updates.
+4. ⬜ **Matt** — Phase 5 in his plan: open his existing `FastLogSheet` from the ⊕'s
    `action=log` param, and repoint the finish seam to `/(tabs)/empties`.
-5. **Talbia** — a 2-line follow-up deleting the shim. **Must come after step 4**, or
+5. ⬜ **Talbia** — a 2-line follow-up deleting the shim. **Must come after step 4**, or
    Matt's "Mark as Finished" button navigates to a dead route.
+
+**⚠️ Gap window, live right now:** step 1 removed the Home "Log Item" pill and step 3
+hasn't added the ⊕ yet, so Home has no persistent log entry point. Logging still works
+from the Inventory tab, and the empty-Focus-Pot CTA still points there, but F1's headline
+"≤15s from anywhere" is not true until step 3 merges. That's the reason to keep steps 2
+and 3 moving rather than batching them with other work.
 
 Ownership does not change. Nobody edits anyone else's files.
 
