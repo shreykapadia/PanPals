@@ -16,6 +16,8 @@ import {
   WishlistPriority,
 } from '../../../mocks/types';
 import { CATEGORY_LABELS, PRIORITY_LABELS, wishlistStrings } from '../strings';
+import { useIntercept } from '../hooks/useIntercept';
+import { InterceptBanner } from './InterceptBanner';
 
 type NewWishlistItem = Omit<
   WishlistItem,
@@ -33,8 +35,15 @@ interface AddWishlistItemSheetProps {
 
 const PRIORITIES: WishlistPriority[] = ['high', 'medium', 'low'];
 
-export const AddWishlistItemSheet: React.FC<AddWishlistItemSheetProps> = ({
-  visible,
+export const AddWishlistItemSheet: React.FC<AddWishlistItemSheetProps> = (props) => {
+  // Hooks in the content component (including useIntercept's live query)
+  // must not run at all while closed, so the gate lives in this wrapper,
+  // above every hook — not as an early-return inside the content component.
+  if (!props.visible) return null;
+  return <AddWishlistItemSheetContent {...props} />;
+};
+
+const AddWishlistItemSheetContent: React.FC<AddWishlistItemSheetProps> = ({
   onClose,
   onSave,
   isSaving,
@@ -85,6 +94,12 @@ export const AddWishlistItemSheet: React.FC<AddWishlistItemSheetProps> = ({
     name.trim().length > 0 &&
     (mode !== 'link' || productUrl.trim().length > 0);
 
+  const intercept = useIntercept(category, { brand, shade: shade.trim() || null });
+  // Only worth showing once there's an actual product to compare against —
+  // otherwise category's default ('other') could trigger a premature "hold
+  // on" before the user has typed anything.
+  const showIntercept = canSave && intercept.shouldIntercept;
+
   const handleSave = async () => {
     if (!canSave) {
       setError(
@@ -117,10 +132,22 @@ export const AddWishlistItemSheet: React.FC<AddWishlistItemSheetProps> = ({
     }
   };
 
-  if (!visible) return null;
+  const handleKeepOnWishlist = () => {
+    intercept.recordDecision('keep_wishlist');
+    handleSave();
+  };
+
+  const handleUseOwned = () => {
+    intercept.recordDecision('use_owned');
+    handleClose();
+  };
+
+  const handleContinueToRetailer = () => {
+    intercept.recordDecision('continue_retailer');
+  };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={handleClose}>
+    <Modal visible animationType="slide" onRequestClose={handleClose}>
       <SafeAreaView className="flex-1 bg-surface">
         <View className="flex-row items-center justify-between px-4 py-3 border-b border-border-warm">
           <Text className="text-lg font-bold font-caslon text-dark-neutral">{s.addTitle}</Text>
@@ -265,14 +292,27 @@ export const AddWishlistItemSheet: React.FC<AddWishlistItemSheetProps> = ({
             </Text>
           )}
 
-          <Button
-            label={isSaving ? s.saving : s.save}
-            onPress={handleSave}
-            disabled={!canSave}
-            loading={isSaving}
-            accessibilityLabel={s.save}
-            className="mt-2"
-          />
+          {showIntercept ? (
+            <InterceptBanner
+              category={category}
+              count={intercept.count}
+              matches={intercept.matches}
+              productUrl={productUrl.trim() || null}
+              onKeepOnWishlist={handleKeepOnWishlist}
+              onUseOwned={handleUseOwned}
+              onContinueToRetailer={handleContinueToRetailer}
+              isSaving={isSaving}
+            />
+          ) : (
+            <Button
+              label={isSaving ? s.saving : s.save}
+              onPress={handleSave}
+              disabled={!canSave}
+              loading={isSaving}
+              accessibilityLabel={s.save}
+              className="mt-2"
+            />
+          )}
         </ScrollView>
       </SafeAreaView>
     </Modal>
