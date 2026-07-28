@@ -117,7 +117,7 @@ spacing:
   page-padding-y: 1rem # py-4 (16px)
   gutter: 1rem
   header-height: 3.5rem # h-14 (56px)
-  footer-height: 5rem # h-20 (80px)
+  footer-height: 5.5rem # h-22 (88px) — increased from 80px for centre ⊕ Log action (D23)
 ```
 
 Target viewport: mobile app frame **393 × 852**.
@@ -144,28 +144,30 @@ Target viewport: mobile app frame **393 × 852**.
 
 - **Top app bar:** height `h-14` (56px), background `#FFF8F4`, centered "PanPal"
   serif wordmark (Libre Caslon Text, 20px, bold), 1px bottom border `#E0D9D4`.
-- **Bottom navigation bar:** fixed, height `h-20` (80px), top corners
+- **Bottom navigation bar:** fixed, height `h-22` (88px), top corners
   `rounded-t-3xl`, background `#FFFFFF`, 1px top border `#E0D9D4`. Active icon
   `#F2A2A2`, inactive icon `#8C857B`.
-- **Bottom tabs (5):** **Home | Inventory | Progress | Wishlist | You** — icon +
-  label each. This is the app's confirmed information architecture (PRD.md §IA;
-  Talbia owns the Progress tab).
+- **Bottom destinations (4 + ⊕ Log):** **Home | Inventory | ⊕ Log | Wishlist | Empties** —
+  icon + label each. Centre ⊕ keeps a 64pt footprint: a **flat** rose disc (`#F2A2A2`, 56pt —
+  no gradient, no sheen) inside a 4pt `#FFFFFF` ring, so the bar's top border stops at the ring
+  instead of running behind the disc. Soft charcoal lift (`#333333`, offset {0,3}, opacity 0.12,
+  radius 6) — never a coloured glow. Charcoal `Plus` glyph (`#333333`, 24pt, stroke 2, matching the
+  destination icons), 11pt Satoshi-Medium "Log" label in inactive `#8C857B` so the label row reads as
+  one row (the disc carries the emphasis). Overhangs the bar by -18pt (-10pt Android).
+  "You" (profile/settings) is reached from the Home top app bar (`/you`, `href: null`).
 
-> **Nav decision (7/21, D21):** we kept the five tabs above rather than the design
-> system's original **Quick Log (+) / Profile** layout, so the Progress tab (and
-> the private empties archive it hosts) stays intact and ownership is unchanged.
-> The design doc's center "Quick Log (+)" idea lives on as a **Home quick-action
-> pill** (Log Item) instead of a tab; the "Profile" screen is our **You** tab.
+> **Nav decision (7/27, D23):** restored the design system's centre "Quick Log (+)" and renamed the
+> fifth tab to **Empties** (private finish archive). "You" moves to the Home app bar profile button (PR #29).
 
 ## 6. Screen ground truth
 
 `docs/mockups/` — when a mockup and this file disagree on a value, this file
 wins; when this file is silent on a layout question, match the mockup.
 
-| File                    | Screen                                                                                                                                                                                  |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| home-dashboard.png      | Home (canonical phone revision — no budget/wishlist carousel)                                                                                                                           |
-| home-dashboard-wide.png | Home, tablet reference                                                                                                                                                                  |
-| log-modal.png           | F1 fast-log modal                                                                                                                                                                       |
-| wishlist-intercept.png  | F5 intercept banner + cooling-off CTA                                                                                                                                                   |
-| empties-feed.png        | **Reference only — community feed deferred (D13).** Reuse its card layout for the _private_ empties archive (Progress tab → My Progress); drop the like button and author/feed framing. |
+| File                    | Screen                                                                                                                                                                   |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| home-dashboard.png      | Home (shows old five-destination footer and 3-pill quick-action row; this file wins — footer is 4 tabs + ⊕ Log (D23), and "Log Item" pill is removed)                    |
+| home-dashboard-wide.png | Home, tablet reference                                                                                                                                                   |
+| log-modal.png           | F1 fast-log modal                                                                                                                                                        |
+| wishlist-intercept.png  | F5 intercept banner + cooling-off CTA                                                                                                                                    |
+| empties-feed.png        | **Reference only — community feed deferred (D13).** Reuse its card layout for the _private_ empties archive (Empties tab); drop the like button and author/feed framing. |

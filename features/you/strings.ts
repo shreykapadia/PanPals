@@ -28,6 +28,7 @@ export const youStrings = {
   // "Project pan" is the community's own phrase (PERSONAS.md, Maya) — she called
   // it that long before she called it tracking.
   mastheadEyebrow: 'Your project pan',
+  backAccessibilityLabel: 'Go back',
   memberSince: (month: string, year: number) => `Panning since ${month} ${year}`,
   mastheadAccessibilityLabel: (username: string, memberSince?: string) =>
     memberSince ? `Your profile. ${username}. ${memberSince}.` : `Your profile. ${username}.`,

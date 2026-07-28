@@ -18,13 +18,15 @@ import {
   Leaf,
   CalendarCheck,
   X,
+  Plus,
 } from 'lucide-react-native';
 import { colors } from '../../theme/tokens';
 
 export type IconName =
   | 'home'
   | 'inventory'
-  | 'progress'
+  | 'log'
+  | 'empties'
   | 'wishlist'
   | 'you'
   | 'check'
@@ -43,7 +45,8 @@ export type IconName =
 const icons: Record<IconName, LucideIcon> = {
   home: Home,
   inventory: Package,
-  progress: Sparkles, // Use Sparkles instead of Trophy to better represent personal growth/depletion celebration
+  log: Plus,
+  empties: Sparkles,
   wishlist: Heart,
   you: User,
   check: Check,

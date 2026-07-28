@@ -78,9 +78,8 @@ Project Pan Purist (weight tracking), Subscription Box Overloader (batch logging
 
 ## Information architecture
 
-Bottom tabs: **Home | Inventory | Progress | Wishlist | You**.
-Progress tab = "My Progress" (rings, donut, streak) + a **private** empties
-archive. No Community sub-tab (deferred — D13). No 6th tab.
+Bottom tabs: **Home | Inventory | ⊕ Log | Wishlist | Empties** (D23).
+Empties tab = private finish archive + repurchase verdicts. Progress donut and streak live on Home only (F4, F8). Centre ⊕ serves F1 fast-log. No 6th tab. "You" (profile/settings) is accessed via top app bar (`/you`).
 
 ## Success metrics (design fair)
 

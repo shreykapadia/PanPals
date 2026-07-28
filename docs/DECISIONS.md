@@ -142,3 +142,19 @@ with Libre Caslon Text for a deliberate, editorial look. Headlines stay Libre
 Caslon Text. Loading: Caslon via `@expo-google-fonts/libre-caslon-text`; Satoshi
 is downloaded from fontshare.com/fonts/satoshi, committed to `assets/fonts/`, and
 registered with `expo-font` (see SHREY-PLAN.md Phase 0).
+
+**D23 — 2026-07-27 — Bottom nav = Home | Inventory | ⊕ Log | Wishlist | Empties.**
+Partially reverses D21's navigation clause and restores the design system's original
+centre "Quick Log (+)". Why: D21 kept five destinations to protect the ownership
+matrix, which is an org reason, not a user one. An audit against PERSONAS.md and PRD.md
+found (a) F1's ≤15s log — "the single most important number in the PRD" — had no
+persistent entry point, while Maya's named churn moment is logging fatigue; (b) after
+D13 removed the Community sub-tab, "Progress" duplicated Home's F4 donut and F8 streak
+and hid the private empties archive, which is the differentiator two personas name and
+which the North Star metric (empties/user/month) measures; (c) the You tab held 20% of
+primary nav for a once-per-user destination. "You" moves to a profile button in the
+Home top app bar (href: null, route intact) — shipped by Aaron in PR #29, which also
+removed the Home "Log Item" quick-action pill as a duplicate path; Scan and Search
+remain. Ownership is unchanged: Talbia
+still owns the last tab (renamed empties.tsx), Aaron still owns Home. Footer height
+80 → 88px to seat the 64pt centre button (DESIGN-TOKENS §3).

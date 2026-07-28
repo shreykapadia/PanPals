@@ -21,7 +21,7 @@ export const GOAL_OPTIONS: {
     value: 'Finish what I own',
     title: 'Finish what I own',
     subtitle: 'Use up what’s already yours',
-    icon: 'progress',
+    icon: 'empties',
   },
   {
     value: 'Cut impulse buys',
@@ -62,7 +62,7 @@ export const WELCOME_HERO_ITEMS: readonly FocusPotHeroItem[] = [
 export const WELCOME_VALUE_PROPS: { icon: IconName; label: string; description: string }[] = [
   { icon: 'inventory', label: 'Track', description: 'Log what you own in seconds' },
   { icon: 'cooling', label: 'Pause', description: 'A 14-day breather before you buy' },
-  { icon: 'progress', label: 'Celebrate', description: 'Watch every pan hit zero' },
+  { icon: 'empties', label: 'Celebrate', description: 'Watch every pan hit zero' },
 ];
 
 export const authStrings = {
