@@ -1,16 +1,15 @@
 import { RepurchaseVerdict } from '../../mocks/types';
 
 export const emptiesStrings = {
-  progressTitle: 'My Progress',
-  progressAccessibilityLabel: 'My Progress and your private empties archive',
+  emptiesTitle: 'Your Empties',
+  emptiesAccessibilityLabel: 'Your private empties archive',
   progressRingLabel: (percent: number) => `${percent}% finished`,
   progressRingAccessibility: (percent: number) => `${percent}% of your products are finished`,
-  progressFinishedCount: (count: number) => `${count} finished`,
-  progressStreak: (count: number) => `${count}-day logging streak`,
-  progressInRotationCount: (count: number) => `${count} in rotation`,
-  progressUnopenedCount: (count: number) => `${count} unopened`,
-  progressStatusAccessibilityLabel: (inRotation: number, unopened: number, finished: number) =>
-    `Product status: ${inRotation} in rotation, ${unopened} unopened, ${finished} finished`,
+  emptiesFinishedCount: (count: number) => `${count} finished`,
+  emptiesVerdictCount: (verdict: RepurchaseVerdict, count: number) =>
+    `${count} ${emptiesStrings.repurchaseVerdicts[verdict]}`,
+  emptiesVerdictAccessibilityLabel: (counts: Record<RepurchaseVerdict, number>) =>
+    `Repurchase verdicts: ${counts.yes} Yes, ${counts.maybe} Maybe, ${counts.no} No`,
   archiveTitle: 'Your Empties',
   archiveAccessibilityLabel: 'Your private empties archive',
   fallbackProductName: 'Finished product',
@@ -108,7 +107,7 @@ export const emptiesStrings = {
   celebrationContinue: 'Add a quick note',
   celebrationContinueAccessibilityLabel: 'Continue to the repurchase review',
   finishCancelAction: 'Not finished yet',
-  finishCancelAccessibilityLabel: 'Return to Progress without finishing this product',
+  finishCancelAccessibilityLabel: 'Return to Empties without finishing this product',
   reviewTitle: 'Would you repurchase it?',
   reviewMessage: 'A quick note can help future you remember what worked.',
   reviewInputLabel: 'A note for future you',
@@ -118,14 +117,14 @@ export const emptiesStrings = {
   reviewSkipAccessibilityLabel: 'Skip the review and save Maybe as your verdict',
   reviewSave: 'Save to my empties',
   reviewSaveAccessibilityLabel: 'Save this finished product to your private empties archive',
-  reviewCancelAccessibilityLabel: 'Return to Progress without saving this finished product',
+  reviewCancelAccessibilityLabel: 'Return to Empties without saving this finished product',
   reviewDefaultVerdictNote: 'Skipping saves “Maybe” for now.',
   finishErrorTitle: 'Your finish was not saved yet',
   finishErrorMessage: 'Please try again when you are ready.',
   finishSavedTitle: 'Saved to your empties',
   finishSavedMessage: 'Your private shelf is ready whenever you want to look back.',
-  finishSavedAction: 'View my progress',
-  finishSavedAccessibilityLabel: 'View your progress and private empties archive',
+  finishSavedAction: 'View my empties',
+  finishSavedAccessibilityLabel: 'View your private empties archive',
   developerPreviewTitle: 'Finish-flow preview',
   developerPreviewMessage:
     'Choose a test product. Saving it will mark it finished in your own account.',

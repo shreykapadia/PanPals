@@ -157,7 +157,7 @@ describe('FinishFlow', () => {
     const onCancel = jest.fn();
     const { getByLabelText } = render(<FinishFlow productId={product.id} onCancel={onCancel} />);
 
-    fireEvent.press(getByLabelText('Return to Progress without finishing this product'));
+    fireEvent.press(getByLabelText('Return to Empties without finishing this product'));
 
     expect(onCancel).toHaveBeenCalledTimes(1);
   });

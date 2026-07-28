@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import ProgressTab from '../../../app/(tabs)/progress';
+import EmptiesTab from '../../../app/(tabs)/empties';
 
 const mockUseLocalSearchParams = jest.fn();
 const mockSetParams = jest.fn();
@@ -34,10 +34,10 @@ jest.mock('../FinishFlow', () => {
   };
 });
 
-jest.mock('../ProgressSummary', () => {
+jest.mock('../EmptiesSummary', () => {
   const { Text } = jest.requireActual('react-native');
 
-  return { ProgressSummary: () => <Text>Progress summary</Text> };
+  return { EmptiesSummary: () => <Text>Empties summary</Text> };
 });
 
 jest.mock('../EmptiesArchive', () => {
@@ -60,7 +60,7 @@ jest.mock('../../../lib/api', () => ({
   useProducts: () => mockUseProducts(),
 }));
 
-describe('ProgressTab finish seam', () => {
+describe('EmptiesTab finish seam', () => {
   beforeEach(() => {
     mockUseLocalSearchParams.mockReset().mockReturnValue({});
     mockSetParams.mockReset();
@@ -76,7 +76,7 @@ describe('ProgressTab finish seam', () => {
 
   it('opens FinishFlow from the finishProductId route param and clears it on completion', () => {
     mockUseLocalSearchParams.mockReturnValue({ finishProductId: ['product-1'] });
-    const { getByLabelText, getByText } = render(<ProgressTab />);
+    const { getByLabelText, getByText } = render(<EmptiesTab />);
 
     expect(getByText('Finish flow for product-1')).toBeTruthy();
     fireEvent.press(getByLabelText('Complete test finish'));
@@ -86,7 +86,7 @@ describe('ProgressTab finish seam', () => {
 
   it('clears the finishProductId route param when the finish is cancelled', () => {
     mockUseLocalSearchParams.mockReturnValue({ finishProductId: 'product-1' });
-    const { getByLabelText } = render(<ProgressTab />);
+    const { getByLabelText } = render(<EmptiesTab />);
 
     fireEvent.press(getByLabelText('Cancel test finish'));
 
@@ -94,9 +94,9 @@ describe('ProgressTab finish seam', () => {
   });
 
   it('renders the archive when there is no finishProductId route param', () => {
-    const { getByText, queryByText } = render(<ProgressTab />);
+    const { getByText, queryByText } = render(<EmptiesTab />);
 
-    expect(getByText('Progress summary')).toBeTruthy();
+    expect(getByText('Empties summary')).toBeTruthy();
     expect(getByText('Empty archive')).toBeTruthy();
     expect(queryByText(/Finish flow for/)).toBeNull();
   });
