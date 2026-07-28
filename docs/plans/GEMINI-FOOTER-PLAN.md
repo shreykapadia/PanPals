@@ -11,12 +11,18 @@
 
 ---
 
-## 0. Re-audited against `main` @ `ba4c997` — 2026-07-27
+## 0. Re-audited against `main` @ `bbf7605` — 2026-07-28
 
 This plan was first written when most lanes were still stubs. **Four lanes have shipped
 since**, and five things in the original draft were wrong against the real code. They
 are corrected below; this section exists so you know what changed and do not "restore"
 the old advice.
+
+> **Chain status (2026-07-28, `main` @ `bbf7605`):** step 1 is **done** — Aaron shipped
+> the Home profile button in **PR #29** (`9fba5ab`). **You are still blocked on step 2**
+> (Talbia's `app/(tabs)/empties.tsx`), which has not landed. Run the preflight in §3
+> before doing anything; `ls "app/(tabs)/"` still shows `progress.tsx` only. What Aaron
+> merged, and the two new things it changes for you, are in **C6** below.
 
 | #      | Was                                                                       | Now                                                                                                                                      |
 | ------ | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
@@ -25,6 +31,33 @@ the old advice.
 | **C3** | Chain ends at Talbia deleting the `progress.tsx` shim                     | `ItemDetailSheet.tsx:53` hardcodes `/(tabs)/progress`. **Matt must repoint it before the shim dies** or F6 breaks — new step 4 in §3.    |
 | **C4** | Placeholder house style copied from "the `app/(tabs)/inventory.tsx` stub" | That stub is gone; Matt shipped the real screen. Moot — C1 removes the placeholder entirely. (`PLAN-AUDIT.md` §3-B6 caught this.)        |
 | **C5** | Tests live in `app/__tests__/`; `LogTabButton` is just a file             | No `app/__tests__/` exists — tab tests live in `app/(tabs)/__tests__/`. Also export the new component from `components/ui/index.ts`.     |
+| **C6** | Step 1 of the chain is pending; Home still has a "Log Item" pill          | **Shipped** in PR #29. `href: null` is now safe, and Home has **no persistent log path** until your ⊕ lands. Detail below.               |
+
+**C6 in full — what Aaron's PR #29 (`9fba5ab`) changed under you:**
+
+- `features/home/ProfileButton.tsx` is new: a 40×40 circle at the right of the Home app
+  bar showing the user's initial (from `dashboard.profile.username`), falling back to the
+  `you` icon. It navigates with **`router.push('/you')`** — route path only, no import of
+  `you.tsx`. Its `accessibilityLabel` is **`'Your profile and settings'`**.
+  **`href: null` on the You tab is therefore safe to ship (§7 item 6).** Do not add a
+  second profile entry point, and do not "correct" that path to `/(tabs)/you` — `/you`
+  resolves through the group with the tab hidden, and two of Aaron's tests assert it.
+- The `Log Item` quick-action pill is **already gone** from `features/home/QuickActions.tsx`
+  (Scan and Search remain). §9's D23 text credits that removal to PR #29 for this reason
+  — it is not something your PR does.
+- **`main` is in a gap window right now.** The pill is gone and the ⊕ does not exist yet,
+  so Home's only remaining log affordance is the empty-Focus-Pot CTA
+  (`features/home/strings.ts` → `focusEmptyActionLabel: 'Log Item'`), which renders **only
+  when the Focus Pot is empty**. F1 is still reachable via the Inventory tab, but a user
+  with a populated Focus Pot has no log entry point on Home until you merge. This raises
+  the §6 note from "degraded, not broken" to "this is the primary log path" — keep the PR
+  tight and land it as soon as step 2 clears.
+- **No new accessibility-label collisions.** `grep -rn "Log a product"` still returns
+  exactly one non-Maestro hit (`features/inventory/strings.ts:28`), so **C2 stands
+  unchanged**. `'Your profile and settings'` and `'Log Item'` do not collide with
+  `"Quick log a product"`. `.maestro/focus-and-ring.yaml` never referenced the pill or the
+  You tab, so no Maestro flow changed.
+- `main` is green at `bbf7605`: `npm run verify` passes, 27 suites / 139 tests.
 
 **Two facts from `PLAN-AUDIT.md` that constrain this PR:**
 
@@ -88,22 +121,36 @@ else**, and in particular do not touch `app/(tabs)/index.tsx`, `features/home/*`
 
 Three other lanes are involved and `main` breaks if this lands first.
 
-1. **Aaron merges first.** His Home top app bar gains the profile button (his Phase 5).
-   Until it exists, `href: null` on the You tab makes the profile unreachable anywhere
-   in the app. **As of `ba4c997` this has not shipped** — `features/home/QuickActions.tsx`
-   still has the three-pill row including "Log Item".
-2. **Talbia merges second.** Her PR creates `app/(tabs)/empties.tsx` and leaves a
-   one-line re-export shim at `app/(tabs)/progress.tsx`, so both routes resolve.
-3. **You merge third** — this plan.
-4. **Matt merges fourth** — `ItemDetailSheet.tsx:53` currently pushes to
+1. ✅ **Aaron merged first** — **done 2026-07-27, PR #29 (`9fba5ab`)**. The Home top app
+   bar now has `ProfileButton` and the "Log Item" pill is gone, so `href: null` on the You
+   tab no longer orphans the profile. See C6 for what this means for your PR.
+2. ⬜ **Talbia merges second — this is the current blocker.** Her PR creates
+   `app/(tabs)/empties.tsx` and leaves a one-line re-export shim at
+   `app/(tabs)/progress.tsx`, so both routes resolve. **As of `bbf7605` this has not
+   shipped** — `app/(tabs)/` contains `progress.tsx` and no `empties.tsx`.
+3. ⬜ **You merge third** — this plan. **Do not start until step 2 is on `main`.**
+4. ⬜ **Matt merges fourth** — `ItemDetailSheet.tsx:53` currently pushes to
    `/(tabs)/progress`; he repoints it to `/(tabs)/empties` and adds the `action=log`
    param handling from §6. **This step did not exist in the original chain and it is
    load-bearing** (see C3).
-5. **Talbia merges last** — the 2-line follow-up deleting the shim. If this jumps ahead
+5. ⬜ **Talbia merges last** — the 2-line follow-up deleting the shim. If this jumps ahead
    of step 4, Matt's "Mark as Finished" button navigates to a dead route and F6 stops
    working in a production build.
 
-**Before you start, verify step 2 has landed:**
+**One follow-up your PR creates, for after step 4 (put it in your PR description):**
+
+```
+CROSS-LANE REQUEST — to Aaron (+ Shrey to route), after Matt's Phase 5 lands
+Home's empty-Focus-Pot CTA (features/home/strings.ts focusEmptyActionLabel: 'Log Item')
+pushes to '/(tabs)/inventory' with no params — see features/home/__tests__/Home.test.tsx:288.
+Once Matt's action=log handling is in, that CTA and the new centre ⊕ become two Home
+paths to the same room with different behaviour: the ⊕ opens FastLogSheet, the CTA drops
+the user on the plain Inventory list. Please pass params: { action: 'log' } there too
+(~1 line + the test assertion). Not blocking anything; do it after Matt merges so the
+param actually does something.
+```
+
+**Before you start, verify step 2 has landed — as of 2026-07-28 it has not:**
 
 ```bash
 git checkout main && git pull && ls "app/(tabs)/"
@@ -329,6 +376,12 @@ Follow-up (not now): true modal presentation would need app/_layout.tsx to move 
 Inventory, where the "Log a product" button is the first thing on screen. Degraded, not
 broken. Say so in your PR description so nobody files it as a bug.
 
+**Note the change in stakes since PR #29 (C6):** Aaron has already removed the Home
+"Log Item" pill, so between his merge and yours there is no persistent log entry point on
+Home at all. Your ⊕ is not adding a second door — for a user whose Focus Pot is populated
+it is currently the _only_ one outside the Inventory tab. That is an argument for shipping
+this PR promptly, not for widening its scope.
+
 ## 7. Task 4 — `app/(tabs)/_layout.tsx`
 
 Rewrite the tab list. Declaration order is render order.
@@ -420,8 +473,9 @@ D13 removed the Community sub-tab, "Progress" duplicated Home's F4 donut and F8 
 and hid the private empties archive, which is the differentiator two personas name and
 which the North Star metric (empties/user/month) measures; (c) the You tab held 20% of
 primary nav for a once-per-user destination. "You" moves to a profile button in the
-Home top app bar (href: null, route intact). The Home "Log Item" quick-action pill is
-removed as a duplicate path; Scan and Search remain. Ownership is unchanged: Talbia
+Home top app bar (href: null, route intact) — shipped by Aaron in PR #29, which also
+removed the Home "Log Item" quick-action pill as a duplicate path; Scan and Search
+remain. Ownership is unchanged: Talbia
 still owns the last tab (renamed empties.tsx), Aaron still owns Home. Footer height
 80 → 88px to seat the 64pt centre button (DESIGN-TOKENS §3).
 ```
@@ -477,7 +531,7 @@ Check all of these by looking at the app, not by reasoning about the code:
 - [ ] The tab bar's rounded top corners are intact and nothing is clipped — **check Android specifically**, this is where `overflow: 'visible'` breaks.
 - [ ] The circle is easy to hit with a thumb, including near its top edge.
 - [ ] The Empties tab opens Talbia's archive.
-- [ ] From Home, the profile button reaches `/you`, and the new back control returns you.
+- [ ] From Home, the profile button (the round control at the right of the app bar, labelled "Your profile and settings") reaches `/you`, and the new back control returns you. **This is the check that `href: null` did not orphan the profile — do not skip it.**
 - [ ] With reduce-motion on, pressing the ⊕ still works and simply does not animate.
 - [ ] A screen reader announces the ⊕ as a button called "Quick log a product."
 - [ ] `maestro test .maestro/log-product.yaml` still passes — it taps `'Inventory Tab'` then `'Log a product'`, and the ⊕ must not have made that second selector ambiguous (C2).
@@ -495,6 +549,9 @@ Check all of these by looking at the app, not by reasoning about the code:
 - **Stay in the lane in §2.** If a change seems to require another lane's file, stop
   and print a `CROSS-LANE REQUEST`. Prove the PR is clean with
   `git diff --name-only main`.
+- **Do not touch, duplicate, or re-route the profile entry point.** `features/home/ProfileButton.tsx`
+  shipped in PR #29 and is Aaron's file. `router.push('/you')` is correct as written —
+  leave the path alone and do not add a second way into the profile from the tab bar (C6).
 - **Do not restructure `app/_layout.tsx`.** It still renders `<Slot />`; the
   `<Slot />` → `<Stack />` migration for modal presentation is a separate, post-fair change.
 - **Do not build, duplicate, or re-scaffold the fast-log form.** It is Matt's, it is

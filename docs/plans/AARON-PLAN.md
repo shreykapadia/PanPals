@@ -1,49 +1,46 @@
 # Aaron's Implementation Plan — Home, Focus Pot & Progress Rings
 
-## ▶️ RESUME HERE — read this before anything else (updated 2026-07-27)
+## ▶️ RESUME HERE — read this before anything else (updated 2026-07-28)
 
 **Asking your agent "my plan was updated, where do we continue from?" — this is the answer.**
 
-**Where you left off:** PR #22 is merged. **Phases 1, 2, and 3 are all done** — this is the furthest-along lane in the project. Phase-by-phase breakdown in §0.
+**Where you left off:** PRs #22, #29, and #30 are merged. **Phases 1, 2, 3 and 5 are done, and both `useUsageLogs` stubs are gone.** Your lane has no open coding work. Phase-by-phase breakdown in §0.
 
-**Resume at Phase 5 (§5) — the footer realignment.** It's small (one new header control, one pill removed) but **you are the critical path**: once Shrey's nav PR sets `href: null` on the You tab, the profile is unreachable anywhere in the app until your top-bar profile button ships. You merge **first** in the chain (you → Talbia → Shrey → Talbia's shim deletion), so nobody else can start until you're in. Tell Shrey when your PR is up.
+**Phase 5 shipped in PR #29 (`9fba5ab`) — you are off the critical path.** `ProfileButton` is in the Home app bar and the "Log Item" pill is gone, so Shrey's nav PR can now set `href: null` on the You tab without orphaning the profile. The chain has moved on to Talbia (step 2 of 5). Nothing in the footer work is waiting on you.
 
-**Two things in your lane are stubbed and stay that way until Shrey unblocks you:**
+**The two stubs are also done (PR #30, `ff884d3`).** `useHomeData` now calls `useUsageLogs()` and derives `recentActivity` from real logs; `RecentProgress` and `StreakRow` read real per-day history via `utils/daysSince.ts`. Do not re-open this — the `recentActivity: [] as never[]` and `last_log_date` approximation described further down this file no longer exist.
 
-- `RecentProgress` renders nothing (`useHomeData.ts` hardcodes `recentActivity: []`).
-- `StreakRow`'s 7-day checkmarks are approximated from `last_log_date`, not real per-day history.
+**What's actually left in your lane:**
 
-Both need one `useUsageLogs()` hook — **merged 2026-07-27** (§6-G is answered). Call `useUsageLogs()` with no product id for the user's full log history, newest first. Don't build a workaround.
+1. **Phase 4 — user testing.** Not a coding task; it's the graded class deliverable. Coordinate with Shrey.
+2. **One queued 1-line follow-up, waiting on Matt.** Home's empty-Focus-Pot CTA (`focusEmptyActionLabel: 'Log Item'`) pushes to `/(tabs)/inventory` with no params. Once Matt's Phase 5 adds `action=log` handling, that CTA should pass `params: { action: 'log' }` so it opens `FastLogSheet` like the new centre ⊕ does, instead of dropping the user on the plain list — ~1 line plus the assertion at `features/home/__tests__/Home.test.tsx:288`. **Doing it before Matt merges is a no-op**; the param would be ignored. Shrey will tell you when.
 
-**After Phase 5:** Phase 4 (user testing) — not a coding task.
+**So: unless Shrey has asked you for something specific, there is nothing to start here.** If you open a session anyway, the useful work is polish inside your own lane (a11y pass, empty-state copy, another Maestro assertion) — not new features, and not anything outside `features/home/*`.
 
-> **Paste this to your agent to start the session:**
+> **Paste this to your agent ONLY when Shrey has given you the go-ahead on item 2 above:**
 >
 > ```
-> Read AI-CONTEXT.md in full, then docs/plans/AARON-PLAN.md §0 (STATUS) and the
-> corrected hook table in §4. My plan was re-audited on 2026-07-27 against
-> main @ cdd8e1e. Phases 1, 2 and 3 are already shipped — §0 overrides anything
-> later in the file that contradicts it.
+> Read AI-CONTEXT.md in full, then docs/plans/AARON-PLAN.md §0 (STATUS). My plan
+> was re-audited on 2026-07-28 against main @ bbf7605. Phases 1, 2, 3 and 5 are
+> shipped AND both useUsageLogs stubs are already wired (PR #30) — §0 overrides
+> anything later in the file that contradicts it. Do not rebuild ProfileButton,
+> do not re-add the "Log Item" quick-action pill, and do not re-stub
+> recentActivity or the StreakRow checkmarks.
 >
-> Then run `git log --oneline -5` and read app/(tabs)/index.tsx,
-> features/home/*, and components/ProgressRing.tsx to see what already exists.
-> Do NOT rebuild or refactor any of it.
+> Then run `git log --oneline -5` and read features/home/* to see what exists.
 >
-> Build Phase 5 in §5 — the footer realignment — following that phase's paste
-> block exactly. Item (1), the profile button in the Home top app bar, is
-> blocking for Shrey's navigation PR, so do it first and completely: without it
-> the profile screen becomes unreachable once he sets href: null on the You tab.
-> Navigate to it by route path only (router.push('/you')) — never import
-> app/(tabs)/you.tsx or anything from Shrey's lane.
+> One change only: in the empty-Focus-Pot CTA on Home (strings key
+> focusEmptyActionLabel: 'Log Item'), change the navigation to
+>   router.push({ pathname: '/(tabs)/inventory', params: { action: 'log' } })
+> so it opens Matt's FastLogSheet the way the footer's centre (+) does. Update the
+> assertion in features/home/__tests__/Home.test.tsx (currently expects
+> '/(tabs)/inventory' with no params). Nothing else.
 >
 > Do NOT add any track() calls — useTogglePriority and useLogUsage already fire
 > focus_product_set and usage_logged from inside lib/api, and firing them again
-> double-counts. Leave the empty RecentProgress section and the approximated
-> StreakRow checkmarks alone in THIS session — useUsageLogs() now exists in
-> lib/api, but Phase 5 is the critical path and ships first.
+> double-counts.
 >
-> Confirm the plan and the exact files you'll touch before writing any code. Only
-> edit files in my lane (app/(tabs)/index.tsx, features/home/*,
+> Only edit files in my lane (app/(tabs)/index.tsx, features/home/*,
 > components/ProgressRing.tsx, .maestro/focus-and-ring.yaml); if anything else is
 > needed, stop and output a CROSS-LANE REQUEST. Run `npm run verify` at the end
 > and fix until green.
@@ -53,27 +50,30 @@ Both need one `useUsageLogs()` hook — **merged 2026-07-27** (§6-G is answered
 
 ---
 
-## 0. STATUS — updated 2026-07-27 against `main` @ `cdd8e1e`
+## 0. STATUS — updated 2026-07-28 against `main` @ `bbf7605`
 
-**You shipped PR #22 — Phases 1, 2, and 3 are done.** `npm run verify` is green. This is the strongest lane in the project. Two things remain, plus two stubs you can't finish until Shrey unblocks you.
+**You shipped PRs #22, #29, and #30 — Phases 1, 2, 3, and 5 are done, and both stubs are wired.** `npm run verify` is green on `main` (27 suites / 139 tests). This is the strongest lane in the project, and as of PR #30 it has **no open coding work**: Phase 4 (user testing, not code) plus the one queued CTA follow-up that waits on Matt.
 
 | Phase                       | Status         | What's on `main`                                                                                                                                                                                                                                                                        |
 | --------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **1** ProgressRing + Home   | ✅ **Done**    | `components/ProgressRing.tsx` with the exact spec'd props, ≥8px stroke, rounded caps, `primary-container` fill on a `border-warm` track. `HomeScreen`, `FocusCard`, `StatusDonut`, `QuickActions`, `StreakRow`, `ReconsiderNudge`, `AddToFocusRow`, `useHomeData`, `strings.ts`, tests. |
 | **2** Pin/unpin + ring log  | ✅ **Done**    | `useFocusPot`, `RingSlider` (`SLIDER_STEP = 5`, snapped + clamped), max-5 guard via `isFocusFull`, writes through the shared `useLogUsage`.                                                                                                                                             |
 | **3** States/a11y/analytics | ✅ **Done**    | `HomeSkeleton`, empty + error states, `.maestro/focus-and-ring.yaml`, 4 test files. **You correctly did not call `track()`** — see below.                                                                                                                                               |
-| **4** User testing          | ⬜ Not started | —                                                                                                                                                                                                                                                                                       |
-| **5** Footer realignment    | ⬜ Not started | **Blocking for Shrey's nav PR** — see the inbound request in §1 and the phase at the end of §5.                                                                                                                                                                                         |
+| **3b** Real usage history   | ✅ **Done**    | PR #30 (`ff884d3`): `useHomeData` calls `useUsageLogs()`, `RecentProgress` renders real entries, `StreakRow`'s 7-day row comes from real per-day history via `utils/daysSince.ts`. Replaced both stubs.                                                                                 |
+| **4** User testing          | ⬜ Not started | The only thing left in your lane, and it isn't code.                                                                                                                                                                                                                                    |
+| **5** Footer realignment    | ✅ **Done**    | PR #29 (`9fba5ab`): `features/home/ProfileButton.tsx` (40×40, initial from `dashboard.profile.username`, `router.push('/you')`, `hitSlop` to 44×44+), the "Log Item" pill removed from `QuickActions`, streak + donut confirmed still on Home. **Shrey's nav PR is unblocked.**         |
 
 **You got the analytics call right and it's worth saying why:** Phase 3 below tells you to fire `focus_product_set` and `usage_logged` via `track()`. **Both already fire inside the `lib/api` hooks**, so calling them would have double-counted. You didn't. Matt's and Joon's plans had the same trap and have now been corrected — don't let a future agent "helpfully" add the calls back.
 
-**Two stubs, unblocked 2026-07-27 (cross-lane request §6-G is answered — `useUsageLogs` is merged). Still do Phase 5 first; these come after:**
+**~~Two stubs~~ — ✅ both resolved in PR #30 (`ff884d3`), 2026-07-28.** Kept here so nobody re-opens them:
 
-- `features/home/useHomeData.ts` returns `recentActivity: [] as never[]` — your **"Recent progress" section renders nothing**, because no hook reads `usage_logs`.
-- `features/home/StreakRow.tsx` **approximates** the 7-day checkmark row from `last_log_date`, for the same reason. It's a reasonable stand-in, but it is not real per-day history.
-  Both are fixed by one `useUsageLogs()` hook, **merged 2026-07-27** — the same one Matt uses for his usage-history list and "recently used" filter. Replace the `recentActivity` stub and the `last_log_date` approximation with real per-day history.
+- ~~`features/home/useHomeData.ts` returns `recentActivity: [] as never[]`~~ — it now calls `useUsageLogs()` and builds `recentActivity` from real logs.
+- ~~`features/home/StreakRow.tsx` approximates the 7-day checkmark row from `last_log_date`~~ — it now uses real per-day history via `features/home/utils/daysSince.ts`.
+  Anything later in this file that describes either as a stub is stale. **Do not re-stub them, and do not build a second history hook** — `useUsageLogs()` is the shared one Matt also uses.
 
-**Phase 5 is now the critical path for someone else.** Once Shrey sets `href: null` on the You tab, the profile is unreachable until your header button ships. Your PR must merge **first** in the footer chain (you → Talbia → Shrey → Talbia's shim deletion).
+**Phase 5 was the critical path for someone else, and you cleared it.** PR #29 merged 2026-07-27, so `href: null` on the You tab no longer orphans the profile. The chain (you → Talbia → Shrey → Matt → Talbia's shim deletion) is now waiting on **Talbia**, not you. PR #30 then closed the two history stubs, so your lane is code-complete for the MVP.
+
+**One follow-up queued behind Matt (do not do it yet):** the empty-Focus-Pot CTA `focusEmptyActionLabel: 'Log Item'` still pushes to `/(tabs)/inventory` with no params (`__tests__/Home.test.tsx:288`). After Matt's Phase 5 adds `action=log` handling, add `params: { action: 'log' }` so that CTA opens `FastLogSheet` the way the new centre ⊕ does. Before his PR lands the param is ignored, so there is nothing to test.
 
 **Undeclared overlap:** Matt also shipped Focus Pot pin/unpin on his item detail. **F3 / matrix row 8 is yours**, but you both call the shared `useTogglePriority`, so there's no file conflict and two entry points is defensible. Ratify it with him rather than leaving it accidental.
 
@@ -90,7 +90,10 @@ Both need one `useUsageLogs()` hook — **merged 2026-07-27** (§6-G is answered
 
 **The #1 rule of this project is: never edit a file outside your lane.** If a task seems to need it, you stop and file a CROSS-LANE REQUEST (see §6). Merge conflicts are the enemy; staying in your lane is how five people ship in parallel.
 
-> ### 📥 INBOUND CROSS-LANE REQUEST — from Shrey (2026-07-27), footer audit
+> ### 📥 INBOUND CROSS-LANE REQUEST — from Shrey (2026-07-27), footer audit — ✅ **RESOLVED in PR #29 (2026-07-27)**
+>
+> Kept for the record. Both consequences below are shipped: `ProfileButton` is in the
+> Home app bar and the "Log Item" pill is gone. Nothing here is outstanding.
 >
 > ```
 > CROSS-LANE REQUEST — from Shrey (navigation/IA) to Aaron
@@ -427,21 +430,36 @@ Click: with mock data set to "no products," Home shows the warm empty state poin
 
 ---
 
-### Phase 5 — Footer realignment: Home gains the profile entry, drops the duplicate log pill
+### Phase 5 — Footer realignment: Home gains the profile entry, drops the duplicate log pill — ✅ **SHIPPED in PR #29 (`9fba5ab`), 2026-07-27**
 
-**This phase is an inbound cross-lane request from Shrey (§1).** Small — one new
-header control, one pill removed. **If you have not shipped Phase 1 yet, do not run
-this as a separate phase: fold items (1) and (2) into your Phase 1 paste box and skip
-the rest of this section.** `app/(tabs)/index.tsx` is still a placeholder, so this is
-almost certainly the cheaper path.
+> **This phase is complete. It is kept as the record of what was asked and what
+> landed — do not run the paste block again.** What shipped:
+>
+> - `features/home/ProfileButton.tsx` — 40×40 circle, right of the wordmark, the user's
+>   initial from `dashboard.profile.username` with the `you` icon as fallback,
+>   `border-warm` hairline on `surface-container`, `hitSlop` taking it past 44×44,
+>   `accessibilityLabel` `'Your profile and settings'` from `strings.ts`, and
+>   `router.push('/you')` — route path only, no import of `you.tsx`.
+> - `useHomeData` now surfaces `profile` from `useDashboard()`.
+> - The "Log Item" pill and its two strings are gone from `QuickActions`; Scan and
+>   Search remain. Tests cover the button and assert the row is exactly two pills with
+>   no log/add action.
+> - Streak row and status donut were already on Home from Phase 1 — no change needed.
+> - `.maestro/focus-and-ring.yaml` never referenced the pill or the You tab, so it did
+>   not change.
+>
+> **Still open, but not yours yet:** the empty-Focus-Pot `'Log Item'` CTA should pass
+> `params: { action: 'log' }` once Matt's Phase 5 lands. See §0.
+
+**This phase was an inbound cross-lane request from Shrey (§1).** Small — one new
+header control, one pill removed.
 
 **Goal:** Home becomes the only door to the profile, sheds the logging path that the
 new centre ⊕ tab now owns, and becomes the single home for the streak and the status
 donut.
 
-> **⚠️ Item (1) is blocking.** Once Shrey's nav PR sets `href: null` on the You tab,
-> the profile has no entry point anywhere in the app until your avatar button ships.
-> Tell Shrey when your PR is up so he can sequence his merge behind it.
+> **⚠️ Item (1) was blocking — cleared.** Shrey's nav PR can set `href: null` on the You
+> tab now that the avatar button is on `main`.
 
 > **Paste this to your agent:**
 >

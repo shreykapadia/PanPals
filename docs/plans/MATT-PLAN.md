@@ -1,16 +1,32 @@
 # Matt's Implementation Plan — Inventory & Logging
 
-## ▶️ RESUME HERE — read this before anything else (updated 2026-07-27)
+## ▶️ RESUME HERE — read this before anything else (updated 2026-07-28)
 
 **Asking your agent "my plan was updated, where do we continue from?" — this is the answer.**
 
 **Where you left off:** PRs #21 and #23 are merged. Phase 1a is done, Phase 1b is half done, `.maestro/log-product.yaml` is in. Phase-by-phase breakdown in §0.
 
-**Do these three now — nothing blocks them:**
+**Do these two now — nothing blocks them:**
 
 1. **A one-line copy fix.** `strings.ts` currently promises barcode scanning, which is a banned feature (§0 item 1). Two minutes.
 2. **Finish Phase 3** (§6) — the accessibility sweep and the finish-button navigation test.
-3. **Phase 5** (§6) — **revised 7/27 and now much smaller.** Open your existing `FastLogSheet` from a route param so Shrey's ⊕ Log tab can reach it, and repoint the finish seam to `/(tabs)/empties`. The earlier "extract a `FastLogForm`" version is **cancelled** — do not do it.
+
+**Then Phase 3's leftovers and Phase 1b — the edit / delete / usage-history work below.**
+
+**⏳ Phase 5 is NOT ready yet — you are step 4 of 5 (updated 2026-07-28).** It is revised
+and much smaller than the first draft (open your existing `FastLogSheet` from a route
+param; the "extract a `FastLogForm`" version is **cancelled**), but **do not start it
+until Shrey tells you steps 2 and 3 have merged.** Where the chain actually stands:
+
+- ✅ Step 1 — Aaron's Home profile button (PR #29, 2026-07-27).
+- 🟡 Step 2 — Talbia creates `app/(tabs)/empties.tsx` + the `progress.tsx` shim. **Not
+  merged.** Until it is, repointing `ItemDetailSheet.tsx:53` to `'/(tabs)/empties'`
+  would aim your "Mark as Finished" button at a route that does not exist — it would
+  break F6 rather than protect it.
+- ⬜ Step 3 — Shrey's nav PR adds the centre ⊕ that sends `action=log`. Until it merges,
+  your param handling has nothing to receive.
+- ⬜ Step 4 — **you.** Both changes in one PR.
+- ⬜ Step 5 — Talbia deletes the shim, **after** you.
 
 **Unblocked 2026-07-27:** `useUpdateProduct()`, `useDeleteProduct()`, and `useUsageLogs()` are merged (§7-F and §7-G are answered). Phase 1b's edit, delete, usage-history, and "recently used" work is now yours to build — see the hook table in §8 for exact shapes, and read the delete-cascade note there before writing any delete copy.
 
@@ -25,7 +41,7 @@
 > Then run `git log --oneline -5` and read features/inventory/* to see what
 > already exists. Do NOT rebuild anything that is already there.
 >
-> My next three tasks, in this order:
+> My next two tasks, in this order (Phase 5 is NOT one of them yet — see below):
 >
 > 1. In features/inventory/strings.ts, change scanPlaceholder from
 >    'Tap to scan barcode or take photo' to 'Tap to add a photo'. Barcode lookup
@@ -40,12 +56,18 @@
 >    Do NOT add any track() calls — the lib/api hooks already fire
 >    inventory_item_added, usage_logged, and focus_product_set, and firing them
 >    again double-counts.
-> 3. Phase 5 (§6) — READ THE PHASE, it was rewritten on 7/27 and shrank. Do NOT
->    extract a FastLogForm and do NOT create app/log.tsx; both are cancelled.
->    It is now two small changes: (a) open the existing FastLogSheet when
->    app/(tabs)/inventory.tsx receives the route param action=log, clearing the
->    param on close; (b) change ItemDetailSheet's "Mark as Finished" push from
->    '/(tabs)/progress' to '/(tabs)/empties'.
+> Do NOT start Phase 5 in this session. It is step 4 of a 5-step chain and steps
+> 2 and 3 have not merged: app/(tabs)/empties.tsx does not exist yet (Talbia),
+> and the centre (+) that sends action=log does not exist yet (Shrey). Repointing
+> ItemDetailSheet to '/(tabs)/empties' today would aim my "Mark as Finished"
+> button at a route that isn't there. When the phase does open, it is two small
+> changes — (a) open the existing FastLogSheet when app/(tabs)/inventory.tsx
+> receives action=log, clearing the param on close; (b) change ItemDetailSheet's
+> push from '/(tabs)/progress' to '/(tabs)/empties' — and do NOT extract a
+> FastLogForm or create app/log.tsx; both are cancelled.
+>
+> After the two tasks above, continue with Phase 1b: edit, delete, usage history,
+> and the "recently used" filter.
 >
 > The edit, delete, and usage-history work is UNBLOCKED as of 2026-07-27 —
 > useUpdateProduct, useDeleteProduct, and useUsageLogs are merged in lib/api.
@@ -66,14 +88,14 @@
 
 **You have shipped PR #21 and #23.** `npm run verify` is green. Read this before you paste anything below — several phases are partly done, and two instructions further down are now actively wrong.
 
-| Phase                  | Status                | What's actually on `main`                                                                                                                                                                        |
-| ---------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **1a** Fast-log + list | ✅ **Done** (one gap) | `inventory.tsx` (list, search, status + category filters, loading/empty/error/no-matches), `FastLogSheet`, `InventoryItemCard`, `strings.ts`, 10 tests. **Missing: the "recently used" filter.** |
-| **1b** Detail + usage  | 🟡 **Half done**      | ✅ `ItemDetailSheet` (ring, badges, pin/unpin, Mark as Finished), `UsageLogSheet` (5% steps + note), `useInventoryActions`. ❌ **No edit UI. No delete UI. No usage-history list.**              |
-| **2** Wire real hooks  | ⚪ **Not applicable** | Shrey already flipped `lib/api` to real Supabase before you started. There is no mock phase to graduate from — **skip Phase 2 entirely**.                                                        |
-| **3** Polish           | 🟡 **Started**        | ✅ `.maestro/log-product.yaml` (#23). ❌ a11y sweep, finish-button navigation test. ⚠️ **Do NOT fire analytics — see below.**                                                                    |
-| **4** User testing     | ⬜ Not started        | —                                                                                                                                                                                                |
-| **5** Footer (new)     | ⬜ Not started        | Inbound cross-lane request from Shrey — added at the end of §6.                                                                                                                                  |
+| Phase                  | Status                   | What's actually on `main`                                                                                                                                                                           |
+| ---------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1a** Fast-log + list | ✅ **Done** (one gap)    | `inventory.tsx` (list, search, status + category filters, loading/empty/error/no-matches), `FastLogSheet`, `InventoryItemCard`, `strings.ts`, 10 tests. **Missing: the "recently used" filter.**    |
+| **1b** Detail + usage  | 🟡 **Half done**         | ✅ `ItemDetailSheet` (ring, badges, pin/unpin, Mark as Finished), `UsageLogSheet` (5% steps + note), `useInventoryActions`. ❌ **No edit UI. No delete UI. No usage-history list.**                 |
+| **2** Wire real hooks  | ⚪ **Not applicable**    | Shrey already flipped `lib/api` to real Supabase before you started. There is no mock phase to graduate from — **skip Phase 2 entirely**.                                                           |
+| **3** Polish           | 🟡 **Started**           | ✅ `.maestro/log-product.yaml` (#23). ❌ a11y sweep, finish-button navigation test. ⚠️ **Do NOT fire analytics — see below.**                                                                       |
+| **4** User testing     | ⬜ Not started           | —                                                                                                                                                                                                   |
+| **5** Footer (new)     | ⏳ **Waiting on 2 of 5** | Inbound cross-lane request from Shrey — added at the end of §6. **You are step 4.** Aaron's step 1 landed (PR #29); Talbia's `empties.tsx` and Shrey's ⊕ have not. Don't start until Shrey says so. |
 
 **Three corrections to the rest of this document — the world changed under it:**
 
@@ -493,6 +515,8 @@ needed output a CROSS-LANE REQUEST and stop.
 **Why this is small for you:** you already built everything. `isLogOpen` exists; `FastLogSheet` works; the param-passing convention is one you introduced. This is roughly six lines across two files.
 
 **Sequencing — you are step 4 of 5, and step 5 depends on you.** Aaron → Talbia → Shrey's nav PR → **you** → Talbia deletes the shim. Your PR must land **before** Talbia's shim deletion. Tell the channel when it's up.
+
+**Status 2026-07-28 (`main` @ `bbf7605`): ✅ Aaron done (PR #29) · 🟡 Talbia pending · ⬜ Shrey pending · ⬜ you · ⬜ Talbia's shim deletion.** Both of your changes need the earlier steps on `main` first — `'/(tabs)/empties'` has to exist before you point at it, and `action=log` has to be sent before you can test receiving it. Wait for Shrey's go-ahead.
 
 **Paste this to your agent:**
 
