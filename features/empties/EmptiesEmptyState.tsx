@@ -7,7 +7,7 @@ export function EmptiesEmptyState() {
     <EmptyState
       title={emptiesStrings.noEmptiesTitle}
       message={emptiesStrings.noEmptiesMessage}
-      icon="progress"
+      icon="empties"
       accessibilityLabel={emptiesStrings.emptyStateAccessibilityLabel}
     />
   );

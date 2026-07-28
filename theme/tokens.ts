@@ -57,5 +57,5 @@ export const spacing = {
   'page-padding-y': 16,
   gutter: 16,
   'header-height': 56,
-  'footer-height': 80,
+  'footer-height': 88,
 };

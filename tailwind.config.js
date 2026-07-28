@@ -24,7 +24,7 @@ module.exports = {
         'page-padding-y': '16px',
         gutter: '16px',
         'header-height': '56px',
-        'footer-height': '80px',
+        'footer-height': '88px',
       },
       letterSpacing: {
         // DESIGN-TOKENS §2 specifies 0.25px on button labels; Tailwind's

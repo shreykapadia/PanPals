@@ -12,8 +12,9 @@ import {
 } from '../../../lib/testUtils/supabaseMock';
 
 const mockReplace = jest.fn();
+const mockBack = jest.fn();
 jest.mock('expo-router', () => ({
-  useRouter: () => ({ replace: mockReplace, push: jest.fn() }),
+  useRouter: () => ({ replace: mockReplace, push: jest.fn(), back: mockBack }),
 }));
 
 const mockSignOut = jest.fn().mockResolvedValue(undefined);
@@ -234,6 +235,15 @@ describe('YouTab', () => {
     await findByText(youStrings.errorReminders);
     // Reverted rather than left showing a preference that was never saved.
     expect(toggle.props.value).toBe(false);
+  });
+
+  it('renders a back control that calls router.back()', async () => {
+    mockFrom.mockReturnValue(chainableResult({ data: PROFILE, error: null }));
+    const { findByLabelText } = renderWithClient();
+
+    const backBtn = await findByLabelText(youStrings.backAccessibilityLabel);
+    fireEvent.press(backBtn);
+    expect(mockBack).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Chip } from '../../components/ui/Chip';
+import { Icon } from '../../components/ui/Icon';
 import { LoadingState } from '../../components/ui/LoadingState';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { Reveal } from '../../components/onboarding/Reveal';
@@ -177,6 +178,17 @@ export default function YouTab() {
     // and pads for it itself. Its tones are pale, so the app's default dark
     // status-bar glyphs stay legible with no per-screen override.
     <SafeAreaView edges={['bottom']} className="flex-1 bg-surface">
+      <View className="px-6 pt-4 pb-2 z-10">
+        <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel={s.backAccessibilityLabel}
+          hitSlop={12}
+          className="w-10 h-10 items-center justify-center rounded-full bg-card-surface/80 shadow-sm"
+        >
+          <Icon name="arrow-left" size={24} color={colors['dark-neutral']} />
+        </Pressable>
+      </View>
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 120 }}>
         <Reveal distance={0} duration={420}>
           <ProfileMasthead

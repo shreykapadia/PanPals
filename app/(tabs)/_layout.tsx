@@ -1,16 +1,20 @@
 import React from 'react';
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import { Icon } from '../../components/ui/Icon';
-import { colors } from '../../theme/tokens';
+import { LogTabButton } from '../../components/ui/LogTabButton';
+import { colors, spacing } from '../../theme/tokens';
 
 export default function TabsLayout() {
+  const router = useRouter();
+
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: colors['primary-container'], // brand rose
         tabBarInactiveTintColor: colors['inactive-gray'],
         tabBarStyle: {
-          height: 80,
+          height: spacing['footer-height'],
+          overflow: 'visible',
           borderTopWidth: 1,
           borderTopColor: colors['border-warm'],
           backgroundColor: colors['card-surface'],
@@ -52,12 +56,19 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="progress"
+        name="log"
         options={{
-          title: 'Progress',
-          tabBarLabel: 'Progress',
-          tabBarAccessibilityLabel: 'Progress Tab',
-          tabBarIcon: ({ color }) => <Icon name="progress" color={color} size={24} />,
+          title: 'Log',
+          tabBarButton: () => (
+            <LogTabButton
+              onPress={() =>
+                router.push({
+                  pathname: '/(tabs)/inventory',
+                  params: { action: 'log' },
+                })
+              }
+            />
+          ),
         }}
       />
       <Tabs.Screen
@@ -70,12 +81,24 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="empties"
+        options={{
+          title: 'Empties',
+          tabBarLabel: 'Empties',
+          tabBarAccessibilityLabel: 'Empties Archive Tab',
+          tabBarIcon: ({ color }) => <Icon name="empties" color={color} size={24} />,
+        }}
+      />
+      <Tabs.Screen
+        name="progress"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
         name="you"
         options={{
-          title: 'You',
-          tabBarLabel: 'You',
-          tabBarAccessibilityLabel: 'You Profile Tab',
-          tabBarIcon: ({ color }) => <Icon name="you" color={color} size={24} />,
+          href: null,
         }}
       />
     </Tabs>
