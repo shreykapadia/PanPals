@@ -15,6 +15,7 @@ type LogUsageArgs = Database['public']['Functions']['log_usage']['Args'];
  *   `focus_product_set` analytics event and the DB max-5 guard.
  * - `catalog_product_id`, `source_wishlist_item_id` — provenance links, set
  *   once at creation.
+ * - `status: 'finished'` — see below.
  */
 export type ProductPatch = Partial<
   Pick<
@@ -24,13 +25,24 @@ export type ProductPatch = Partial<
     | 'shade'
     | 'category'
     | 'format'
-    | 'status'
     | 'percent_remaining'
     | 'photo_url'
     | 'pao_months'
     | 'opened_at'
   >
->;
+> & {
+  /**
+   * Editable statuses only. `'finished'` is excluded at the type level so
+   * finishing by edit is a `tsc` failure — and `npm run verify` runs `tsc`,
+   * which is this project's only gate. `empties.repurchase` is `not null`,
+   * so a finish genuinely cannot happen as a side effect of an edit: there
+   * would be no verdict to write. Finishing goes through `useFinishProduct()`.
+   *
+   * This narrows what may be *edited*, not what may be displayed — a finished
+   * product still reads back with `status: 'finished'` from `useProducts()`.
+   */
+  status?: Exclude<ProductStatus, 'finished'>;
+};
 
 export function useProducts(filters?: {
   status?: ProductStatus;
@@ -149,10 +161,11 @@ export function useUpdateProduct() {
       if (Object.keys(patch).length === 0) {
         throw new Error('useUpdateProduct: patch is empty — nothing to update.');
       }
-      // A plain status write would skip finish_product(), so the empties
-      // archive row and repurchase verdict would never be created and F6's
-      // record of the finish would be lost. Route finishing through the RPC.
-      if (patch.status === 'finished') {
+      // Backstop for callers who cast past ProductPatch's status type. A plain
+      // status write would skip finish_product(), so the empties archive row
+      // and repurchase verdict would never be created and F6's record of the
+      // finish would be lost. Route finishing through the RPC.
+      if ((patch.status as ProductStatus | undefined) === 'finished') {
         throw new Error(
           'useUpdateProduct: cannot set status to "finished" — use useFinishProduct() so the empties archive entry and repurchase verdict are written.',
         );

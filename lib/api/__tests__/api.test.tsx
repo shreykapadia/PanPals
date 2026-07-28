@@ -12,7 +12,9 @@ import {
   useEmpties,
   useFinishProduct,
   useCatalogSearch,
+  type ProductPatch,
 } from '../index';
+import type { Product } from '../../../mocks/types';
 import {
   mockFrom,
   mockRpc,
@@ -113,8 +115,11 @@ describe('API Hooks (real Supabase client, mocked)', () => {
     mockFrom.mockReturnValue(builder);
 
     const { result } = renderHook(() => useUpdateProduct(), { wrapper: createWrapper() });
+    // Assert on the mutation's return value, not the hook's rendered `data` —
+    // the latter depends on a post-await re-render and flakes.
+    let updated: Product | undefined;
     await act(async () => {
-      await result.current.mutateAsync({
+      updated = await result.current.mutateAsync({
         productId: 'prod-1',
         patch: { name: 'Corrected Name', percent_remaining: 40 },
       });
@@ -122,16 +127,21 @@ describe('API Hooks (real Supabase client, mocked)', () => {
 
     expect(builder.update).toHaveBeenCalledWith({ name: 'Corrected Name', percent_remaining: 40 });
     expect(builder.eq).toHaveBeenCalledWith('id', 'prod-1');
-    expect(result.current.data?.percent_remaining).toBe(40);
+    expect(updated?.percent_remaining).toBe(40);
   });
 
   it('useUpdateProduct refuses to finish a product, so the empties archive is never skipped', async () => {
     mockFrom.mockReturnValue(chainableResult({ data: null, error: null }));
 
+    // ProductPatch excludes 'finished' from `status`, so the real defense is a
+    // tsc failure and a caller can only get here by casting past the type.
+    // The cast is what's under test: the runtime backstop still holds.
+    const finishingPatch = { status: 'finished' } as unknown as ProductPatch;
+
     const { result } = renderHook(() => useUpdateProduct(), { wrapper: createWrapper() });
     await act(async () => {
       await expect(
-        result.current.mutateAsync({ productId: 'prod-1', patch: { status: 'finished' } }),
+        result.current.mutateAsync({ productId: 'prod-1', patch: finishingPatch }),
       ).rejects.toThrow('useFinishProduct');
     });
 
