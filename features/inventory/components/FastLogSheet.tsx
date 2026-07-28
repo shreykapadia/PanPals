@@ -176,7 +176,8 @@ export const FastLogSheet: React.FC<FastLogSheetProps> = ({
                   onPress={() => setCatalogSelection(null)}
                   accessibilityRole="button"
                   accessibilityLabel={s.changeSelection}
-                  className="mt-2"
+                  hitSlop={8}
+                  className="mt-2 py-2 -mx-2 px-2"
                 >
                   <Text className="text-xs font-semibold font-satoshi text-primary">
                     {s.changeSelection}

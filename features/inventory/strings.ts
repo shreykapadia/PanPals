@@ -51,7 +51,7 @@ export const inventoryStrings = {
     logTitle: 'Log New Item',
     editTitle: 'Edit item',
     subtitle: 'Add details below to keep your stash organized.',
-    scanPlaceholder: 'Tap to scan barcode or take photo',
+    scanPlaceholder: 'Tap to add a photo',
     scanAttached: 'Photo attached — tap to remove',
     modeSearch: 'Search catalog',
     modeManual: 'Manual',
