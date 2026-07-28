@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/ui/Button';
@@ -16,6 +17,10 @@ import { mockProducts } from '../../mocks/fixtures';
 const samplePreviewProduct = mockProducts[0];
 
 export default function ProgressTab() {
+  const router = useRouter();
+  const { finishProductId: finishProductIdParam } = useLocalSearchParams<{
+    finishProductId?: string | string[];
+  }>();
   const { entries, dashboard, isLoading, isError, refetch } = useEmptiesArchive();
   const productsQuery = useProducts();
   const [previewProductId, setPreviewProductId] = useState<string | null>(null);
@@ -24,9 +29,22 @@ export default function ProgressTab() {
     () => (productsQuery.data ?? []).filter((product) => product.status !== 'finished'),
     [productsQuery.data],
   );
+  const finishProductId = Array.isArray(finishProductIdParam)
+    ? finishProductIdParam[0]
+    : finishProductIdParam;
+  const closeFinishFlow = () => router.setParams({ finishProductId: undefined });
 
   if (isLoading) return <EmptiesLoadingState />;
   if (isError || !dashboard) return <EmptiesErrorState onRetry={() => void refetch()} />;
+  if (finishProductId) {
+    return (
+      <FinishFlow
+        productId={finishProductId}
+        onComplete={closeFinishFlow}
+        onCancel={closeFinishFlow}
+      />
+    );
+  }
   if (__DEV__ && isSamplePreview) {
     return (
       <FinishFlow
