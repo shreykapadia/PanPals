@@ -1,14 +1,23 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WishlistItemCard } from '../components/WishlistItemCard';
 import { AddWishlistItemSheet } from '../components/AddWishlistItemSheet';
 import { WishlistItem } from '../../../mocks/types';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import { mockRpc } from '../../../lib/testUtils/supabaseMock';
 
-// AddWishlistItemSheet renders ProductSearch, which pulls in lib/api ->
-// lib/supabase — mock it so the client's env-var check doesn't throw in tests.
+// AddWishlistItemSheet renders ProductSearch and useIntercept, both of which
+// pull in lib/api -> lib/supabase — mock it so the client's env-var check
+// doesn't throw in tests, and give find_similar_owned a default resolved
+// value so useIntercept's query settles cleanly instead of erroring
+// asynchronously after the test body finishes.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 jest.mock('../../../lib/supabase', () => require('../../../lib/testUtils/supabaseMock'));
+
+beforeEach(() => {
+  mockRpc.mockResolvedValue({ data: { count: 0, products: [] }, error: null });
+});
 
 const baseItem: WishlistItem = {
   id: 'wish-1',
@@ -49,6 +58,15 @@ function renderWithClient(ui: React.ReactElement) {
   return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
 }
 
+// AddWishlistItemSheet always fires useIntercept's query in the background;
+// flush the microtask queue so its resolution lands inside act() instead of
+// leaking into an unwrapped update after the test body finishes.
+async function flushMicrotasks() {
+  await act(async () => {
+    await Promise.resolve();
+  });
+}
+
 describe('AddWishlistItemSheet', () => {
   const fillManualEntry = (
     getByLabelText: (label: string) => any,
@@ -65,6 +83,7 @@ describe('AddWishlistItemSheet', () => {
       <AddWishlistItemSheet visible onClose={() => {}} onSave={onSave} isSaving={false} />,
     );
 
+    await flushMicrotasks();
     fillManualEntry(getByLabelText, getByText);
     fireEvent.press(getByText('Add to wishlist'));
 
@@ -78,6 +97,7 @@ describe('AddWishlistItemSheet', () => {
       <AddWishlistItemSheet visible onClose={() => {}} onSave={onSave} isSaving={false} />,
     );
 
+    await flushMicrotasks();
     fillManualEntry(getByLabelText, getByText);
     fireEvent.press(getByText('Low priority'));
     fireEvent.changeText(
@@ -97,12 +117,13 @@ describe('AddWishlistItemSheet', () => {
     );
   });
 
-  it('keeps the save button disabled when brand and name are missing', () => {
+  it('keeps the save button disabled when brand and name are missing', async () => {
     const onSave = jest.fn();
     const { getByText, getByLabelText } = renderWithClient(
       <AddWishlistItemSheet visible onClose={() => {}} onSave={onSave} isSaving={false} />,
     );
 
+    await flushMicrotasks();
     fireEvent.press(getByText('Manual'));
     fireEvent.press(getByLabelText('Add to wishlist'));
 

@@ -50,6 +50,16 @@ export const wishlistStrings = {
     errorRemove: "We couldn't remove that item. Please try again.",
     errorRestore: "We couldn't restore that item. Please try again.",
   },
+  intercept: {
+    headline: 'Hold on — take a breath.',
+    body: (count: number, categoryLabel: string) =>
+      `You already have ${count} similar ${categoryLabel} items in active rotation.`,
+    similarItemsLabel: (count: number) => `Similar items you own · ${count}`,
+    keepOnWishlistAction: 'Add to 14-Day Cooling-Off Wishlist',
+    continueToRetailerAction: 'Continue to Retailer',
+    continueToRetailerNoLink: "This item doesn't have a saved link yet.",
+    useOwnedAction: "I'll use one I already own",
+  },
   addSheet: {
     addTitle: 'Add to your wishlist',
     editTitle: 'Edit wishlist item',
