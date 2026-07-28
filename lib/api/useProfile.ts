@@ -31,28 +31,47 @@ export function useUpdateProfile() {
 
   return useMutation({
     mutationFn: async (
-      updates: Partial<Pick<Profile, 'username' | 'selected_goals' | 'age_range' | 'location'>>,
+      updates: Partial<
+        Pick<
+          Profile,
+          'username' | 'selected_goals' | 'age_range' | 'location' | 'reminders_enabled'
+        >
+      >,
     ) => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error('Not signed in.');
 
-      // upsert, not update: goal-capture is the FIRST write for a new
-      // account — there's no profiles row yet at that point (no
-      // auto-create-on-signup trigger). Later calls (You tab's edit
-      // goals) hit the same row and behave like a normal partial update.
-      // Cast: supabase-js's upsert typing wants the full Insert shape
-      // (e.g. selected_goals present) since it could be creating a new
-      // row. In practice a partial update only ever runs against an
-      // already-existing row (You tab's edit goals), so this is safe.
-      const { data, error } = await supabase
+      // Try updating existing profile row first (avoids Postgres NOT NULL check on untouched columns during upsert)
+      const { data: existingData, error: updateError } = await supabase
         .from('profiles')
-        .upsert({ id: user.id, ...updates } as ProfileInsert, { onConflict: 'id' })
+        .update(updates)
+        .eq('id', user.id)
+        .select()
+        .maybeSingle();
+
+      if (updateError) throw updateError;
+      if (existingData) return existingData as Profile;
+
+      // Profile row does not exist yet (e.g. initial onboarding).
+      // Fallback username ensures creating a row never violates NOT NULL constraint.
+      const fallbackUsername = updates.username || user.email?.split('@')[0] || 'panpal';
+      const insertPayload: ProfileInsert = {
+        id: user.id,
+        username: fallbackUsername,
+        selected_goals: updates.selected_goals ?? [],
+        ...updates,
+      };
+
+      const { data: insertedData, error: insertError } = await supabase
+        .from('profiles')
+        .upsert(insertPayload, { onConflict: 'id' })
         .select()
         .single();
-      if (error) throw error;
-      return data as Profile;
+
+      if (insertError) throw insertError;
+      return insertedData as Profile;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.profile.all });

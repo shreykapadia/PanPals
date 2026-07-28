@@ -50,6 +50,7 @@ export function chainableResult(result: { data: unknown; error: unknown }) {
     builder[method] = jest.fn(() => builder);
   }
   builder.single = jest.fn(() => Promise.resolve(result));
+  builder.maybeSingle = jest.fn(() => Promise.resolve(result));
   builder.then = (
     resolve: (value: typeof result) => unknown,
     reject?: (reason: unknown) => unknown,

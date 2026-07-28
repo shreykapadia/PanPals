@@ -13,7 +13,7 @@ import { Reveal } from '../../components/onboarding/Reveal';
 import { useUpdateProfile } from '../../lib/api';
 import { track } from '../../lib/analytics';
 import { colors } from '../../theme/tokens';
-import { authStrings, GOAL_OPTIONS, AGE_RANGE_OPTIONS } from './strings';
+import { authStrings, GOAL_OPTIONS, AGE_RANGE_OPTIONS } from '../../features/auth/strings';
 
 type Beat = 'name' | 'goals' | 'handoff';
 

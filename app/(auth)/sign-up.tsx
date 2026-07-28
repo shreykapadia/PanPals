@@ -8,7 +8,7 @@ import { OnboardingScaffold } from '../../components/onboarding/OnboardingScaffo
 import { Reveal } from '../../components/onboarding/Reveal';
 import { useAuth } from '../../lib/auth/useAuth';
 import { colors } from '../../theme/tokens';
-import { authStrings } from './strings';
+import { authStrings } from '../../features/auth/strings';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

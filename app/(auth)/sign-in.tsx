@@ -6,7 +6,7 @@ import { Input } from '../../components/ui/Input';
 import { OnboardingScaffold } from '../../components/onboarding/OnboardingScaffold';
 import { Reveal } from '../../components/onboarding/Reveal';
 import { useAuth } from '../../lib/auth/useAuth';
-import { authStrings } from './strings';
+import { authStrings } from '../../features/auth/strings';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

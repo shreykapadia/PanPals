@@ -9,7 +9,7 @@ import { FocusPotHero } from '../../components/onboarding/FocusPotHero';
 import { StashWall } from '../../components/onboarding/StashWall';
 import { Reveal } from '../../components/onboarding/Reveal';
 import { colors } from '../../theme/tokens';
-import { authStrings, WELCOME_HERO_ITEMS, WELCOME_VALUE_PROPS } from './strings';
+import { authStrings, WELCOME_HERO_ITEMS, WELCOME_VALUE_PROPS } from '../../features/auth/strings';
 
 /** Photographic band below the status bar: masthead plus ~100pt of pattern. */
 const WALL_HEIGHT = 156;

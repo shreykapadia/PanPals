@@ -15,6 +15,7 @@ export const mockProfile: Profile = {
   age_range: '25-34',
   location: 'San Francisco, CA',
   selected_goals: ['Finish what I own', 'Reduce waste'],
+  reminders_enabled: false,
   current_streak: 5,
   longest_streak: 12,
   last_log_date: '2026-07-22',
