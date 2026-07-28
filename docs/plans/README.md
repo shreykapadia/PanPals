@@ -31,10 +31,56 @@ Full rationale: `docs/DECISIONS.md` (D12–D19). The contract everyone obeys: `A
 | **Aaron**        | `AARON-PLAN.md`  | `app/(tabs)/index.tsx`, `features/home/*`, `components/ProgressRing.tsx` — Home, Focus Pot, rings.                                                                                                                                                                                             |
 | **Joon**         | `JOON-PLAN.md`   | `app/(tabs)/wishlist.tsx`, `features/wishlist/*` — wishlist, impulse intercept, cooling-off, conversion.                                                                                                                                                                                       |
 | **Matt**         | `MATT-PLAN.md`   | `app/(tabs)/inventory.tsx`, `features/inventory/*` — inventory entry, browse/filter/edit, usage logging.                                                                                                                                                                                       |
-| **Talbia**       | `TALBIA-PLAN.md` | `app/(tabs)/progress.tsx`, `features/empties/*` — finish/celebration, repurchase review, private empties archive, Progress tab.                                                                                                                                                                |
+| **Talbia**       | `TALBIA-PLAN.md` | `app/(tabs)/empties.tsx` (was `progress.tsx` — D23), `features/empties/*` — finish/celebration, repurchase review, private empties archive, Empties tab.                                                                                                                                       |
 
 Enforced by `.github/CODEOWNERS` and `AI-CONTEXT.md §3`. If you need a change outside
 your lane, **stop and post a `CROSS-LANE REQUEST`** — each plan has pre-written ones.
+
+## Where everyone actually is (2026-07-27, `main` @ `cdd8e1e`)
+
+Each plan now opens with a **§0 STATUS** block — read it before pasting anything, because
+several phases are already done and a few instructions further down are now wrong.
+Cross-lane detail, blockers, and the real `lib/api` contract:
+**[`PLAN-AUDIT.md`](./PLAN-AUDIT.md)**.
+
+| Lane       | Done                             | Next up                                                          |
+| ---------- | -------------------------------- | ---------------------------------------------------------------- |
+| **Shrey**  | 0-A→0-E, B1→B6, Phase 2, Phase 3 | **B7: three missing hooks** (blocking Matt + Aaron), then footer |
+| **Aaron**  | Phases 1, 2, 3                   | **Phase 5** (blocking the footer chain)                          |
+| **Matt**   | 1a, half of 1b, part of 3        | Edit / delete / usage history (blocked on B7)                    |
+| **Talbia** | 1, 2, most of 3                  | **Phase 3b — wire the finish seam** 🔴                           |
+| **Joon**   | 1a                               | **Phase 1b — the impulse intercept** (nothing built yet)         |
+
+**Two project-wide corrections the plans were written before:**
+
+1. **There is no mock phase.** `lib/api` has hit real Supabase since PR #14, so everyone's
+   "Phase 2 — wire real hooks" is already done for them. You need a **signed-in session**
+   to see or create anything.
+2. **`track()` fires from inside the hooks.** Do not call it yourself for
+   `inventory_item_added`, `usage_logged`, `focus_product_set`, `product_finished`,
+   `wishlist_item_added`, `wishlist_item_removed`, or `wishlist_item_purchased` — you'll
+   double-count.
+
+**🔴 Known broken:** F6 doesn't work end to end. Matt's "Mark as Finished" navigates with a
+`finishProductId` param that Talbia's screen doesn't read yet, so her whole finish flow is
+`__DEV__`-only. Talbia's Phase 3b fixes it in ~10 lines.
+
+## In flight: the bottom-nav change (D23, 7/27)
+
+The footer becomes **`Home │ Inventory │ ⊕ Log │ Wishlist │ Empties`**, with **You**
+moving to a profile button in the Home top app bar. Rationale and the full build spec
+are in [`GEMINI-FOOTER-PLAN.md`](./GEMINI-FOOTER-PLAN.md) (Shrey's lane).
+
+**It touches three lanes, and merge order matters:**
+
+1. **Aaron** — Phase 5 in his plan: profile button in the Home header (blocking — the
+   profile is unreachable until it ships), drop the "Log item" quick-action pill.
+2. **Talbia** — Phase 5 in her plan: rename the tab screen to `empties.tsx` behind a
+   one-line shim, drop the streak and status badges that duplicate Home.
+3. **Shrey** — the nav itself, the centre ⊕ button, and the doc updates.
+4. **Talbia** — a 2-line follow-up deleting the shim.
+
+Ownership does not change. Nobody edits anyone else's files.
 
 ## Build sequence (this order prevents conflicts)
 

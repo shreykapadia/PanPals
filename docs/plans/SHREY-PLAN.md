@@ -1,8 +1,131 @@
 # Shrey's Implementation Plan — Foundation, Backend & Platform (Lead)
 
+## ▶️ RESUME HERE — read this before anything else (updated 2026-07-27)
+
+**Where you left off:** everything through Phase 3 is merged (0-A→0-E, B1→B6, Phase 2, Phase 3). Phase-by-phase breakdown and the full cross-lane picture in §0 and [`PLAN-AUDIT.md`](./PLAN-AUDIT.md).
+
+**Resume at Phase B7 (§0) — the three missing `lib/api` hooks.** It is one PR and it is the highest-leverage thing you can do: `useUpdateProduct`, `useDeleteProduct`, and `useUsageLogs` unblock **four** separate pieces of work across two lanes, both of which have already committed stubs with TODOs pointing at hooks that don't exist. Matt can't build edit, delete, usage history, or his "recently used" filter; Aaron's Recent Progress renders nothing and his streak checkmarks are faked.
+
+**Then, in order:**
+
+1. **Phase B7** (§0) — the three hooks. Paste block is there.
+2. **Two scope calls only you can make** (§0) — photos in or out, confidence tiers in or out. Both are currently silent gaps in someone else's plan, and both need a decision more than they need code.
+3. **The footer chain** — Aaron merges, then Talbia, then your nav PR, then Talbia's shim deletion. Don't reorder. Also send Matt the `app/log.tsx` cross-lane request that `GEMINI-FOOTER-PLAN.md` §6 tells you to file — it's written into his plan as Phase 5, but he hasn't been told.
+4. **Doc drift** (§0), folded into the footer PR — `D23` doesn't exist in `DECISIONS.md`, `components/onboarding/*` and `app/index.tsx` aren't in the ownership matrix or CODEOWNERS, and the 7/26 type-scale revision is applied in zero files.
+5. **Phase 4** — ongoing review/merge windows and user testing.
+
+**🔴 Before the next demo:** F6 does not work end to end. Matt's "Mark as Finished" navigates with a `finishProductId` param that Talbia's screen never reads, so her celebration, repurchase review, and the whole `finish_product` path are dead code outside `__DEV__`. It's ~10 lines in her lane (her Phase 3b) — make sure it's at the top of her queue.
+
+> **Paste this to your agent to start the session:**
+>
+> ```
+> Read AI-CONTEXT.md in full, plus docs/DATA-MODEL.md and
+> docs/plans/PLAN-AUDIT.md. Then read docs/plans/SHREY-PLAN.md §0 (STATUS).
+> The plans were re-audited on 2026-07-27 against main @ cdd8e1e; §0 overrides
+> anything later in the file that contradicts it.
+>
+> Run `git log --oneline -8` and `git status` and confirm where we are before
+> writing anything.
+>
+> Build Phase B7 from §0 — useUpdateProduct, useDeleteProduct, and
+> useUsageLogs(productId?) — following that phase's paste block exactly. Keep the
+> existing conventions in lib/api/useProducts.ts, add queryKeys entries, add tests
+> against lib/testUtils/supabaseMock.ts, and do not change any existing hook
+> signature.
+>
+> As part of it, read the usage_logs.product_id foreign key in
+> supabase/migrations/20260722211406_core_schema.sql and tell me in plain words
+> whether deleting a product cascades to its usage_logs — Matt has to write
+> delete-confirmation copy about exactly that and I don't want it to be a lie.
+>
+> Only edit files under my lane; if anything else is needed, stop and output a
+> CROSS-LANE REQUEST. Run `npm run verify` at the end and fix until green.
+> ```
+
 > **Mission:** build the scaffold, NativeWind theme, 5-tab navigator, shared UI kit, mock-first `lib/api` hooks, auth + goal capture, the You tab, analytics, and the catalog-search service **AND the entire Supabase backend** (schema, RLS, the max-5-priority trigger, the five RPCs, the Kaggle catalog seed, RLS verification SQL, and the generated `types/database.ts`) — so the other four can build in parallel against your hooks. Then review and merge every PR.
 > **Ownership note (D20, 7/21):** you now own **everything except the four front-end feature lanes** — Aaron (Home), Matt (Inventory), Talbia (Progress/empties UI), Joon (Wishlist). What used to be a separate "Talbia data-platform" plan is now yours: nobody but you touches `supabase/*` or `types/database.ts`. You also **review and merge all PRs** at 12pm & 9pm daily.
 > PRD functions owned: **F1 catalog type-ahead**, plus the backend behind F1–F9. Matrix rows: **1** (account + goal capture), **5** (catalog search), **14/15** (dashboard shell + 5-tab IA), **20** (You), **21** (shared states), **24** (analytics → `analytics_events`), **25** (a11y + privacy baseline).
+
+---
+
+## 0. STATUS — updated 2026-07-27 against `main` @ `cdd8e1e`
+
+**Everything through Phase 3 is merged.** `npm run verify` green: tsc, eslint (0 warnings), prettier, **19 suites / 94 tests**, no raw hex outside `theme/`. Full cross-lane picture in [`PLAN-AUDIT.md`](./PLAN-AUDIT.md).
+
+| Phase                       | Status                                                                                                            |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **0-A → 0-E**               | ✅ Merged (PRs #4–#7). Plus an unplanned onboarding redesign in #20 — `components/onboarding/*`, `app/index.tsx`. |
+| **B1 → B6**                 | ✅ Merged (#8–#13). Schema, RLS, 5 RPCs, Kaggle seed, RLS harness, `types/database.ts` on hosted.                 |
+| **Phase 2** (real Supabase) | ✅ Merged (#14). No hook signature changed; no feature screen touched.                                            |
+| **Phase 3** (polish)        | ✅ Merged (#15).                                                                                                  |
+| **Phase B7** (NEW)          | 🔴 **Three missing hooks now block two lanes.** See below.                                                        |
+| **Footer rebuild**          | 🟡 **In flight, uncommitted** — `GEMINI-FOOTER-PLAN.md`, plus Phase 5 added to Aaron's and Talbia's plans.        |
+| **Phase 4**                 | 🔄 Ongoing — review/merge windows, nightly Maestro, user testing.                                                 |
+
+### 🔴 Phase B7 — the three hooks everyone is waiting on (do this next)
+
+Two lanes have **already committed stubs with TODOs** pointing at hooks that don't exist. This is one PR in `lib/api/*` and it unblocks four separate pieces of work:
+
+| Hook                       | Unblocks                                                                                                                                                                                                                                                                                                                      |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `useUpdateProduct()`       | Matt's edit UI. His `strings.ts` already ships `editAction` / `editTitle` / `saveEdit` as **dead keys** with no UI behind them.                                                                                                                                                                                               |
+| `useDeleteProduct()`       | Matt's delete + confirmation dialog. **Also confirm the `usage_logs.product_id` FK's ON DELETE behaviour** — his plan tells him to write copy promising usage history survives, and that copy must be true.                                                                                                                   |
+| `useUsageLogs(productId?)` | Matt's usage-history list **and** his missing "recently used" filter; Aaron's `RecentProgress` (currently `recentActivity: [] as never[]`) **and** his `StreakRow`, which today approximates the 7-day checkmarks from `last_log_date` because there's no per-day history. RLS policy `usage_logs_select_own` already exists. |
+
+**Paste this to your agent:**
+
+```
+Read AI-CONTEXT.md §2/§4 and docs/DATA-MODEL.md. Add three hooks to lib/api,
+keeping the existing conventions in lib/api/useProducts.ts exactly (TanStack
+Query, queryKeys.ts entries, invalidate products + dashboard on success, cast
+through types/database.ts, track() only where an event in the dictionary
+genuinely applies).
+
+1. useUpdateProduct() — mutation taking { productId, patch } where patch is a
+   Partial over brand, name, shade, category, format, status, percent_remaining,
+   photo_url, pao_months, opened_at. percent_remaining must be directly editable
+   so a user can correct a bad number without logging a fake use. Do NOT fire an
+   analytics event — there is no dictionary event for an edit and track() throws
+   on unknown names.
+2. useDeleteProduct() — mutation { productId }, deletes the products row.
+   Before writing it, check the usage_logs.product_id FK in
+   supabase/migrations/20260722211406_core_schema.sql and tell me in plain words
+   whether deleting a product cascades to its usage_logs. Matt has to write
+   delete-confirmation copy about exactly this.
+3. useUsageLogs(productId?) — read query over usage_logs (percent_after, note,
+   photo_url, logged_at, product_id), newest first, filtered by productId when
+   given. Aaron needs the unfiltered form for recent activity and for real
+   per-day streak checkmarks, so make productId optional.
+
+Add them to the lib/api/index.ts barrel and add tests in lib/api/__tests__/
+against the existing supabase mock in lib/testUtils/supabaseMock.ts. Do not
+change any existing hook signature. Only edit files under my lane; if anything
+else is needed output a CROSS-LANE REQUEST and stop. Run `npm run verify`.
+```
+
+**Done when:**
+
+- [ ] All three hooks exported, tested, `npm run verify` green, no existing signature changed.
+- [ ] The FK cascade answer relayed to Matt.
+- [ ] Aaron and Matt both told to rebase and pick them up.
+
+### Two scope calls only you can make
+
+- **Photos (B4 in the audit).** `expo-image-picker`/`expo-camera` are not installed and every bucket block in `supabase/config.toml` is commented out. Matt's "Tap to scan" is a local boolean and `photo_url` always saves `null`. Three plans ask for photo attach. **Either** wire it (dep + bucket + owner-only RLS + an upload helper in `lib/api`) **or** formally defer it and edit the three plans to say so.
+- **Confidence tiers (B5).** `useSimilarOwned` returns `{count, products}` with no `matchReason`/`confidence`. **Matrix row 22** — the rule that a category-only match must never be called a "duplicate" — has nothing to key off. Extend `find_similar_owned` additively, or tell Joon to ship the low-confidence wording only and record it as a known limitation. Row 22 exists to protect against Claire's churn trigger, so decide it deliberately.
+
+### Documentation drift to fold into the footer PR
+
+- **`D23` doesn't exist.** Both `docs/plans/README.md` and `GEMINI-FOOTER-PLAN.md` cite it for the nav change. Append it to `docs/DECISIONS.md`.
+- **`components/onboarding/*` and `app/index.tsx`** shipped in #20 and are in neither the AI-CONTEXT §3 matrix nor `.github/CODEOWNERS`.
+- **The 2026-07-26 type-scale revision** (body 14→16px, muted 12→14px, button 14→16px, badge 11→12px) is documented in `DESIGN-TOKENS.md` and applied in **zero files** — including your own `components/ui` and `app/(auth)`. Apply it or mark it forward-looking; right now new work builds to a scale nothing else uses.
+- **`GEMINI-FOOTER-PLAN.md` §6** says to copy the placeholder house style from "the current `app/(tabs)/inventory.tsx` stub". That stub is gone — Matt shipped the real screen in #21.
+- **Matt was never sent the `app/log.tsx` cross-lane request** that footer plan §6 tells you to file. It's now written into his plan as **Phase 5** (he extracts a reusable `FastLogForm` from `FastLogSheet`; your `app/log.tsx` stays a thin shell in your lane). Confirm the approach with him before your nav PR.
+- **Maestro:** 4 of 5 flows exist (`signup`, `catalog-search`, Aaron's `focus-and-ring`, Matt's `log-product`). Missing: `wishlist-intercept` (Joon) and `finish-and-archive` (Talbia). Your Phase 4 nightly run should reflect that.
+
+### 🔴 One thing to check before the next demo
+
+**F6 does not work end to end.** Matt's "Mark as Finished" navigates with a `finishProductId` param; Talbia's `progress.tsx` never reads it and only opens `FinishFlow` from `__DEV__` preview buttons. In a production build her celebration, repurchase review, and the whole `finish_product` path are **dead code**. It's a ~10-line fix in her lane (her Phase 3b) — make sure it's at the top of her queue.
 
 ---
 

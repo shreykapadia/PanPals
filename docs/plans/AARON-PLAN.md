@@ -1,6 +1,81 @@
 # Aaron's Implementation Plan — Home, Focus Pot & Progress Rings
 
+## ▶️ RESUME HERE — read this before anything else (updated 2026-07-27)
+
+**Asking your agent "my plan was updated, where do we continue from?" — this is the answer.**
+
+**Where you left off:** PR #22 is merged. **Phases 1, 2, and 3 are all done** — this is the furthest-along lane in the project. Phase-by-phase breakdown in §0.
+
+**Resume at Phase 5 (§5) — the footer realignment.** It's small (one new header control, one pill removed) but **you are the critical path**: once Shrey's nav PR sets `href: null` on the You tab, the profile is unreachable anywhere in the app until your top-bar profile button ships. You merge **first** in the chain (you → Talbia → Shrey → Talbia's shim deletion), so nobody else can start until you're in. Tell Shrey when your PR is up.
+
+**Two things in your lane are stubbed and stay that way until Shrey unblocks you:**
+
+- `RecentProgress` renders nothing (`useHomeData.ts` hardcodes `recentActivity: []`).
+- `StreakRow`'s 7-day checkmarks are approximated from `last_log_date`, not real per-day history.
+
+Both need one `useUsageLogs()` hook. **File §6-G now if it isn't already in the channel** — Matt is blocked on the identical hook, so it's one PR for Shrey that fixes four things. Don't build a workaround.
+
+**After Phase 5:** Phase 4 (user testing) — not a coding task.
+
+> **Paste this to your agent to start the session:**
+>
+> ```
+> Read AI-CONTEXT.md in full, then docs/plans/AARON-PLAN.md §0 (STATUS) and the
+> corrected hook table in §4. My plan was re-audited on 2026-07-27 against
+> main @ cdd8e1e. Phases 1, 2 and 3 are already shipped — §0 overrides anything
+> later in the file that contradicts it.
+>
+> Then run `git log --oneline -5` and read app/(tabs)/index.tsx,
+> features/home/*, and components/ProgressRing.tsx to see what already exists.
+> Do NOT rebuild or refactor any of it.
+>
+> Build Phase 5 in §5 — the footer realignment — following that phase's paste
+> block exactly. Item (1), the profile button in the Home top app bar, is
+> blocking for Shrey's navigation PR, so do it first and completely: without it
+> the profile screen becomes unreachable once he sets href: null on the You tab.
+> Navigate to it by route path only (router.push('/you')) — never import
+> app/(tabs)/you.tsx or anything from Shrey's lane.
+>
+> Do NOT add any track() calls — useTogglePriority and useLogUsage already fire
+> focus_product_set and usage_logged from inside lib/api, and firing them again
+> double-counts. Do NOT try to fix the empty RecentProgress section or the
+> approximated StreakRow checkmarks: both need a useUsageLogs() hook that does not
+> exist yet and is Shrey's to build.
+>
+> Confirm the plan and the exact files you'll touch before writing any code. Only
+> edit files in my lane (app/(tabs)/index.tsx, features/home/*,
+> components/ProgressRing.tsx, .maestro/focus-and-ring.yaml); if anything else is
+> needed, stop and output a CROSS-LANE REQUEST. Run `npm run verify` at the end
+> and fix until green.
+> ```
+
 > **Mission:** Build Maya's daily "open app → see my rings → tap → slide 5% → done" loop on the Home dashboard, plus the reusable ProgressRing that Matt's Progress tab reuses. **PRD functions owned:** F2 (update usage / % remaining), F3 (Focus Pot, max 5), F4 (visualize depletion — ring + donut), F8 (streak display only). **Matrix rows owned:** 8 (Focus Pot), 9 (usage logging + streak), 10 (progress visualization + weekly checkmarks), 14 (Home dashboard shell contents).
+
+---
+
+## 0. STATUS — updated 2026-07-27 against `main` @ `cdd8e1e`
+
+**You shipped PR #22 — Phases 1, 2, and 3 are done.** `npm run verify` is green. This is the strongest lane in the project. Two things remain, plus two stubs you can't finish until Shrey unblocks you.
+
+| Phase                       | Status         | What's on `main`                                                                                                                                                                                                                                                                        |
+| --------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1** ProgressRing + Home   | ✅ **Done**    | `components/ProgressRing.tsx` with the exact spec'd props, ≥8px stroke, rounded caps, `primary-container` fill on a `border-warm` track. `HomeScreen`, `FocusCard`, `StatusDonut`, `QuickActions`, `StreakRow`, `ReconsiderNudge`, `AddToFocusRow`, `useHomeData`, `strings.ts`, tests. |
+| **2** Pin/unpin + ring log  | ✅ **Done**    | `useFocusPot`, `RingSlider` (`SLIDER_STEP = 5`, snapped + clamped), max-5 guard via `isFocusFull`, writes through the shared `useLogUsage`.                                                                                                                                             |
+| **3** States/a11y/analytics | ✅ **Done**    | `HomeSkeleton`, empty + error states, `.maestro/focus-and-ring.yaml`, 4 test files. **You correctly did not call `track()`** — see below.                                                                                                                                               |
+| **4** User testing          | ⬜ Not started | —                                                                                                                                                                                                                                                                                       |
+| **5** Footer realignment    | ⬜ Not started | **Blocking for Shrey's nav PR** — see the inbound request in §1 and the phase at the end of §5.                                                                                                                                                                                         |
+
+**You got the analytics call right and it's worth saying why:** Phase 3 below tells you to fire `focus_product_set` and `usage_logged` via `track()`. **Both already fire inside the `lib/api` hooks**, so calling them would have double-counted. You didn't. Matt's and Joon's plans had the same trap and have now been corrected — don't let a future agent "helpfully" add the calls back.
+
+**Two stubs blocked on Shrey (cross-lane request §6-G, file it if it isn't already in the channel):**
+
+- `features/home/useHomeData.ts` returns `recentActivity: [] as never[]` — your **"Recent progress" section renders nothing**, because no hook reads `usage_logs`.
+- `features/home/StreakRow.tsx` **approximates** the 7-day checkmark row from `last_log_date`, for the same reason. It's a reasonable stand-in, but it is not real per-day history.
+  Both are fixed by one `useUsageLogs()` hook. **Matt is blocked on the identical hook** for his usage-history list and "recently used" filter — file it jointly, it's one PR for Shrey.
+
+**Phase 5 is now the critical path for someone else.** Once Shrey sets `href: null` on the You tab, the profile is unreachable until your header button ships. Your PR must merge **first** in the footer chain (you → Talbia → Shrey → Talbia's shim deletion).
+
+**Undeclared overlap:** Matt also shipped Focus Pot pin/unpin on his item detail. **F3 / matrix row 8 is yours**, but you both call the shared `useTogglePriority`, so there's no file conflict and two entry points is defensible. Ratify it with him rather than leaving it accidental.
 
 ---
 
@@ -14,6 +89,36 @@
 | `.maestro/focus-and-ring.yaml` (your flow)                                  | `theme/*` NativeWind token config (Shrey)                                 | `supabase/*`, `types/database.ts` (Shrey)                                                                           |
 
 **The #1 rule of this project is: never edit a file outside your lane.** If a task seems to need it, you stop and file a CROSS-LANE REQUEST (see §6). Merge conflicts are the enemy; staying in your lane is how five people ship in parallel.
+
+> ### 📥 INBOUND CROSS-LANE REQUEST — from Shrey (2026-07-27), footer audit
+>
+> ```
+> CROSS-LANE REQUEST — from Shrey (navigation/IA) to Aaron
+> A footer audit against docs/PERSONAS.md + docs/PRD.md is changing the bottom nav
+> to: Home | Inventory | ⊕ Log | Wishlist | Empties.
+>
+> Two consequences land in your lane, because I must not edit your files:
+>   1. "You" comes OFF the tab bar. The route stays alive (href: null), but the
+>      ONLY way to reach the profile becomes an entry point in your Home top app
+>      bar. Without it, the profile is unreachable — this one is blocking.
+>   2. The centre ⊕ Log tab now owns logging, so the "Log item" quick-action pill
+>      on Home is a duplicate path and should come off. Keep Scan and Search.
+>
+> One thing you GAIN: Talbia is removing the streak and the status counts from her
+> tab, so Home becomes the single place both appear — which is what PRD F4 and F8
+> specified in the first place. No extra work for you; it just stops being drawn
+> twice in the app.
+>
+> This is Phase 5 below. If you have not shipped Phase 1 yet, fold it straight into
+> Phase 1 instead — it is cheaper than doing it twice.
+> ```
+>
+> **Why "You" loses its slot:** [`you.tsx`](<../../app/(tabs)/you.tsx>) is goals, sign
+> out, and delete account — matrix row 20, required, but touched roughly once per
+> user. It was holding 20% of primary navigation. F1's 15-second log is called "the
+> single most important number in the PRD" and Maya's named churn moment is logging
+> fatigue, so that slot goes to the action she performs dozens of times, not the
+> screen she visits once.
 
 ---
 
@@ -81,10 +186,19 @@ It runs TypeScript, lint, formatting, and tests. It must show **zero errors** be
 
 You read/write these only through Shrey's `lib/api` hooks — never SQL, never supabase-js.
 
-**Hooks**
+**Hooks — CORRECTED 7/27.** The shapes originally written here never existed: `useDashboard()` returns **snake_case** fields, and `useProducts` has no methods on it (every mutation is its own top-level hook). Your shipped code already uses the real shapes; this table is here so nobody "fixes" it back.
 
-- `useDashboard()` → `{ focusProducts: Product[], statusCounts: { unopened, in_rotation, finished }, streak: { current, longest, lastLogDate }, categoryCount, wishlistReady }` (wraps `get_dashboard`).
-- `useProducts()` → `{ data: Product[], update(id, patch), logUsage(product_id, percent_after, note?, photo_url?) }`. Pin/unpin a focus product via `update(id, { is_priority })`; log a use via `logUsage` (wraps `log_usage`).
+| Hook                    | Real shape                                                                                                                                                                    |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `useDashboard()`        | read query → `DashboardData` = `{ profile, focus_products, status_counts, streak: { current_streak, longest_streak, last_log_date }, category_counts, ready_wishlist_items }` |
+| `useProducts(filters?)` | read query → `Product[]`. **No methods.** Filters: `{status?, category?, is_priority?}`                                                                                       |
+| `useTogglePriority()`   | mutation `{productId, isPriority}` — this is pin/unpin, **not** `update(id, {is_priority})`. The 6th pin is rejected by the DB trigger, so catch and show a calm message      |
+| `useLogUsage()`         | mutation `{productId, percentAfter, note?, photoUrl?}` — the same hook Matt calls from his item detail                                                                        |
+| `useUsageLogs(...)`     | ❌ **does not exist** — this is what blocks `RecentProgress` and the real weekly checkmark row (§0, §6-G)                                                                     |
+
+`track()` lives in **`lib/analytics.ts`**, not `lib/api` — and you should not call it: `useTogglePriority` and `useLogUsage` already fire `focus_product_set` and `usage_logged`.
+
+**Design tokens:** PanPal Rose is **`primary-container`**. There is no `brand` token, and `primary` is `#8c4c4d` (deep mauve).
 
 **Columns you touch**
 
@@ -313,6 +427,112 @@ Click: with mock data set to "no products," Home shows the warm empty state poin
 
 ---
 
+### Phase 5 — Footer realignment: Home gains the profile entry, drops the duplicate log pill
+
+**This phase is an inbound cross-lane request from Shrey (§1).** Small — one new
+header control, one pill removed. **If you have not shipped Phase 1 yet, do not run
+this as a separate phase: fold items (1) and (2) into your Phase 1 paste box and skip
+the rest of this section.** `app/(tabs)/index.tsx` is still a placeholder, so this is
+almost certainly the cheaper path.
+
+**Goal:** Home becomes the only door to the profile, sheds the logging path that the
+new centre ⊕ tab now owns, and becomes the single home for the streak and the status
+donut.
+
+> **⚠️ Item (1) is blocking.** Once Shrey's nav PR sets `href: null` on the You tab,
+> the profile has no entry point anywhere in the app until your avatar button ships.
+> Tell Shrey when your PR is up so he can sequence his merge behind it.
+
+> **Paste this to your agent:**
+>
+> ```
+> Continue in the PanPals repo, my lane only. Re-read AI-CONTEXT.md, docs/DESIGN-TOKENS.md
+> and docs/PRD.md (functions F1, F4, F8) first.
+>
+> The bottom nav is changing to: Home | Inventory | (+) Log | Wishlist | Empties.
+> The "You" tab is leaving the tab bar (Shrey sets href: null on it, in his lane).
+> Three consequences for the Home dashboard. Do NOT add features beyond these.
+>
+> (1) PROFILE ENTRY POINT IN THE TOP APP BAR — this is blocking, do it first.
+>   The top app bar currently shows a centred "PanPal" serif wordmark (per
+>   docs/mockups/home-dashboard.png). Add a profile control on the RIGHT of that bar:
+>     - A 40x40 circular button. Fill: the surface-container token. Inside it either
+>       the user's initial in Satoshi 16 semibold (dark-neutral) if a display name is
+>       available from the shared hooks, or the 'you' icon from components/ui/Icon at
+>       size 20 in dark-neutral. No hard border — a 1px warm-grey border-warm hairline
+>       at most, per DESIGN-TOKENS "hierarchy comes from tonal layering".
+>     - onPress: router.push('/you'). Navigate BY ROUTE PATH ONLY. Do NOT import,
+>       read, or edit app/(tabs)/you.tsx — that file is Shrey's.
+>     - accessibilityRole="button", accessibilityLabel from strings.ts, e.g.
+>       "Your profile and settings". Tap target at least 44x44 — use hitSlop if the
+>       visual circle is 40.
+>   Also from the mockup header: DROP the left hamburger (nothing is behind it) and
+>   DROP the bell (push notifications are deferred by D19 and there is no notification
+>   centre in scope). The bar ends up: wordmark centred, profile button right.
+>
+> (2) REMOVE THE "LOG ITEM" QUICK-ACTION PILL.
+>   The quick-action row keeps "Scan" (visual placeholder, no logic) and "Search"
+>   only. Logging now belongs to the centre (+) tab in the footer, which is always
+>   on screen — the pill is a second door to the same room and adds noise directly
+>   under the header. Re-balance the row for two pills instead of three.
+>
+> (3) HOME IS NOW THE ONLY PLACE FOR THE STREAK AND THE STATUS DONUT.
+>   Talbia is removing both from her tab. Keep rendering them here exactly as
+>   PRD F4 (status donut, "At a Glance") and F8 (streak counter + 7-day checkmark
+>   row, DISPLAY ONLY — no badges, points, or rewards) specify. If your Home already
+>   has them, this item is a no-op; just do not remove them.
+>
+> All user-visible strings go in features/home/strings.ts. Tokens only — never a
+> hardcoded hex, font, or radius. Tone stays calm, second person, non-judgmental.
+>
+> Extend features/home/__tests__/ to cover: the profile button renders with its
+> accessibilityLabel and pushes '/you' on press; the quick-action row renders exactly
+> two pills and none of them is a log/add action; the streak row is still present and
+> still has no reward UI.
+>
+> Update .maestro/focus-and-ring.yaml if it referenced the "Log item" pill or the
+> "You" tab.
+>
+> Only edit files under my lane: app/(tabs)/index.tsx, features/home/*,
+> components/ProgressRing.tsx, .maestro/focus-and-ring.yaml. Do NOT edit
+> app/(tabs)/_layout.tsx or app/(tabs)/you.tsx — both are Shrey's. If anything else
+> is needed, output a CROSS-LANE REQUEST and stop.
+>
+> Run `npm run verify` and fix until it passes with zero errors.
+> ```
+
+**Files created / changed:**
+
+- `features/home/ProfileButton.tsx` (or a control inside your existing header component)
+- Updates to `app/(tabs)/index.tsx`, `features/home/QuickActions.tsx`, `strings.ts`, `__tests__/`, `.maestro/focus-and-ring.yaml`
+
+**Verify:**
+
+```bash
+npm run verify
+npx expo start        # press w for web
+```
+
+Click through: the Home header shows the wordmark and a round profile button on the
+right — no hamburger, no bell. Tapping it lands on the You screen, and you can get
+back. The quick-action row has exactly two pills (Scan, Search) and no "Log item."
+The streak row and the At-a-Glance donut are still on Home. Turn on a screen reader
+briefly and confirm the profile button announces itself.
+
+**Done when:**
+
+- [ ] `npm run verify` passes with zero errors.
+- [ ] A profile button sits in the Home top app bar, is at least 44×44 to the touch, has an `accessibilityLabel`, and `router.push('/you')` works — reached by route path, with no import of `you.tsx`.
+- [ ] The hamburger and the bell are gone from the header.
+- [ ] The quick-action row is Scan + Search only; no log/add pill anywhere on Home.
+- [ ] The streak row (display-only) and the status donut are still rendered on Home.
+- [ ] Only tokens used — no hardcoded hex, font, or radius; all strings in `features/home/strings.ts`.
+- [ ] Only my-lane files changed (`git diff --name-only main`); neither `_layout.tsx` nor `you.tsx` is in the list.
+- [ ] Tests cover the profile button, the two-pill row, and the streak still being display-only.
+- [ ] Shrey has been told the PR is up, so he can merge his nav change behind it.
+
+---
+
 ## 6. Cross-lane requests you'll likely need (pre-written)
 
 Copy the relevant block, fill the brackets, and post it in the team channel for Shrey to route. **Do not let your agent edit the file itself.**
@@ -343,6 +563,22 @@ To build and test the Focus Pot max-5 guard, useProducts needs a way to set/unse
 ```
 CROSS-LANE REQUEST — to Shrey / Joon
 The Home "ready to reconsider" nudge should deep-link to a specific wishlist item on Joon's Wishlist tab. What is the exact route path/params to router.push to (e.g. /(tabs)/wishlist?itemId=...)? I will navigate by route only and will not edit wishlist files.
+```
+
+**G. Usage-log read hook (Shrey — `lib/api`) — file this now, Matt needs it too.**
+
+```
+CROSS-LANE REQUEST — to Shrey (lib/api)
+Need a useUsageLogs() read hook over usage_logs (percent_after, note, photo_url,
+logged_at, product_id). The RLS select policy usage_logs_select_own already
+exists, so this should just be a query.
+It unblocks two things I shipped as stubs:
+  - features/home/useHomeData.ts hardcodes recentActivity: [] with a TODO, so my
+    "Recent progress" section renders nothing.
+  - features/home/StreakRow.tsx approximates the 7-day checkmark row from
+    last_log_date because there is no per-day log history.
+Matt is blocked on the same hook for his item-detail usage history and his
+"recently used" filter — worth doing once for both of us.
 ```
 
 **E. Shared empty/error pattern.** If Shrey owns the cross-cutting empty/error components:
