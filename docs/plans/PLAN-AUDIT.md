@@ -59,8 +59,12 @@ router.push({ pathname: '/(tabs)/progress', params: { finishProductId: item.id }
 `app/(tabs)/progress.tsx` **does not read `finishProductId`**. It only opens `FinishFlow` from its own `__DEV__` preview buttons. So today: Matt's button navigates to the Progress tab and nothing happens, and in a **production build Talbia's entire finish flow — celebration, repurchase review, `finish_product` — is dead code**. F6 does not work end to end.
 → **Fix (Talbia's lane, ~10 lines):** read `finishProductId` via `useLocalSearchParams()` and render `<FinishFlow productId={...} />` when present. Cheaper and lower-risk than adding an `app/empties/finish.tsx` route, and it matches what Matt already shipped. Written into her plan as Phase 3b. Both plans' route text has been corrected.
 
+**B2 — ✅ RESOLVED 2026-07-27.** `useUpdateProduct` / `useDeleteProduct` are merged in `lib/api/useProducts.ts`. The `usage_logs.product_id` FK question is answered: it is `on delete cascade`, and so is `empties.product_id` — deleting a product destroys its usage history and its empties entry. Matt's plan now says to write honest delete copy instead of promising history survives. Original entry below.
+
 **B2 — No `useUpdateProduct` / `useDeleteProduct`.** Blocks the rest of Matt's Phase 1b.
 Matt's strings file already carries `editAction`, `editTitle`, `saveEdit` — dead keys with no UI behind them, because there is nothing to call. Needed: an update mutation taking a partial patch over `brand, name, shade, category, format, status, percent_remaining, photo_url, pao_months, opened_at`, and a delete mutation. **Also confirm the `usage_logs.product_id` FK's ON DELETE behaviour** — Matt is told to write delete-confirmation copy promising usage history survives, and that copy must not be a lie.
+
+**B3 — ✅ RESOLVED 2026-07-27.** `useUsageLogs(productId?, {limit?})` is merged. The two committed stubs below are now Aaron's to replace, and Matt's item-detail history is unblocked. Original entry below.
 
 **B3 — Nothing reads `usage_logs`.** Now blocking **two** lanes, with stubs already committed in both:
 
@@ -134,7 +138,7 @@ Left:
 
 1. **Talbia T1** — the finish seam (§3-B1). Ten lines; without it F6 does not exist in a shipping build. Nothing else in the app is this broken.
 2. **Matt M5** — delete the word "barcode" from `strings.ts`. One line, and it is a stated non-goal appearing in shipped UI.
-3. **Shrey B2 + B3** — the three missing hooks (`useUpdateProduct`, `useDeleteProduct`, `useUsageLogs`). One PR unblocks Matt's M1/M2/M3/M4 and Aaron's two stubs.
+3. ~~**Shrey B2 + B3** — the three missing hooks (`useUpdateProduct`, `useDeleteProduct`, `useUsageLogs`). One PR unblocks Matt's M1/M2/M3/M4 and Aaron's two stubs.~~ **Done 2026-07-27.**
 4. **Shrey B4 + B5** — decide photos in/out, decide confidence tiers in/out. Both are scope calls only you can make, and both are currently silent gaps in someone's plan.
 5. **Joon Phase 1b** — the intercept. Longest pole and the highest-risk assumption; it should be in front of testers first, not last.
 6. **The footer chain** — Aaron Phase 5 → Talbia Phase 5 → Shrey's nav PR → Talbia's shim deletion. Do not reorder.

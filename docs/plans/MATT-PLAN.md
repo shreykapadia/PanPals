@@ -12,7 +12,7 @@
 2. **Finish Phase 3** (§6) — the accessibility sweep and the finish-button navigation test.
 3. **Phase 5** (§6) — extract `FastLogForm` so Shrey's new ⊕ Log tab can render your form.
 
-**Wait on these — do NOT work around them:** edit, delete, usage history, and the "recently used" filter all need three hooks Shrey hasn't built yet. File §7-F and §7-G if they aren't already in the channel, then come back to Phase 1b when he's merged them.
+**Unblocked 2026-07-27:** `useUpdateProduct()`, `useDeleteProduct()`, and `useUsageLogs()` are merged (§7-F and §7-G are answered). Phase 1b's edit, delete, usage-history, and "recently used" work is now yours to build — see the hook table in §8 for exact shapes, and read the delete-cascade note there before writing any delete copy.
 
 > **Paste this to your agent to start the session:**
 >
@@ -42,8 +42,8 @@
 >    can render it, with FastLogSheet becoming a thin wrapper and the Inventory
 >    screen behaving identically.
 >
-> Do NOT start the edit, delete, or usage-history work — useUpdateProduct,
-> useDeleteProduct, and useUsageLogs do not exist yet and are Shrey's to build.
+> The edit, delete, and usage-history work is UNBLOCKED as of 2026-07-27 —
+> useUpdateProduct, useDeleteProduct, and useUsageLogs are merged in lib/api.
 >
 > Confirm the plan and the exact files you'll touch before writing any code. Only
 > edit files in my lane (app/(tabs)/inventory.tsx, features/inventory/*,
@@ -76,11 +76,11 @@
 2. **⚠️ Do NOT call `track()`.** Phase 3 below tells you to fire `inventory_item_added` and `usage_logged`. **Both already fire inside the `lib/api` hooks.** Firing them again double-counts every event. Aaron hit this and correctly skipped it. Phase 3's paste block has been corrected.
 3. **The finish route changed.** This plan says `router.push('/empties/finish?productId=…')`. You shipped `router.push({ pathname: '/(tabs)/progress', params: { finishProductId: item.id } })` instead — which is **fine and is now the agreed contract** — but Talbia's screen does not read that param yet, so the button currently goes nowhere. It's on her (Phase 3b in her plan), not you. Don't change your call.
 
-**You are blocked on Shrey for three things** — file these now if they aren't already in the channel (§7-F, §7-G):
+**The three hooks you were blocked on shipped 2026-07-27** (§7-F and §7-G, answered):
 
-- an **update-product** hook (blocks edit — your `editAction`/`editTitle`/`saveEdit` strings are already committed with no UI behind them)
-- a **delete-product** hook (blocks delete)
-- a **`useUsageLogs`** read hook (blocks the usage-history list _and_ the "recently used" filter; Aaron is blocked on the same hook)
+- **`useUpdateProduct()`** — unblocks edit; your `editAction`/`editTitle`/`saveEdit` strings finally get UI. `'finished'` is **not in the patch type**, so your status picker offering it won't compile; finishing stays Talbia's flow.
+- **`useDeleteProduct()`** — unblocks delete. **The FK answer is `on delete cascade`**, on `usage_logs.product_id` _and_ `empties.product_id`, so a delete takes the usage history and any empties entry with it. Write the confirmation copy to match; §8's hook table has the details.
+- **`useUsageLogs(productId?, {limit?})`** — unblocks the usage-history list _and_ the "recently used" filter. Aaron uses the same hook from Home.
 
 **Undeclared overlap worth settling:** you shipped Focus Pot pin/unpin, but **F3 / matrix row 8 is Aaron's**, and he shipped it too. No file conflict — you both call the shared `useTogglePriority` — and two entry points is defensible UX. Just get it ratified rather than leaving it accidental.
 
@@ -163,16 +163,16 @@ You never write SQL or call supabase-js. You read/write these shapes **only** th
 
 **Hooks (import, never edit) — CORRECTED 7/27 to match what actually exists.** The method-bag shape this section originally described (`useProducts().create/.update/.remove/.logUsage`) never existed. `useProducts` is a plain read query and every mutation is its own top-level hook:
 
-| Hook                                     | Shape                                                                                                                        | Status                                                                    |
-| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `useProducts(filters?)`                  | read query → `Product[]`; filters `{status?, category?, is_priority?}`                                                       | ✅ you use it                                                             |
-| `useCreateProduct()`                     | mutation; arg is `Omit<Product,'id'\|'user_id'\|'created_at'>` — **every key required**, pass explicit `null`s for optionals | ✅ you use it                                                             |
-| `useLogUsage()`                          | mutation `{productId, percentAfter, note?, photoUrl?}` — the same hook Aaron calls                                           | ✅ you use it                                                             |
-| `useTogglePriority()`                    | mutation `{productId, isPriority}`; the 6th pin is rejected by the DB trigger                                                | ✅ you use it                                                             |
-| `useCatalogSearch(q, category?, limit?)` | read query → `CatalogProduct[]`; `components/ui/ProductSearch` already wraps it                                              | ✅ via `ProductSearch`                                                    |
-| `useUpdateProduct()`                     | —                                                                                                                            | ❌ **does not exist** — blocks your edit UI                               |
-| `useDeleteProduct()`                     | —                                                                                                                            | ❌ **does not exist** — blocks your delete                                |
-| `useUsageLogs(productId)`                | —                                                                                                                            | ❌ **does not exist** — blocks usage history + the "recently used" filter |
+| Hook                                     | Shape                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Status                 |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| `useProducts(filters?)`                  | read query → `Product[]`; filters `{status?, category?, is_priority?}`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | ✅ you use it          |
+| `useCreateProduct()`                     | mutation; arg is `Omit<Product,'id'\|'user_id'\|'created_at'>` — **every key required**, pass explicit `null`s for optionals                                                                                                                                                                                                                                                                                                                                                                                                                                    | ✅ you use it          |
+| `useLogUsage()`                          | mutation `{productId, percentAfter, note?, photoUrl?}` — the same hook Aaron calls                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | ✅ you use it          |
+| `useTogglePriority()`                    | mutation `{productId, isPriority}`; the 6th pin is rejected by the DB trigger                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | ✅ you use it          |
+| `useCatalogSearch(q, category?, limit?)` | read query → `CatalogProduct[]`; `components/ui/ProductSearch` already wraps it                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | ✅ via `ProductSearch` |
+| `useUpdateProduct()`                     | mutation `{productId, patch}` where `patch: ProductPatch` = partial over `brand, name, shade, category, format, status, percent_remaining, photo_url, pao_months, opened_at`. `percent_remaining` is a direct correction — it writes **no** `usage_logs` row. `ProductPatch['status']` **excludes `'finished'`** — passing it is a `tsc` error, and a runtime throw backstops casts. Finishing goes through Talbia's flow so the empties archive + verdict are written. Omit `finished` from your edit UI's status options; it stays a valid **display** status | ✅ merged 2026-07-27   |
+| `useDeleteProduct()`                     | mutation `{productId}`. **Cascades:** `usage_logs.product_id` and `empties.product_id` are both `on delete cascade`, so the item's whole usage history — and its private empties entry + repurchase verdict, if it was ever finished — go with it. Write the confirmation copy accordingly                                                                                                                                                                                                                                                                      | ✅ merged 2026-07-27   |
+| `useUsageLogs(productId?, {limit?})`     | read query → `UsageLog[]`, newest first. Pass an id for one item's history; omit it for all of the user's logs (that's Aaron's Home usage). RLS scopes the read — no owner filter needed                                                                                                                                                                                                                                                                                                                                                                        | ✅ merged 2026-07-27   |
 
 **`track()` lives in `lib/analytics.ts`, not `lib/api`** — and you should not call it at all. `useCreateProduct` already fires `inventory_item_added`; `useLogUsage` already fires `usage_logged`; `useTogglePriority` already fires `focus_product_set`. Calling them yourself double-counts.
 
@@ -261,9 +261,9 @@ track), mocks/types.ts, and theme/* but NEVER edit them.
 
 > **✅ Already shipped in PR #21:** `ItemDetailSheet.tsx` (ring, status/category/format badges, pin/unpin, "Log usage", "Mark as Finished"), `UsageLogSheet.tsx` (5% steps, optional note, clamped 0–100), `useInventoryActions.ts`, `daysSinceOpened.ts`, and the finish-seam navigation. **Do not rebuild any of it.**
 >
-> **❌ Still to do: edit, delete, usage history.** All three are blocked on hooks that don't exist yet (§7-F, §7-G). Do not build a local workaround — do not call supabase-js, do not add a hook to `lib/api`. Wait for Shrey, then paste the block below.
+> **❌ Still to do: edit, delete, usage history.** The three hooks these needed are **merged as of 2026-07-27** — build against them, and still do not call supabase-js or add a hook to `lib/api` yourself.
 
-**Paste this to your agent — ONLY once Shrey has merged `useUpdateProduct`, `useDeleteProduct`, and `useUsageLogs`:**
+**Paste this to your agent (`useUpdateProduct`, `useDeleteProduct`, and `useUsageLogs` are merged):**
 
 ```
 Continue the PanPals inventory feature (Matt's lane). Same rules as before:
@@ -320,7 +320,7 @@ Run `npm run verify` and fix until green.
 - `npm run start` → Inventory → tap a product → detail opens.
 - Click: "Log a use" once → % drops one step and a new row appears in usage history; drag the slider to a specific % and log with a photo → history shows both entries (old one preserved).
 - Click: edit → change the name and correct % remaining → save → detail reflects it.
-- Click: delete → confirmation appears and its copy says usage history is preserved → confirm → item leaves the list.
+- Click: delete → confirmation appears and its copy says the item's usage history goes with it (see the cascade note in §8) → confirm → item leaves the list.
 - Click: "Mark as Finished" → the app **navigates** to Talbia's finish route (`/empties/finish?productId=...`). Confirm your screen did NOT try to finish, celebrate, or archive anything itself. (If Talbia's screen isn't merged yet, you'll land on a not-found/placeholder — that's expected; the navigation call is what you're verifying.)
 
 **Done when:**
@@ -615,6 +615,6 @@ _layout.tsx. (The Progress tab is Talbia's now.)
 - **Inline strings.** All user-visible copy goes in `features/inventory/strings.ts`. Copy must be calm and non-judgmental — never shame the user.
 - **Writing SQL or calling supabase-js.** You never do either. All data goes through `lib/api/*` hooks. If the agent reaches for supabase-js, stop it.
 - **Duplicating the usage-logging endpoint.** There is ONE shared `log_usage` hook (you and Aaron both import it). Do not create a second one.
-- **Overwriting usage history.** Each usage log is a new row. Deleting a product must not silently wipe `usage_logs`, and the delete confirmation must say so.
+- **Overwriting usage history.** Each usage log is a new row — logging a use never edits an old one. **Deleting a product, however, does cascade-delete its `usage_logs` and any `empties` row** (answered 2026-07-27, see §8). Your confirmation copy must be honest about that; do not promise history survives.
 - **Skipping states or a11y.** Every screen needs loading/empty/error; every touchable needs an `accessibilityLabel`; never convey status by color alone.
 - **Big PRs / stale branches.** One module per branch, PR ≤~400 lines, commit ~every 30 min, rebase on `main` after each schema merge. Never `git push --force`, never merge, never touch `main`.

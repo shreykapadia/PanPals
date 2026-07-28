@@ -1,11 +1,48 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Product, Category, ProductStatus } from '../../mocks/types';
+import { Product, Category, ProductStatus, UsageLog } from '../../mocks/types';
 import { Database } from '../../types/database';
 import { queryKeys } from '../queryKeys';
 import { track } from '../analytics';
 import { supabase } from '../supabase';
 
 type LogUsageArgs = Database['public']['Functions']['log_usage']['Args'];
+
+/**
+ * The fields a user may correct directly from item detail. Deliberately
+ * excludes:
+ * - `id`, `user_id`, `created_at` — never editable.
+ * - `is_priority` — use `useTogglePriority()`, which carries the
+ *   `focus_product_set` analytics event and the DB max-5 guard.
+ * - `catalog_product_id`, `source_wishlist_item_id` — provenance links, set
+ *   once at creation.
+ * - `status: 'finished'` — see below.
+ */
+export type ProductPatch = Partial<
+  Pick<
+    Product,
+    | 'brand'
+    | 'name'
+    | 'shade'
+    | 'category'
+    | 'format'
+    | 'percent_remaining'
+    | 'photo_url'
+    | 'pao_months'
+    | 'opened_at'
+  >
+> & {
+  /**
+   * Editable statuses only. `'finished'` is excluded at the type level so
+   * finishing by edit is a `tsc` failure — and `npm run verify` runs `tsc`,
+   * which is this project's only gate. `empties.repurchase` is `not null`,
+   * so a finish genuinely cannot happen as a side effect of an edit: there
+   * would be no verdict to write. Finishing goes through `useFinishProduct()`.
+   *
+   * This narrows what may be *edited*, not what may be displayed — a finished
+   * product still reads back with `status: 'finished'` from `useProducts()`.
+   */
+  status?: Exclude<ProductStatus, 'finished'>;
+};
 
 export function useProducts(filters?: {
   status?: ProductStatus;
@@ -76,6 +113,117 @@ export function useLogUsage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
+    },
+  });
+}
+
+/**
+ * A product's usage history, newest first. Omit `productId` to get every log
+ * the signed-in user owns (Home's "recent progress" and the weekly checkmark
+ * row); pass one for a single item's history on inventory item detail.
+ *
+ * There is no `user_id` column on `usage_logs` — ownership runs through
+ * `products.user_id`, and the `usage_logs_select_own` RLS policy already
+ * scopes the read, so no client-side owner filter is needed.
+ */
+export function useUsageLogs(productId?: string, options?: { limit?: number }) {
+  const limit = options?.limit;
+
+  return useQuery({
+    queryKey: queryKeys.products.usageLogs(productId, limit),
+    queryFn: async (): Promise<UsageLog[]> => {
+      let query = supabase.from('usage_logs').select('*').order('logged_at', { ascending: false });
+
+      if (productId) query = query.eq('product_id', productId);
+      if (limit !== undefined) query = query.limit(limit);
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as UsageLog[];
+    },
+  });
+}
+
+/**
+ * Applies a partial patch to a product — the edit half of inventory item
+ * detail. `percent_remaining` is editable directly here so a user can correct
+ * a wrong number without logging a use that never happened; that means no
+ * `usage_logs` row is written and no `usage_logged` event fires, which is the
+ * intended difference from `useLogUsage()`.
+ *
+ * Finishing is NOT reachable through this hook — see the guard below.
+ */
+export function useUpdateProduct() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ productId, patch }: { productId: string; patch: ProductPatch }) => {
+      if (Object.keys(patch).length === 0) {
+        throw new Error('useUpdateProduct: patch is empty — nothing to update.');
+      }
+      // Backstop for callers who cast past ProductPatch's status type. A plain
+      // status write would skip finish_product(), so the empties archive row
+      // and repurchase verdict would never be created and F6's record of the
+      // finish would be lost. Route finishing through the RPC.
+      if ((patch.status as ProductStatus | undefined) === 'finished') {
+        throw new Error(
+          'useUpdateProduct: cannot set status to "finished" — use useFinishProduct() so the empties archive entry and repurchase verdict are written.',
+        );
+      }
+      // Mirrors the products_percent_remaining check constraint, so a bad
+      // value fails with a readable message instead of a Postgres error.
+      if (patch.percent_remaining !== undefined) {
+        const percent = patch.percent_remaining;
+        if (!Number.isInteger(percent) || percent < 0 || percent > 100) {
+          throw new Error('useUpdateProduct: percent_remaining must be an integer from 0 to 100.');
+        }
+      }
+
+      const { data, error } = await supabase
+        .from('products')
+        .update(patch)
+        .eq('id', productId)
+        .select()
+        .single();
+      if (error) throw error;
+
+      // No analytics call: the event dictionary in lib/analytics.ts has no
+      // product-edited event, and track() throws on unknown names by design.
+      return data as Product;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
+    },
+  });
+}
+
+/**
+ * Deletes a product row.
+ *
+ * **This is destructive beyond the product itself.** Both
+ * `usage_logs.product_id` and `empties.product_id` are
+ * `on delete cascade` (`supabase/migrations/*_core_schema.sql`), so deleting
+ * a product also deletes its entire usage history and — if it was ever
+ * finished — its private empties archive entry and repurchase verdict.
+ * Delete-confirmation copy must say so rather than promising history
+ * survives.
+ */
+export function useDeleteProduct() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ productId }: { productId: string }) => {
+      const { error } = await supabase.from('products').delete().eq('id', productId);
+      if (error) throw error;
+
+      return { productId };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
+      // Cascades can remove an empties row, so the archive can go stale too.
+      queryClient.invalidateQueries({ queryKey: queryKeys.empties.all });
     },
   });
 }
