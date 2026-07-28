@@ -142,7 +142,9 @@ soft diffused shadows — never hard borders or pure-black shadows.
 
 ## 7. Definition of Done for any task
 
-1. `npm run verify` passes locally (tsc --noEmit, eslint, prettier --check, jest)
+1. `npm run verify` passes locally (tsc --noEmit, eslint, jest, `prettier --check`
+   — in that order, so a formatting nit can never short-circuit the chain before
+   the tests and hide whether the code works). `npm run format` fixes formatting.
 2. RTL test covers the new logic
 3. Relevant Maestro flow passes locally
 4. Loading / empty / error states exist for any new screen

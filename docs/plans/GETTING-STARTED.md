@@ -202,6 +202,20 @@ project, and the AI does it for you).
 screen framework and the styling tools. `npm install` downloads them all
 automatically. You don't choose them; they're already listed in the project.)
 
+**First time only — switch on the auto-tidy.** Also in the AI chat, type:
+
+> "Run `git config core.hooksPath .githooks`."
+
+That's one command, once, on this computer. From then on, every time you save a
+checkpoint (Section 8), the project quietly tidies the spacing and punctuation in
+the files you changed. It never touches what your code actually _does_ — just the
+invisible neatness that the quality check in Section 8 insists on. Without it,
+that check can fail over a stray blank line, which is a confusing way to lose ten
+minutes.
+
+You'll occasionally see it say _"Prettier reformatted and re-staged"_ followed by
+some filenames. That's it working, not a problem.
+
 **Start the app.** The AI will run `npx expo start`. You'll see a block of text
 and a **QR code** appear. To view the app:
 
@@ -272,6 +286,11 @@ it to the shared version." Shrey reviews it and merges it.
 > you're good to open the PR. If not, paste what it says to the AI and let it fix it.
 > We don't have an automatic checker, so this step is how we keep the app working
 > for everyone.
+
+If the only complaint is about **formatting** (it'll list filenames and mention
+"code style"), that's the tidiness thing, not a real bug — ask the AI to _"run
+`npm run format`"_ and it's fixed. Turning on the auto-tidy in Section 6 mostly
+prevents this.
 
 ---
 

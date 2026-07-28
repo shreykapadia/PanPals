@@ -1,25 +1,50 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { setStatusBarStyle } from 'expo-status-bar';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Button } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
 import { FocusPotHero } from '../../components/onboarding/FocusPotHero';
+import { StashWall } from '../../components/onboarding/StashWall';
 import { Reveal } from '../../components/onboarding/Reveal';
 import { colors } from '../../theme/tokens';
 import { authStrings, WELCOME_HERO_ITEMS, WELCOME_VALUE_PROPS } from './strings';
 
+/** Photographic band below the status bar: masthead plus ~100pt of pattern. */
+const WALL_HEIGHT = 156;
+/** How far the focus tiles climb into the wall's cream fade. */
+const WALL_OVERLAP = 40;
+
 export default function WelcomeScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { wordmark, headline, tagline, heroLabel, createAccount, signIn } = authStrings.welcome;
 
-  return (
-    <SafeAreaView className="flex-1 bg-surface">
-      <View className="items-center pt-2 pb-1">
-        <Text className="text-2xl font-caslon-bold text-dark-neutral">{wordmark}</Text>
-      </View>
+  // This is the only screen with a dark surface under the status bar, and the
+  // rest of onboarding is cream — so the light glyphs have to unwind on blur.
+  // A rendered <StatusBar> would not: welcome stays mounted underneath sign-up
+  // and its entry would keep winning, hiding the clock on the next screen.
+  useFocusEffect(
+    useCallback(() => {
+      setStatusBarStyle('light', true);
+      return () => setStatusBarStyle('dark', true);
+    }, []),
+  );
 
-      <View className="flex-1 px-6 justify-between">
+  return (
+    // Only the bottom edge is inset — the wall bleeds under the status bar and
+    // pads for it itself, so the pattern starts at the very top of the screen.
+    <SafeAreaView edges={['bottom']} className="flex-1 bg-surface">
+      <Reveal distance={0} duration={420}>
+        <StashWall height={insets.top + WALL_HEIGHT}>
+          <View className="items-center" style={{ paddingTop: insets.top + 6 }}>
+            <Text className="text-2xl font-caslon-bold text-on-primary">{wordmark}</Text>
+          </View>
+        </StashWall>
+      </Reveal>
+
+      <View className="flex-1 px-6 justify-between" style={{ marginTop: -WALL_OVERLAP }}>
         <FocusPotHero items={WELCOME_HERO_ITEMS} accessibilityLabel={heroLabel} />
 
         <Reveal delay={240} className="items-center">
