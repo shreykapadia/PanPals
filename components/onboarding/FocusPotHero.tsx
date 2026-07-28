@@ -21,9 +21,9 @@ interface FocusPotHeroProps {
 
 /** Vertical rhythm and emphasis per column — the middle tile leads. */
 const COLUMNS = [
-  { offset: 26, ring: 60, featured: false },
+  { offset: 22, ring: 60, featured: false },
   { offset: 0, ring: 74, featured: true },
-  { offset: 38, ring: 60, featured: false },
+  { offset: 32, ring: 60, featured: false },
 ];
 
 const STAGGER = 80;
@@ -33,6 +33,11 @@ const STAGGER = 80;
  * three part-finished products, drawn entirely from tokens so onboarding needs
  * no illustration asset. It previews the actual product rather than standing in
  * for one, which is the point — Maya's motivation is watching the ring move.
+ *
+ * Sits directly under `StashWall` on welcome, and the tiles climb into its lower
+ * fade. The warm halo that used to back them is gone: the tiles span ~354 of 393
+ * points, so a 244-point circle behind them only ever showed as slivers, and the
+ * photographic band now carries that depth properly.
  */
 export const FocusPotHero: React.FC<FocusPotHeroProps> = ({ items, accessibilityLabel }) => (
   <View
@@ -40,16 +45,9 @@ export const FocusPotHero: React.FC<FocusPotHeroProps> = ({ items, accessibility
     accessibilityLabel={accessibilityLabel}
     accessibilityElementsHidden={false}
     importantForAccessibility="yes"
-    className="w-full items-center justify-center"
-    style={{ height: 296 }}
+    className="w-full items-center justify-start"
+    style={{ height: 196 }}
   >
-    {/* Warm halo behind the tiles: depth from tonal layering, not a border. */}
-    <View
-      className="absolute rounded-full bg-surface-container"
-      style={{ width: 244, height: 244, top: 18 }}
-      importantForAccessibility="no-hide-descendants"
-    />
-
     <View
       className="flex-row items-start justify-center gap-3"
       importantForAccessibility="no-hide-descendants"
