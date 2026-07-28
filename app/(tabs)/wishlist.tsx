@@ -26,6 +26,7 @@ import {
 const STATUS_FILTERS: WishlistStatus[] = ['cooling', 'ready', 'purchased', 'removed'];
 const PRIORITY_FILTERS: WishlistPriority[] = ['high', 'medium', 'low'];
 const UNDO_WINDOW_MS = 5000;
+const ERROR_DISPLAY_MS = 5000;
 
 export default function WishlistTab() {
   const s = wishlistStrings.screen;
@@ -36,8 +37,10 @@ export default function WishlistTab() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<WishlistItem | null>(null);
   const [lastRemoved, setLastRemoved] = useState<WishlistItem | null>(null);
+  const [actionError, setActionError] = useState<string | undefined>();
 
   const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const errorTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
     items,
@@ -56,8 +59,15 @@ export default function WishlistTab() {
   useEffect(() => {
     return () => {
       if (undoTimer.current) clearTimeout(undoTimer.current);
+      if (errorTimer.current) clearTimeout(errorTimer.current);
     };
   }, []);
+
+  const showActionError = (message: string) => {
+    setActionError(message);
+    if (errorTimer.current) clearTimeout(errorTimer.current);
+    errorTimer.current = setTimeout(() => setActionError(undefined), ERROR_DISPLAY_MS);
+  };
 
   const filteredItems = useMemo(
     () =>
@@ -70,18 +80,28 @@ export default function WishlistTab() {
   );
 
   const handleRemove = async (item: WishlistItem) => {
-    await removeItem(item.id);
-    setLastRemoved(item);
-    if (undoTimer.current) clearTimeout(undoTimer.current);
-    undoTimer.current = setTimeout(() => setLastRemoved(null), UNDO_WINDOW_MS);
+    try {
+      await removeItem(item.id);
+      setActionError(undefined);
+      setLastRemoved(item);
+      if (undoTimer.current) clearTimeout(undoTimer.current);
+      undoTimer.current = setTimeout(() => setLastRemoved(null), UNDO_WINDOW_MS);
+    } catch {
+      showActionError(wishlistStrings.undo.errorRemove);
+    }
   };
 
   const handleUndo = async () => {
     if (!lastRemoved) return;
     if (undoTimer.current) clearTimeout(undoTimer.current);
-    const item = lastRemoved;
-    setLastRemoved(null);
-    await restoreItem(item);
+    try {
+      await restoreItem(lastRemoved);
+      setActionError(undefined);
+      setLastRemoved(null);
+    } catch {
+      // Keep lastRemoved set so the Undo button stays tappable for a retry.
+      showActionError(wishlistStrings.undo.errorRestore);
+    }
   };
 
   const renderContent = () => {
@@ -134,6 +154,12 @@ export default function WishlistTab() {
           <Text className="text-lg font-bold text-dark-neutral">+</Text>
         </Pressable>
       </View>
+
+      {actionError && (
+        <Text accessibilityRole="alert" className="text-xs text-error font-satoshi px-4 mb-2">
+          {actionError}
+        </Text>
+      )}
 
       {!isLoading && !isError && items.length > 0 && (
         <View className="mb-2">

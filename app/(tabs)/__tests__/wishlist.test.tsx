@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import WishlistTab from '../wishlist';
 import { WishlistItem } from '../../../mocks/types';
 
@@ -69,6 +69,49 @@ const mockActions = {
 jest.mock('../../../features/wishlist/hooks/useWishlistActions', () => ({
   useWishlistActions: () => mockActions,
 }));
+
+beforeEach(() => {
+  mockActions.removeItem.mockClear().mockResolvedValue(undefined);
+  mockActions.restoreItem.mockClear().mockResolvedValue(undefined);
+});
+
+describe('WishlistTab remove/undo error handling', () => {
+  it('shows an inline error and no undo banner when remove fails', async () => {
+    mockActions.removeItem.mockRejectedValueOnce(new Error('network error'));
+    const { getByLabelText, queryByText, findByText } = render(<WishlistTab />);
+
+    fireEvent.press(getByLabelText('Remove from wishlist: Rare Beauty Blush'));
+
+    await findByText("We couldn't remove that item. Please try again.");
+    expect(queryByText('Undo')).toBeNull();
+  });
+
+  it('keeps the undo banner tappable for retry when restore fails', async () => {
+    mockActions.restoreItem.mockRejectedValueOnce(new Error('network error'));
+    const { getByLabelText, findByText, getByText } = render(<WishlistTab />);
+
+    fireEvent.press(getByLabelText('Remove from wishlist: Rare Beauty Blush'));
+    await findByText('Removed from your wishlist.');
+
+    fireEvent.press(getByText('Undo'));
+
+    await findByText("We couldn't restore that item. Please try again.");
+    // The banner is still there, so the user can press Undo again.
+    expect(getByText('Undo')).toBeTruthy();
+  });
+
+  it('restores the item and clears the banner when undo succeeds', async () => {
+    const { getByLabelText, findByText, getByText, queryByText } = render(<WishlistTab />);
+
+    fireEvent.press(getByLabelText('Remove from wishlist: Rare Beauty Blush'));
+    await findByText('Removed from your wishlist.');
+
+    fireEvent.press(getByText('Undo'));
+
+    await waitFor(() => expect(queryByText('Removed from your wishlist.')).toBeNull());
+    expect(mockActions.restoreItem).toHaveBeenCalledWith(expect.objectContaining({ id: 'a' }));
+  });
+});
 
 describe('WishlistTab filters', () => {
   it('lists all items with no filter applied', () => {
