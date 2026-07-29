@@ -153,7 +153,10 @@ Target viewport: mobile app frame **393 × 852**.
   instead of running behind the disc. Soft charcoal lift (`#333333`, offset {0,3}, opacity 0.12,
   radius 6) — never a coloured glow. Charcoal `Plus` glyph (`#333333`, 24pt, stroke 2, matching the
   destination icons), 11pt Satoshi-Medium "Log" label in inactive `#8C857B` so the label row reads as
-  one row (the disc carries the emphasis). Overhangs the bar by -18pt (-10pt Android).
+  one row (the disc carries the emphasis). The disc is absolutely positioned over a column that
+  copies a destination tab's (24pt icon slot at `marginTop: 8`, label `paddingBottom: 8`) so "Log"
+  shares the other four labels' baseline; its bottom edge aligns with where the destination icons
+  end, overhanging the bar by ~17pt (~9pt Android, which clips harder outside the bar).
   "You" (profile/settings) is reached from the Home top app bar (`/you`, `href: null`).
 
 > **Nav decision (7/27, D23):** restored the design system's centre "Quick Log (+)" and renamed the

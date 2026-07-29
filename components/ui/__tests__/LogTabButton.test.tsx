@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Animated } from 'react-native';
+import { Animated, StyleSheet } from 'react-native';
 import { LogTabButton } from '../LogTabButton';
 import { useReducedMotion } from '../../../lib/useReducedMotion';
 
@@ -34,6 +34,16 @@ describe('LogTabButton', () => {
   it('renders the "Log" label text', () => {
     const { getByText } = render(<LogTabButton onPress={() => {}} />);
     expect(getByText('Log')).toBeTruthy();
+  });
+
+  it('gives the "Log" label the same bottom inset as the destination tab labels', () => {
+    // tabBarLabelStyle in app/(tabs)/_layout.tsx uses paddingBottom: 8; without a
+    // match here the label drops off the other four labels' baseline.
+    const { getByText } = render(<LogTabButton onPress={() => {}} />);
+    expect(StyleSheet.flatten(getByText('Log').props.style)).toMatchObject({
+      paddingBottom: 8,
+      fontSize: 11,
+    });
   });
 
   it('calls onPress once when pressed', () => {
