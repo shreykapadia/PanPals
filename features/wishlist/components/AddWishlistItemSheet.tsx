@@ -1,6 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Modal, View, Text, ScrollView, Pressable } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaProvider,
+  SafeAreaView,
+  initialWindowMetrics,
+} from 'react-native-safe-area-context';
 import { Button } from '../../../components/ui/Button';
 import { Card } from '../../../components/ui/Card';
 import { Input } from '../../../components/ui/Input';
@@ -18,6 +22,11 @@ import {
 import { CATEGORY_LABELS, PRIORITY_LABELS, wishlistStrings } from '../strings';
 import { useIntercept } from '../hooks/useIntercept';
 import { InterceptBanner } from './InterceptBanner';
+
+const DEFAULT_METRICS = {
+  frame: { x: 0, y: 0, width: 393, height: 852 },
+  insets: { top: 47, left: 0, right: 0, bottom: 34 },
+};
 
 type NewWishlistItem = Omit<
   WishlistItem,
@@ -205,208 +214,210 @@ const AddWishlistItemSheetContent: React.FC<AddWishlistItemSheetProps> = ({
 
   return (
     <Modal visible animationType="slide" onRequestClose={handleClose}>
-      <SafeAreaView className="flex-1 bg-surface">
-        <View className="flex-row items-center justify-between px-4 py-3 border-b border-border-warm">
-          <Text className="text-lg font-bold font-caslon text-dark-neutral">{s.addTitle}</Text>
-          <Pressable
-            onPress={handleClose}
-            accessibilityRole="button"
-            accessibilityLabel={s.cancel}
-            hitSlop={8}
-            className="min-w-[44px] min-h-[44px] items-center justify-center"
-          >
-            <Icon name="close" size={22} color={colors['inactive-gray']} />
-          </Pressable>
-        </View>
-
-        <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-          <View className="flex-row gap-2 mb-4">
-            <Chip
-              label={s.modeSearch}
-              selected={mode === 'search'}
-              onPress={() => setMode('search')}
-            />
-            <Chip label={s.modeLink} selected={mode === 'link'} onPress={() => setMode('link')} />
-            <Chip
-              label={s.modeManual}
-              selected={mode === 'manual'}
-              onPress={() => setMode('manual')}
-            />
+      <SafeAreaProvider initialMetrics={initialWindowMetrics ?? DEFAULT_METRICS}>
+        <SafeAreaView className="flex-1 bg-surface">
+          <View className="flex-row items-center justify-between px-4 py-3 border-b border-border-warm">
+            <Text className="text-lg font-bold font-caslon text-dark-neutral">{s.addTitle}</Text>
+            <Pressable
+              onPress={handleClose}
+              accessibilityRole="button"
+              accessibilityLabel={s.cancel}
+              hitSlop={8}
+              className="min-w-[44px] min-h-[44px] items-center justify-center"
+            >
+              <Icon name="close" size={22} color={colors['inactive-gray']} />
+            </Pressable>
           </View>
 
-          {mode === 'search' &&
-            (catalogSelection ? (
-              <Card className="mb-4">
-                <Text className="text-sm font-semibold font-satoshi text-dark-neutral">
-                  {catalogSelection.brand} · {catalogSelection.name}
+          <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+            <View className="flex-row gap-2 mb-4">
+              <Chip
+                label={s.modeSearch}
+                selected={mode === 'search'}
+                onPress={() => setMode('search')}
+              />
+              <Chip label={s.modeLink} selected={mode === 'link'} onPress={() => setMode('link')} />
+              <Chip
+                label={s.modeManual}
+                selected={mode === 'manual'}
+                onPress={() => setMode('manual')}
+              />
+            </View>
+
+            {mode === 'search' &&
+              (catalogSelection ? (
+                <Card className="mb-4">
+                  <Text className="text-sm font-semibold font-satoshi text-dark-neutral">
+                    {catalogSelection.brand} · {catalogSelection.name}
+                  </Text>
+                  <Pressable
+                    onPress={() => setCatalogSelection(null)}
+                    accessibilityRole="button"
+                    accessibilityLabel={s.changeSelection}
+                    className="mt-2"
+                  >
+                    <Text className="text-xs font-semibold font-satoshi text-primary">
+                      {s.changeSelection}
+                    </Text>
+                  </Pressable>
+                </Card>
+              ) : (
+                <View className="mb-4">
+                  <ProductSearch onSelect={handleSelectCatalogItem} allowManual={false} />
+                </View>
+              ))}
+
+            {mode === 'link' && (
+              <View className="mb-2">
+                <Input
+                  label={s.linkLabel}
+                  value={productUrl}
+                  onChangeText={setProductUrl}
+                  placeholder={s.linkPlaceholder}
+                  autoCapitalize="none"
+                  accessibilityLabel={s.linkLabel}
+                />
+                <Text className="text-xs font-satoshi text-muted-text -mt-2 mb-4 px-2">
+                  {s.linkHelp}
                 </Text>
+              </View>
+            )}
+
+            <Input
+              label={s.brandLabel}
+              value={brand}
+              onChangeText={setBrand}
+              placeholder={s.brandPlaceholder}
+              accessibilityLabel={s.brandLabel}
+            />
+            <Input
+              label={s.nameLabel}
+              value={name}
+              onChangeText={setName}
+              placeholder={s.namePlaceholder}
+              accessibilityLabel={s.nameLabel}
+            />
+            <Input
+              label={s.shadeLabel}
+              value={shade}
+              onChangeText={setShade}
+              placeholder={s.shadePlaceholder}
+              accessibilityLabel={s.shadeLabel}
+            />
+
+            <Text className="text-xs font-semibold text-muted-text font-satoshi mb-2 px-2 uppercase tracking-wider">
+              {s.categoryLabel}
+            </Text>
+            <View className="flex-row flex-wrap gap-2 px-2 mb-4">
+              {CATEGORIES.map((c) => (
+                <Chip
+                  key={c}
+                  label={CATEGORY_LABELS[c]}
+                  selected={category === c}
+                  onPress={() => setCategory(c)}
+                  accessibilityLabel={`${CATEGORY_LABELS[c]}${category === c ? ', selected' : ''}`}
+                />
+              ))}
+            </View>
+
+            <Input
+              label={s.priceLabel}
+              value={price}
+              onChangeText={setPrice}
+              placeholder={s.pricePlaceholder}
+              keyboardType="decimal-pad"
+              accessibilityLabel={s.priceLabel}
+            />
+
+            <Text className="text-xs font-semibold text-muted-text font-satoshi mb-2 px-2 uppercase tracking-wider">
+              {s.priorityLabel}
+            </Text>
+            <View className="flex-row flex-wrap gap-2 px-2 mb-4">
+              {PRIORITIES.map((p) => (
+                <Chip
+                  key={p}
+                  label={PRIORITY_LABELS[p]}
+                  selected={priority === p}
+                  onPress={() => setPriority(p)}
+                  accessibilityLabel={`${PRIORITY_LABELS[p]}${priority === p ? ', selected' : ''}`}
+                />
+              ))}
+            </View>
+
+            <Input
+              label={s.reflectionLabel}
+              value={reflectionResponse}
+              onChangeText={setReflectionResponse}
+              placeholder={s.reflectionPlaceholder}
+              multiline
+              accessibilityLabel={s.reflectionLabel}
+            />
+
+            <View className="mb-4">
+              <Chip
+                label={s.reminderLabel}
+                selected={reminderEnabled}
+                onPress={() => setReminderEnabled((prev) => !prev)}
+                accessibilityLabel={`${s.reminderLabel}${reminderEnabled ? ', on' : ', off'}`}
+              />
+            </View>
+
+            {error && (
+              <Text accessibilityRole="alert" className="text-xs text-error font-satoshi mb-2 px-2">
+                {error}
+              </Text>
+            )}
+
+            {pendingDuplicate ? (
+              <Card className="mb-2">
+                <Text className="text-sm font-semibold font-satoshi text-dark-neutral mb-1">
+                  {wishlistStrings.duplicate.title}
+                </Text>
+                <Text className="text-xs font-satoshi text-muted-text mb-3">
+                  {wishlistStrings.duplicate.message(pendingDuplicate.brand, pendingDuplicate.name)}
+                </Text>
+                <Button
+                  label={wishlistStrings.duplicate.keepBothAction}
+                  onPress={handleKeepBothDuplicates}
+                  loading={isSaving}
+                  accessibilityLabel={wishlistStrings.duplicate.keepBothAction}
+                  className="mb-2"
+                />
                 <Pressable
-                  onPress={() => setCatalogSelection(null)}
+                  onPress={handleCancelDuplicate}
                   accessibilityRole="button"
-                  accessibilityLabel={s.changeSelection}
-                  className="mt-2"
+                  accessibilityLabel={wishlistStrings.duplicate.cancelAction}
+                  className="items-center py-2"
                 >
-                  <Text className="text-xs font-semibold font-satoshi text-primary">
-                    {s.changeSelection}
+                  <Text className="text-xs font-semibold font-satoshi text-dark-neutral">
+                    {wishlistStrings.duplicate.cancelAction}
                   </Text>
                 </Pressable>
               </Card>
+            ) : showIntercept ? (
+              <InterceptBanner
+                category={category}
+                count={intercept.count}
+                matches={intercept.matches}
+                productUrl={productUrl.trim() || null}
+                onKeepOnWishlist={handleKeepOnWishlist}
+                onUseOwned={handleUseOwned}
+                onContinueToRetailer={handleContinueToRetailer}
+                isSaving={isSaving}
+              />
             ) : (
-              <View className="mb-4">
-                <ProductSearch onSelect={handleSelectCatalogItem} allowManual={false} />
-              </View>
-            ))}
-
-          {mode === 'link' && (
-            <View className="mb-2">
-              <Input
-                label={s.linkLabel}
-                value={productUrl}
-                onChangeText={setProductUrl}
-                placeholder={s.linkPlaceholder}
-                autoCapitalize="none"
-                accessibilityLabel={s.linkLabel}
-              />
-              <Text className="text-xs font-satoshi text-muted-text -mt-2 mb-4 px-2">
-                {s.linkHelp}
-              </Text>
-            </View>
-          )}
-
-          <Input
-            label={s.brandLabel}
-            value={brand}
-            onChangeText={setBrand}
-            placeholder={s.brandPlaceholder}
-            accessibilityLabel={s.brandLabel}
-          />
-          <Input
-            label={s.nameLabel}
-            value={name}
-            onChangeText={setName}
-            placeholder={s.namePlaceholder}
-            accessibilityLabel={s.nameLabel}
-          />
-          <Input
-            label={s.shadeLabel}
-            value={shade}
-            onChangeText={setShade}
-            placeholder={s.shadePlaceholder}
-            accessibilityLabel={s.shadeLabel}
-          />
-
-          <Text className="text-xs font-semibold text-muted-text font-satoshi mb-2 px-2 uppercase tracking-wider">
-            {s.categoryLabel}
-          </Text>
-          <View className="flex-row flex-wrap gap-2 px-2 mb-4">
-            {CATEGORIES.map((c) => (
-              <Chip
-                key={c}
-                label={CATEGORY_LABELS[c]}
-                selected={category === c}
-                onPress={() => setCategory(c)}
-                accessibilityLabel={`${CATEGORY_LABELS[c]}${category === c ? ', selected' : ''}`}
-              />
-            ))}
-          </View>
-
-          <Input
-            label={s.priceLabel}
-            value={price}
-            onChangeText={setPrice}
-            placeholder={s.pricePlaceholder}
-            keyboardType="decimal-pad"
-            accessibilityLabel={s.priceLabel}
-          />
-
-          <Text className="text-xs font-semibold text-muted-text font-satoshi mb-2 px-2 uppercase tracking-wider">
-            {s.priorityLabel}
-          </Text>
-          <View className="flex-row flex-wrap gap-2 px-2 mb-4">
-            {PRIORITIES.map((p) => (
-              <Chip
-                key={p}
-                label={PRIORITY_LABELS[p]}
-                selected={priority === p}
-                onPress={() => setPriority(p)}
-                accessibilityLabel={`${PRIORITY_LABELS[p]}${priority === p ? ', selected' : ''}`}
-              />
-            ))}
-          </View>
-
-          <Input
-            label={s.reflectionLabel}
-            value={reflectionResponse}
-            onChangeText={setReflectionResponse}
-            placeholder={s.reflectionPlaceholder}
-            multiline
-            accessibilityLabel={s.reflectionLabel}
-          />
-
-          <View className="mb-4">
-            <Chip
-              label={s.reminderLabel}
-              selected={reminderEnabled}
-              onPress={() => setReminderEnabled((prev) => !prev)}
-              accessibilityLabel={`${s.reminderLabel}${reminderEnabled ? ', on' : ', off'}`}
-            />
-          </View>
-
-          {error && (
-            <Text accessibilityRole="alert" className="text-xs text-error font-satoshi mb-2 px-2">
-              {error}
-            </Text>
-          )}
-
-          {pendingDuplicate ? (
-            <Card className="mb-2">
-              <Text className="text-sm font-semibold font-satoshi text-dark-neutral mb-1">
-                {wishlistStrings.duplicate.title}
-              </Text>
-              <Text className="text-xs font-satoshi text-muted-text mb-3">
-                {wishlistStrings.duplicate.message(pendingDuplicate.brand, pendingDuplicate.name)}
-              </Text>
               <Button
-                label={wishlistStrings.duplicate.keepBothAction}
-                onPress={handleKeepBothDuplicates}
+                label={isSaving ? s.saving : s.save}
+                onPress={handleSave}
+                disabled={!canSave}
                 loading={isSaving}
-                accessibilityLabel={wishlistStrings.duplicate.keepBothAction}
-                className="mb-2"
+                accessibilityLabel={s.save}
+                className="mt-2"
               />
-              <Pressable
-                onPress={handleCancelDuplicate}
-                accessibilityRole="button"
-                accessibilityLabel={wishlistStrings.duplicate.cancelAction}
-                className="items-center py-2"
-              >
-                <Text className="text-xs font-semibold font-satoshi text-dark-neutral">
-                  {wishlistStrings.duplicate.cancelAction}
-                </Text>
-              </Pressable>
-            </Card>
-          ) : showIntercept ? (
-            <InterceptBanner
-              category={category}
-              count={intercept.count}
-              matches={intercept.matches}
-              productUrl={productUrl.trim() || null}
-              onKeepOnWishlist={handleKeepOnWishlist}
-              onUseOwned={handleUseOwned}
-              onContinueToRetailer={handleContinueToRetailer}
-              isSaving={isSaving}
-            />
-          ) : (
-            <Button
-              label={isSaving ? s.saving : s.save}
-              onPress={handleSave}
-              disabled={!canSave}
-              loading={isSaving}
-              accessibilityLabel={s.save}
-              className="mt-2"
-            />
-          )}
-        </ScrollView>
-      </SafeAreaView>
+            )}
+          </ScrollView>
+        </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 };

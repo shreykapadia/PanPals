@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, View, Text, ScrollView, Pressable } from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaProvider,
+  SafeAreaView,
+  initialWindowMetrics,
+} from 'react-native-safe-area-context';
 import { Button } from '../../../components/ui/Button';
 import { Card } from '../../../components/ui/Card';
 import { Input } from '../../../components/ui/Input';
@@ -18,6 +22,11 @@ import {
 } from '../../../mocks/types';
 import { ProductPatch } from '../../../lib/api';
 import { CATEGORY_LABELS, FORMAT_LABELS, STATUS_LABELS, inventoryStrings } from '../strings';
+
+const DEFAULT_METRICS = {
+  frame: { x: 0, y: 0, width: 393, height: 852 },
+  insets: { top: 47, left: 0, right: 0, bottom: 34 },
+};
 
 type NewProduct = Omit<Product, 'id' | 'user_id' | 'created_at'>;
 
@@ -197,7 +206,7 @@ export const FastLogSheet: React.FC<FastLogSheetProps> = ({
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={handleClose}>
-      <SafeAreaProvider>
+      <SafeAreaProvider initialMetrics={initialWindowMetrics ?? DEFAULT_METRICS}>
         <SafeAreaView className="flex-1 bg-surface">
           <View className="flex-row items-center justify-between px-4 py-3 border-b border-border-warm">
             <Text className="text-lg font-bold font-caslon text-dark-neutral">
