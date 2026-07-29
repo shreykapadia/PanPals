@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, View, Text, ScrollView, Pressable } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaProvider,
+  SafeAreaView,
+  initialWindowMetrics,
+} from 'react-native-safe-area-context';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { Chip } from '../../../components/ui/Chip';
@@ -8,6 +12,11 @@ import { Icon } from '../../../components/ui/Icon';
 import { colors } from '../../../theme/tokens';
 import { WishlistItem, WishlistPriority } from '../../../mocks/types';
 import { PRIORITY_LABELS, wishlistStrings } from '../strings';
+
+const DEFAULT_METRICS = {
+  frame: { x: 0, y: 0, width: 393, height: 852 },
+  insets: { top: 47, left: 0, right: 0, bottom: 34 },
+};
 
 const PRIORITIES: WishlistPriority[] = ['high', 'medium', 'low'];
 
@@ -57,64 +66,66 @@ export const EditWishlistItemSheet: React.FC<EditWishlistItemSheetProps> = ({
 
   return (
     <Modal visible={!!item} animationType="slide" onRequestClose={onClose}>
-      <SafeAreaView className="flex-1 bg-surface">
-        <View className="flex-row items-center justify-between px-4 py-3 border-b border-border-warm">
-          <Text className="text-lg font-bold font-caslon text-dark-neutral">{s.editTitle}</Text>
-          <Pressable
-            onPress={onClose}
-            accessibilityRole="button"
-            accessibilityLabel={s.cancel}
-            hitSlop={8}
-            className="min-w-[44px] min-h-[44px] items-center justify-center"
-          >
-            <Icon name="close" size={22} color={colors['inactive-gray']} />
-          </Pressable>
-        </View>
-
-        <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-          <Text className="text-sm font-semibold font-satoshi text-dark-neutral mb-4">
-            {item.brand} · {item.name}
-          </Text>
-
-          <Text className="text-xs font-semibold text-muted-text font-satoshi mb-2 px-2 uppercase tracking-wider">
-            {s.priorityLabel}
-          </Text>
-          <View className="flex-row flex-wrap gap-2 px-2 mb-4">
-            {PRIORITIES.map((p) => (
-              <Chip
-                key={p}
-                label={PRIORITY_LABELS[p]}
-                selected={priority === p}
-                onPress={() => setPriority(p)}
-                accessibilityLabel={`${PRIORITY_LABELS[p]}${priority === p ? ', selected' : ''}`}
-              />
-            ))}
+      <SafeAreaProvider initialMetrics={initialWindowMetrics ?? DEFAULT_METRICS}>
+        <SafeAreaView className="flex-1 bg-surface">
+          <View className="flex-row items-center justify-between px-4 py-3 border-b border-border-warm">
+            <Text className="text-lg font-bold font-caslon text-dark-neutral">{s.editTitle}</Text>
+            <Pressable
+              onPress={onClose}
+              accessibilityRole="button"
+              accessibilityLabel={s.cancel}
+              hitSlop={8}
+              className="min-w-[44px] min-h-[44px] items-center justify-center"
+            >
+              <Icon name="close" size={22} color={colors['inactive-gray']} />
+            </Pressable>
           </View>
 
-          <Input
-            label={s.reflectionLabel}
-            value={reflectionResponse}
-            onChangeText={setReflectionResponse}
-            placeholder={s.reflectionPlaceholder}
-            multiline
-            accessibilityLabel={s.reflectionLabel}
-          />
-
-          {error && (
-            <Text accessibilityRole="alert" className="text-xs text-error font-satoshi mb-2 px-2">
-              {error}
+          <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+            <Text className="text-sm font-semibold font-satoshi text-dark-neutral mb-4">
+              {item.brand} · {item.name}
             </Text>
-          )}
 
-          <Button
-            label={isSaving ? s.saving : s.saveEdit}
-            onPress={handleSave}
-            loading={isSaving}
-            accessibilityLabel={s.saveEdit}
-            className="mt-2"
-          />
-        </ScrollView>
-      </SafeAreaView>
+            <Text className="text-xs font-semibold text-muted-text font-satoshi mb-2 px-2 uppercase tracking-wider">
+              {s.priorityLabel}
+            </Text>
+            <View className="flex-row flex-wrap gap-2 px-2 mb-4">
+              {PRIORITIES.map((p) => (
+                <Chip
+                  key={p}
+                  label={PRIORITY_LABELS[p]}
+                  selected={priority === p}
+                  onPress={() => setPriority(p)}
+                  accessibilityLabel={`${PRIORITY_LABELS[p]}${priority === p ? ', selected' : ''}`}
+                />
+              ))}
+            </View>
+
+            <Input
+              label={s.reflectionLabel}
+              value={reflectionResponse}
+              onChangeText={setReflectionResponse}
+              placeholder={s.reflectionPlaceholder}
+              multiline
+              accessibilityLabel={s.reflectionLabel}
+            />
+
+            {error && (
+              <Text accessibilityRole="alert" className="text-xs text-error font-satoshi mb-2 px-2">
+                {error}
+              </Text>
+            )}
+
+            <Button
+              label={isSaving ? s.saving : s.saveEdit}
+              onPress={handleSave}
+              loading={isSaving}
+              accessibilityLabel={s.saveEdit}
+              className="mt-2"
+            />
+          </ScrollView>
+        </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 };

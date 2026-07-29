@@ -59,11 +59,55 @@ describe('private empties archive', () => {
     expect(getByText('REPURCHASE: YES')).toBeTruthy();
   });
 
-  it('shows a warm empty state when there are no finished products', () => {
-    const { getByText } = render(<EmptiesEmptyState />);
+  it('shows a warm empty state with CTA when there are no finished products', () => {
+    const onAction = jest.fn();
+    const { getByText } = render(<EmptiesEmptyState onAction={onAction} />);
 
     expect(getByText('Your empties will gather here')).toBeTruthy();
     expect(getByText(/private shelf/i)).toBeTruthy();
+
+    fireEvent.press(getByText('View Focus Pot'));
+    expect(onAction).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders filter chips and filters entries by Holy Grails', () => {
+    const noRepurchaseEntry: ArchiveEntry = {
+      empty: {
+        ...archiveEntry.empty,
+        id: 'empty-2',
+        repurchase: 'no',
+      },
+      product: {
+        ...archiveEntry.product!,
+        id: 'product-2',
+        name: 'Matte Foundation',
+      },
+    };
+
+    const { getByText, queryByText } = render(
+      <EmptiesArchive entries={[archiveEntry, noRepurchaseEntry]} />,
+    );
+
+    expect(getByText('All')).toBeTruthy();
+    expect(getByText('✦ Holy Grails')).toBeTruthy();
+    expect(getByText('Soft Pinch Liquid Blush')).toBeTruthy();
+    expect(getByText('Matte Foundation')).toBeTruthy();
+
+    fireEvent.press(getByText('✦ Holy Grails'));
+
+    expect(getByText('Soft Pinch Liquid Blush')).toBeTruthy();
+    expect(queryByText('Matte Foundation')).toBeNull();
+  });
+
+  it('shows no filter matches message when no entries match selected filter', () => {
+    const { getByText } = render(<EmptiesArchive entries={[archiveEntry]} />);
+
+    fireEvent.press(getByText('Hair'));
+
+    expect(getByText('No matching empties')).toBeTruthy();
+    expect(
+      getByText('Try selecting a different filter to view your finished products.'),
+    ).toBeTruthy();
   });
 
   it('shows an accessible loading state while private progress is loading', () => {

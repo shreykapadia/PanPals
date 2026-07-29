@@ -56,3 +56,35 @@ create trigger enforce_focus_pot_not_finished
 -- function in `public` unless EXECUTE is revoked, and a trigger function is
 -- never called as an RPC.
 revoke execute on function public.enforce_focus_pot_not_finished () from public, anon, authenticated;
+
+-- ============================================================================
+-- Trigger: enforce_focus_pot_max — max 5 active (non-finished) priority products
+-- ============================================================================
+
+create or replace function public.enforce_focus_pot_max ()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  priority_count int;
+begin
+  if new.is_priority then
+    select count(*)
+    into priority_count
+    from public.products
+    where user_id = new.user_id
+      and is_priority = true
+      and status != 'finished'
+      and id <> new.id;
+
+    if priority_count >= 5 then
+      raise exception 'You can focus on up to 5 products at a time.';
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+

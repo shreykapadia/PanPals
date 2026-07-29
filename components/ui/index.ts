@@ -12,3 +12,4 @@ export * from './ProductSearch';
 export * from './LogTabButton';
 export * from './FilterSheet';
 export * from './FilterBar';
+export * from './ModalScreen';

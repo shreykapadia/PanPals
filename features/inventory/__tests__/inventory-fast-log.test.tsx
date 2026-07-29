@@ -261,10 +261,12 @@ describe('ItemDetailSheet', () => {
     expect(queryByText('Congratulations')).toBeNull();
   });
 
-  it('hides "Mark as Finished" once the item is already finished', () => {
+  it('hides "Mark as Finished" and Focus Pot actions once the item is already finished', () => {
     const { queryByLabelText } = renderDetailSheet({ item: { ...baseItem, status: 'finished' } });
 
     expect(queryByLabelText('Mark as Finished')).toBeNull();
+    expect(queryByLabelText('Add to Focus Pot')).toBeNull();
+    expect(queryByLabelText('Remove from Focus Pot')).toBeNull();
   });
 
   it('shows the Focus Pot error inline when the toggle rejects (e.g. the 6th pin)', async () => {
