@@ -3,7 +3,6 @@ import {
   LucideIcon,
   Home,
   Package,
-  Sparkles,
   Heart,
   User,
   Check,
@@ -20,6 +19,7 @@ import {
   X,
   Plus,
   SlidersHorizontal,
+  Archive,
 } from 'lucide-react-native';
 import { colors } from '../../theme/tokens';
 
@@ -48,7 +48,7 @@ const icons: Record<IconName, LucideIcon> = {
   home: Home,
   inventory: Package,
   log: Plus,
-  empties: Sparkles,
+  empties: Archive,
   wishlist: Heart,
   you: User,
   check: Check,

@@ -388,4 +388,25 @@ describe('UsageLogSheet', () => {
     );
     expect(queryByText('Log usage')).toBeNull();
   });
+
+  it('allows decreasing percent to 0 and saving', async () => {
+    const onSave = jest.fn().mockResolvedValue(undefined);
+    const { getByLabelText, getByText } = render(
+      <UsageLogSheet
+        item={{ ...baseItem, percent_remaining: 5 }}
+        onClose={() => {}}
+        onSave={onSave}
+        isSaving={false}
+      />,
+    );
+
+    expect(getByText('5%')).toBeTruthy();
+    fireEvent.press(getByLabelText('Decrease by 5 percent'));
+    expect(getByText('0%')).toBeTruthy();
+
+    fireEvent.press(getByText('Save update'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+    expect(onSave).toHaveBeenCalledWith({ percentAfter: 0, note: undefined });
+  });
 });

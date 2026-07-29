@@ -98,9 +98,28 @@ export default function InventoryTab() {
       setDetailItem(updated as Product);
     });
 
-  const handleLogUsageSave = (args: { percentAfter: number; note?: string }) => {
-    if (!usageLogItem) return Promise.reject(new Error('No item selected'));
-    return logUsage({ productId: usageLogItem.id, ...args });
+  const handleLogUsageSave = async (args: { percentAfter: number; note?: string }) => {
+    const targetItem = detailItem || usageLogItem;
+    if (!targetItem) return Promise.reject(new Error('No item selected'));
+    const itemToFinish = targetItem;
+    const result = await logUsage({ productId: targetItem.id, ...args });
+    if (args.percentAfter === 0) {
+      setUsageLogItem(null);
+      setDetailItem(null);
+      router.push({ pathname: '/(tabs)/empties', params: { finishProductId: itemToFinish.id } });
+    } else {
+      setDetailItem((prev) =>
+        prev && prev.id === itemToFinish.id
+          ? {
+              ...prev,
+              percent_remaining: args.percentAfter,
+              status:
+                prev.status === 'unopened' && args.percentAfter > 0 ? 'in_rotation' : prev.status,
+            }
+          : prev,
+      );
+    }
+    return result;
   };
 
   const handleSaveEdit = (patch: ProductPatch) => {
@@ -245,12 +264,20 @@ export default function InventoryTab() {
       <ItemDetailSheet
         item={detailItem}
         onClose={() => setDetailItem(null)}
-        onOpenUsageLog={(item) => setUsageLogItem(item)}
-        onOpenEdit={(item) => setEditingItem(item)}
+        onOpenUsageLog={(item) => {
+          setDetailItem(null);
+          setUsageLogItem(item);
+        }}
+        onOpenEdit={(item) => {
+          setDetailItem(null);
+          setEditingItem(item);
+        }}
         onTogglePriority={handleTogglePriority}
         isTogglingPriority={isTogglingPriority}
         onDelete={handleDelete}
         isDeleting={isDeleting}
+        onSaveUsageLog={handleLogUsageSave}
+        isLoggingUsage={isLoggingUsage}
       />
 
       <UsageLogSheet

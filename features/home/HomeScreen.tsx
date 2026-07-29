@@ -50,11 +50,20 @@ export function HomeScreen() {
 
   function confirmSlider(percent: number) {
     if (!activeSliderProduct) return;
+    const itemToFinish = activeSliderProduct;
     setSliderError(undefined);
     logUsage.mutate(
       { productId: activeSliderProduct.id, percentAfter: percent },
       {
-        onSuccess: closeSlider,
+        onSuccess: () => {
+          closeSlider();
+          if (percent === 0) {
+            router.push({
+              pathname: '/(tabs)/empties',
+              params: { finishProductId: itemToFinish.id },
+            });
+          }
+        },
         onError: () => setSliderError(homeStrings.logUsageErrorMessage),
       },
     );

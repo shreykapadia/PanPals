@@ -124,6 +124,7 @@ export function useLogUsage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.empties.all });
     },
   });
 }
