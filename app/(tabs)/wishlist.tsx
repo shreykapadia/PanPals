@@ -4,7 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { LoadingState } from '../../components/ui/LoadingState';
-import { Chip } from '../../components/ui/Chip';
+import { FilterBar } from '../../components/ui/FilterBar';
+import { FilterSheet } from '../../components/ui/FilterSheet';
 import {
   CATEGORIES,
   Category,
@@ -36,7 +37,17 @@ export default function WishlistTab() {
   const [statusFilter, setStatusFilter] = useState<WishlistStatus | undefined>(undefined);
   const [categoryFilter, setCategoryFilter] = useState<Category | undefined>(undefined);
   const [priorityFilter, setPriorityFilter] = useState<WishlistPriority | undefined>(undefined);
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
+
+  const activeFilterCount =
+    (statusFilter ? 1 : 0) + (categoryFilter ? 1 : 0) + (priorityFilter ? 1 : 0);
+
+  const handleResetFilters = () => {
+    setStatusFilter(undefined);
+    setCategoryFilter(undefined);
+    setPriorityFilter(undefined);
+  };
   const [editingItem, setEditingItem] = useState<WishlistItem | null>(null);
   const [reconsideringItem, setReconsideringItem] = useState<WishlistItem | null>(null);
   const [lastRemoved, setLastRemoved] = useState<WishlistItem | null>(null);
@@ -176,35 +187,55 @@ export default function WishlistTab() {
       )}
 
       {!isLoading && !isError && items.length > 0 && (
-        <View className="mb-2">
-          <FilterRow
-            label={s.filterStatusLabel}
-            allLabel={s.filterAllLabel}
-            selected={statusFilter}
-            options={STATUS_FILTERS}
-            optionLabel={(v) => STATUS_LABELS[v]}
-            onSelect={setStatusFilter}
-          />
-          <FilterRow
-            label={s.filterCategoryLabel}
-            allLabel={s.filterAllLabel}
-            selected={categoryFilter}
-            options={CATEGORIES}
-            optionLabel={(v) => CATEGORY_LABELS[v]}
-            onSelect={setCategoryFilter}
-          />
-          <FilterRow
-            label={s.filterPriorityLabel}
-            allLabel={s.filterAllLabel}
-            selected={priorityFilter}
-            options={PRIORITY_FILTERS}
-            optionLabel={(v) => PRIORITY_LABELS[v]}
-            onSelect={setPriorityFilter}
-          />
-        </View>
+        <FilterBar
+          activeCount={activeFilterCount}
+          onOpenFilterSheet={() => setIsFilterSheetOpen(true)}
+          quickOptions={STATUS_FILTERS}
+          selectedQuickOption={statusFilter}
+          quickOptionLabel={(v) => STATUS_LABELS[v]}
+          onSelectQuickOption={setStatusFilter}
+          allLabel={s.filterAllLabel}
+          accessibilityLabel="Open filter sheet"
+        />
       )}
 
       {renderContent()}
+
+      <FilterSheet
+        visible={isFilterSheetOpen}
+        onClose={() => setIsFilterSheetOpen(false)}
+        activeCount={activeFilterCount}
+        onResetAll={handleResetFilters}
+        groups={[
+          {
+            id: 'status',
+            label: s.filterStatusLabel,
+            allLabel: s.filterAllLabel,
+            selected: statusFilter,
+            options: STATUS_FILTERS,
+            optionLabel: (v: WishlistStatus) => STATUS_LABELS[v],
+            onSelect: setStatusFilter,
+          },
+          {
+            id: 'category',
+            label: s.filterCategoryLabel,
+            allLabel: s.filterAllLabel,
+            selected: categoryFilter,
+            options: CATEGORIES,
+            optionLabel: (v: any) => CATEGORY_LABELS[v as keyof typeof CATEGORY_LABELS],
+            onSelect: setCategoryFilter,
+          },
+          {
+            id: 'priority',
+            label: s.filterPriorityLabel,
+            allLabel: s.filterAllLabel,
+            selected: priorityFilter,
+            options: PRIORITY_FILTERS,
+            optionLabel: (v: WishlistPriority) => PRIORITY_LABELS[v],
+            onSelect: setPriorityFilter,
+          },
+        ]}
+      />
 
       {lastRemoved && (
         <View className="absolute bottom-4 left-4 right-4 bg-inverse-surface rounded-full px-5 py-3 flex-row items-center justify-between">
@@ -247,47 +278,5 @@ export default function WishlistTab() {
         isMarkingPurchased={isMarkingPurchased}
       />
     </SafeAreaView>
-  );
-}
-
-function FilterRow<T extends string>({
-  label,
-  allLabel,
-  selected,
-  options,
-  optionLabel,
-  onSelect,
-}: {
-  label: string;
-  allLabel: string;
-  selected: T | undefined;
-  options: readonly T[];
-  optionLabel: (value: T) => string;
-  onSelect: (value: T | undefined) => void;
-}) {
-  return (
-    <View className="mb-2">
-      <Text className="text-[11px] font-semibold text-muted-text font-satoshi px-4 mb-1 uppercase tracking-wider">
-        {label}
-      </Text>
-      <FlatList
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        data={['__all__', ...options] as const}
-        keyExtractor={(item) => item}
-        contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
-        renderItem={({ item }) =>
-          item === '__all__' ? (
-            <Chip label={allLabel} selected={!selected} onPress={() => onSelect(undefined)} />
-          ) : (
-            <Chip
-              label={optionLabel(item as T)}
-              selected={selected === item}
-              onPress={() => onSelect(item as T)}
-            />
-          )
-        }
-      />
-    </View>
   );
 }

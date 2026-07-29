@@ -19,6 +19,7 @@ import {
   CalendarCheck,
   X,
   Plus,
+  SlidersHorizontal,
 } from 'lucide-react-native';
 import { colors } from '../../theme/tokens';
 
@@ -40,7 +41,8 @@ export type IconName =
   | 'cooling'
   | 'leaf'
   | 'routine'
-  | 'close';
+  | 'close'
+  | 'sliders';
 
 const icons: Record<IconName, LucideIcon> = {
   home: Home,
@@ -61,6 +63,7 @@ const icons: Record<IconName, LucideIcon> = {
   leaf: Leaf,
   routine: CalendarCheck,
   close: X,
+  sliders: SlidersHorizontal,
 };
 
 interface IconProps {

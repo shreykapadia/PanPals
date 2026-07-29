@@ -123,6 +123,7 @@ describe('WishlistTab filters', () => {
   it('narrows the list by category', () => {
     const { getByText, queryByText } = render(<WishlistTab />);
 
+    fireEvent.press(getByText('Filters'));
     fireEvent.press(getByText('Lip'));
 
     expect(queryByText('Rare Beauty · Blush')).toBeNull();
@@ -132,6 +133,7 @@ describe('WishlistTab filters', () => {
   it('narrows the list by priority', () => {
     const { getByText, queryByText } = render(<WishlistTab />);
 
+    fireEvent.press(getByText('Filters'));
     fireEvent.press(getByText('High priority'));
 
     expect(getByText('Rare Beauty · Blush')).toBeTruthy();
@@ -141,6 +143,7 @@ describe('WishlistTab filters', () => {
   it('shows a no-matches state when filters exclude everything', () => {
     const { getByText } = render(<WishlistTab />);
 
+    fireEvent.press(getByText('Filters'));
     fireEvent.press(getByText('Lip'));
     fireEvent.press(getByText('High priority'));
 

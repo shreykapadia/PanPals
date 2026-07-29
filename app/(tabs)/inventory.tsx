@@ -1,11 +1,13 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, FlatList, RefreshControl, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { LoadingState } from '../../components/ui/LoadingState';
-import { Chip } from '../../components/ui/Chip';
 import { Input } from '../../components/ui/Input';
+import { FilterBar } from '../../components/ui/FilterBar';
+import { FilterSheet } from '../../components/ui/FilterSheet';
 import { CATEGORIES, Product, ProductStatus } from '../../mocks/types';
 import { ProductPatch } from '../../lib/api';
 import { useInventoryActions } from '../../features/inventory/hooks/useInventoryActions';
@@ -26,7 +28,25 @@ export default function InventoryTab() {
   const s = inventoryStrings.screen;
 
   const filters = useInventoryFilters();
+  const { action } = useLocalSearchParams<{ action?: string }>();
+  const router = useRouter();
   const [isLogOpen, setIsLogOpen] = useState(false);
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+
+  useEffect(() => {
+    if (action === 'log') {
+      setIsLogOpen(true);
+    }
+  }, [action]);
+
+  const activeFilterCount =
+    (filters.status ? 1 : 0) + (filters.category ? 1 : 0) + (filters.recentlyUsedOnly ? 1 : 0);
+
+  const handleResetFilters = () => {
+    filters.setStatus(undefined);
+    filters.setCategory(undefined);
+    filters.setRecentlyUsedOnly(false);
+  };
   const [editingItem, setEditingItem] = useState<Product | null>(null);
   const [detailItem, setDetailItem] = useState<Product | null>(null);
   const [usageLogItem, setUsageLogItem] = useState<Product | null>(null);
@@ -154,38 +174,62 @@ export default function InventoryTab() {
       )}
 
       {!isLoading && !isError && items.length > 0 && (
-        <View className="mb-2">
-          <FilterRow
-            label={s.filterStatusLabel}
-            allLabel={s.filterAllLabel}
-            selected={filters.status}
-            options={STATUS_FILTERS}
-            optionLabel={(v) => STATUS_LABELS[v]}
-            onSelect={filters.setStatus}
-          />
-          <FilterRow
-            label={s.filterCategoryLabel}
-            allLabel={s.filterAllLabel}
-            selected={filters.category}
-            options={CATEGORIES}
-            optionLabel={(v) => CATEGORY_LABELS[v]}
-            onSelect={filters.setCategory}
-          />
-          <View className="px-4">
-            <Chip
-              label={s.recentlyUsedLabel}
-              selected={filters.recentlyUsedOnly}
-              onPress={() => filters.setRecentlyUsedOnly((prev) => !prev)}
-            />
-          </View>
-        </View>
+        <FilterBar
+          activeCount={activeFilterCount}
+          onOpenFilterSheet={() => setIsFilterSheetOpen(true)}
+          quickOptions={STATUS_FILTERS}
+          selectedQuickOption={filters.status}
+          quickOptionLabel={(v) => STATUS_LABELS[v]}
+          onSelectQuickOption={filters.setStatus}
+          allLabel={s.filterAllLabel}
+          accessibilityLabel="Open filter sheet"
+        />
       )}
 
       {renderContent()}
 
+      <FilterSheet
+        visible={isFilterSheetOpen}
+        onClose={() => setIsFilterSheetOpen(false)}
+        activeCount={activeFilterCount}
+        onResetAll={handleResetFilters}
+        groups={[
+          {
+            id: 'status',
+            label: s.filterStatusLabel,
+            allLabel: s.filterAllLabel,
+            selected: filters.status,
+            options: STATUS_FILTERS,
+            optionLabel: (v: ProductStatus) => STATUS_LABELS[v],
+            onSelect: filters.setStatus,
+          },
+          {
+            id: 'category',
+            label: s.filterCategoryLabel,
+            allLabel: s.filterAllLabel,
+            selected: filters.category,
+            options: CATEGORIES,
+            optionLabel: (v: ProductStatus | any) =>
+              CATEGORY_LABELS[v as keyof typeof CATEGORY_LABELS],
+            onSelect: filters.setCategory,
+          },
+        ]}
+        toggles={[
+          {
+            id: 'recentlyUsed',
+            label: s.recentlyUsedLabel,
+            selected: filters.recentlyUsedOnly,
+            onToggle: () => filters.setRecentlyUsedOnly((prev) => !prev),
+          },
+        ]}
+      />
+
       <FastLogSheet
         visible={isLogOpen}
-        onClose={() => setIsLogOpen(false)}
+        onClose={() => {
+          setIsLogOpen(false);
+          router.setParams({ action: undefined });
+        }}
         onSave={(item) => logItem(item)}
         isSaving={isLogging}
       />
@@ -216,47 +260,5 @@ export default function InventoryTab() {
         isSaving={isLoggingUsage}
       />
     </SafeAreaView>
-  );
-}
-
-function FilterRow<T extends string>({
-  label,
-  allLabel,
-  selected,
-  options,
-  optionLabel,
-  onSelect,
-}: {
-  label: string;
-  allLabel: string;
-  selected: T | undefined;
-  options: readonly T[];
-  optionLabel: (value: T) => string;
-  onSelect: (value: T | undefined) => void;
-}) {
-  return (
-    <View className="mb-2">
-      <Text className="text-[11px] font-semibold text-muted-text font-satoshi px-4 mb-1 uppercase tracking-wider">
-        {label}
-      </Text>
-      <FlatList
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        data={['__all__', ...options] as const}
-        keyExtractor={(item) => item}
-        contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
-        renderItem={({ item }) =>
-          item === '__all__' ? (
-            <Chip label={allLabel} selected={!selected} onPress={() => onSelect(undefined)} />
-          ) : (
-            <Chip
-              label={optionLabel(item as T)}
-              selected={selected === item}
-              onPress={() => onSelect(item as T)}
-            />
-          )
-        }
-      />
-    </View>
   );
 }
